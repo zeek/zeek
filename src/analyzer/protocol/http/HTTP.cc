@@ -263,6 +263,11 @@ void HTTP_Entity::DeliverBodyClear(int len, const char* data, bool trailing_CRLF
     if ( trailing_CRLF )
         body_length += 2;
 
+    // All body bytes pass through the top-level entity, including those of
+    // nested MIME entities, so forward them as-is for full body analysis.
+    if ( Depth() == 0 && BifConst::HTTP::enable_full_body_file_analysis )
+        http_message->FullBodyDataIn(len, data);
+
     if ( deliver_body )
         analyzer::mime::MIME_Entity::Deliver(len, data, trailing_CRLF);
 
@@ -807,6 +812,11 @@ void HTTP_Message::Done(bool interrupted, const char* detail) {
             file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(), MyHTTP_Analyzer()->Conn(), is_orig);
     }
 
+    if ( ! full_body_fuid.empty() ) {
+        file_mgr->EndOfFile(full_body_fuid);
+        full_body_fuid.clear();
+    }
+
     if ( http_message_done )
         GetAnalyzer()->EnqueueConnEvent(http_message_done, analyzer->ConnVal(), val_mgr->Bool(is_orig),
                                         BuildMessageStat(interrupted, detail));
@@ -819,6 +829,13 @@ bool HTTP_Message::Undelivered(int64_t len) {
 
     if ( e && e->Undelivered(len) ) {
         content_gap_length += len;
+
+        if ( ! full_body_fuid.empty() ) {
+            file_mgr->Gap(full_body_offset, len, MyHTTP_Analyzer()->GetAnalyzerTag(), MyHTTP_Analyzer()->Conn(),
+                          is_orig, full_body_fuid);
+            full_body_offset += len;
+        }
+
         return true;
     }
 
@@ -865,6 +882,38 @@ void HTTP_Message::EndEntity(analyzer::mime::MIME_Entity* entity) {
         else
             file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(), MyHTTP_Analyzer()->Conn(), is_orig);
     }
+}
+
+const std::string& HTTP_Message::FullBodyFileID() {
+    if ( ! full_body_started ) {
+        full_body_started = true;
+
+        // Derive the ID from the top-level entity's file handle so that
+        // Files::disable and HTTP::get_file_handle apply, while keeping the
+        // full body and the top-level entity in separate files. Handles may
+        // be shared across messages and connections, e.g. for range requests,
+        // and a connection may carry more than one HTTP analyzer, e.g. inside
+        // a CONNECT tunnel. A process-wide counter and the connection's UID
+        // keep each body in its own file.
+        static uint64_t num_full_body_files = 0;
+        auto* a = MyHTTP_Analyzer();
+        if ( auto id = file_mgr->GetFileID(a->GetAnalyzerTag(), a->Conn(), is_orig); ! id.empty() )
+            full_body_fuid = file_mgr->HashHandle(id + "full-body" + std::to_string(++num_full_body_files) +
+                                                  a->Conn()->GetUID().Base62("C"));
+    }
+
+    return full_body_fuid;
+}
+
+void HTTP_Message::FullBodyDataIn(int len, const char* data) {
+    if ( FullBodyFileID().empty() )
+        return;
+
+    // An empty return means the file was ignored or is complete.
+    auto* a = MyHTTP_Analyzer();
+    full_body_fuid = file_mgr->DataIn(reinterpret_cast<const u_char*>(data), len, a->GetAnalyzerTag(), a->Conn(),
+                                      is_orig, full_body_fuid);
+    full_body_offset += len;
 }
 
 void HTTP_Message::SubmitHeader(analyzer::mime::MIME_Header* h) { MyHTTP_Analyzer()->HTTP_Header(is_orig, h); }

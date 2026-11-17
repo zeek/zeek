@@ -1,1 +1,2 @@
 const HTTP::max_pending_requests: count;
+const HTTP::enable_full_body_file_analysis: bool;

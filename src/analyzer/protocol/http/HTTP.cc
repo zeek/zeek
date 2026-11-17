@@ -199,12 +199,9 @@ private:
 };
 
 void HTTP_Entity::DeliverBody(int len, const char* data, bool trailing_CRLF) {
-    if ( encoding == GZIP || encoding == DEFLATE || encoding == BROTLI ) {
-        analyzer::zip::ZIP_Analyzer::Method method = analyzer::zip::ZIP_Analyzer::GZIP;
-        if ( encoding == DEFLATE )
-            method = analyzer::zip::ZIP_Analyzer::DEFLATE;
-        else if ( encoding == BROTLI )
-            method = analyzer::zip::ZIP_Analyzer::BROTLI;
+    if ( encoding == GZIP || encoding == DEFLATE ) {
+        analyzer::zip::ZIP_Analyzer::Method method =
+            encoding == GZIP ? analyzer::zip::ZIP_Analyzer::GZIP : analyzer::zip::ZIP_Analyzer::DEFLATE;
 
         if ( ! zip ) {
             // We don't care about the direction here.
@@ -226,6 +223,29 @@ void HTTP_Entity::DeliverBody(int len, const char* data, bool trailing_CRLF) {
             zip->Done();
             zip.reset();
         }
+    }
+    else if ( encoding == BROTLI ) {
+#ifdef USE_BROTLI
+        if ( ! brotli ) {
+            brotli = std::make_unique<analyzer::brotli::Brotli_Analyzer>(http_message->MyHTTP_Analyzer()->Conn(), false,
+                                                                         BifConst::HTTP::max_uncompressed_size,
+                                                                         BifConst::HTTP::max_brotli_decoder_memory);
+            brotli->SetOutputHandler(new UncompressedOutput(this));
+        }
+
+        brotli->NextStream(len, reinterpret_cast<const u_char*>(data), false);
+
+        // Same teardown as for zip above.
+        if ( end_of_data ) {
+            brotli->Done();
+            brotli.reset();
+        }
+#else
+        // Zeek was built without libbrotlidec. Report it once and pass the body through as is.
+        http_message->MyHTTP_Analyzer()->Weird("HTTP_brotli_decompression_unsupported");
+        encoding = IDENTITY;
+        DeliverBodyClear(len, data, trailing_CRLF);
+#endif
     }
     else
         DeliverBodyClear(len, data, trailing_CRLF);
@@ -611,10 +631,8 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
             encoding = GZIP;
         if ( analyzer::mime::istrequal(vt, "deflate") )
             encoding = DEFLATE;
-#ifdef USE_BROTLI
         if ( analyzer::mime::istrequal(vt, "br") )
             encoding = BROTLI;
-#endif
     }
     else if ( analyzer::mime::istrequal(h->get_name(), "expect") ) {
         data_chunk_t vt = h->get_value_token();

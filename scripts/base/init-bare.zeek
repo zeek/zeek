@@ -862,6 +862,12 @@ export {
 	## This applies to gzip content encoding. Set to 0 to disable the limit.
 	const max_uncompressed_size = 128 * 1024 * 1024 &redef;
 
+	## Maximum number of bytes the Brotli decoder may allocate for one
+	## HTTP body. A Brotli stream can request a window of up to 16 MiB.
+	## If decoding needs more memory, Zeek stops decompressing the body
+	## and reports a weird. Set to 0 to disable the limit.
+	const max_brotli_decoder_memory = 32 * 1024 * 1024 &redef;
+
 	## Only allow that many pending requests on a single connection.
 	## If this number is exceeded, all pending requests are flushed
 	## out and request/response tracking reset to prevent unbounded

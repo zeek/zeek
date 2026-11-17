@@ -2,14 +2,8 @@
 
 #include "zeek/analyzer/protocol/zip/ZIP.h"
 
-#include "zeek/zeek-config.h"
-
 #include <algorithm>
 #include <cinttypes>
-
-#ifdef USE_BROTLI
-#include <brotli/decode.h>
-#endif
 
 #include "zeek/analyzer/protocol/zip/events.bif.h"
 
@@ -20,18 +14,6 @@ ZIP_Analyzer::ZIP_Analyzer(Connection* conn, uint64_t max_uncompressed_size, boo
     zip = nullptr;
     zip_status = Z_OK;
     method = arg_method;
-
-    if ( method == BROTLI ) {
-#ifdef USE_BROTLI
-        brotli = BrotliDecoderCreateInstance(nullptr, nullptr, nullptr);
-#endif
-        if ( ! brotli ) {
-            Weird("brotli_init_failed");
-            zip_status = Z_STREAM_ERROR;
-        }
-
-        return;
-    }
 
     zip = new z_stream;
     zip->zalloc = nullptr;
@@ -53,17 +35,14 @@ ZIP_Analyzer::ZIP_Analyzer(Connection* conn, uint64_t max_uncompressed_size, boo
         zip_stream_active = true;
 }
 
-ZIP_Analyzer::~ZIP_Analyzer() {
-    FinishBrotliStream();
-    delete zip;
-}
+ZIP_Analyzer::~ZIP_Analyzer() { delete zip; }
 
 void ZIP_Analyzer::Done() {
     Analyzer::Done();
-    if ( zip || method == BROTLI ) {
+    if ( zip ) {
         // Only trigger if we have data and the limit wasn't exceeded (meaning we already triggered the event).
-        if ( TotalIn() > 0 && ! limit_exceeded )
-            zeek::BifEvent::enqueue_zip_analyzer_stats(this, Conn(), GetID(), TotalIn(), uncompressed_size, false);
+        if ( zip->total_in > 0 && ! limit_exceeded )
+            zeek::BifEvent::enqueue_zip_analyzer_stats(this, Conn(), GetID(), zip->total_in, uncompressed_size, false);
 
         FinishZipStream();
     }
@@ -89,17 +68,10 @@ bool ZIP_Analyzer::ForwardDecompressed(uint64_t len, const Bytef* data) {
     if ( forward_len == len )
         return true;
 
-    zeek::BifEvent::enqueue_zip_analyzer_stats(this, Conn(), GetID(), TotalIn(), uncompressed_size, true);
+    zeek::BifEvent::enqueue_zip_analyzer_stats(this, Conn(), GetID(), zip->total_in, uncompressed_size, true);
     limit_exceeded = true;
     zip_status = Z_MEM_ERROR;
     return false;
-}
-
-uint64_t ZIP_Analyzer::TotalIn() const {
-    if ( method == BROTLI )
-        return brotli_total_in;
-
-    return zip ? zip->total_in : 0;
 }
 
 void ZIP_Analyzer::FinishZipStream() {
@@ -107,61 +79,6 @@ void ZIP_Analyzer::FinishZipStream() {
         inflateEnd(zip);
         zip_stream_active = false;
     }
-
-    FinishBrotliStream();
-}
-
-void ZIP_Analyzer::FinishBrotliStream() {
-#ifdef USE_BROTLI
-    if ( brotli ) {
-        BrotliDecoderDestroyInstance(brotli);
-        brotli = nullptr;
-    }
-#endif
-}
-
-void ZIP_Analyzer::DeliverBrotli(int len, const u_char* data) {
-#ifdef USE_BROTLI
-    if ( ! brotli )
-        return;
-
-    constexpr size_t unzip_size = 4096;
-    uint8_t unzipbuf[unzip_size];
-
-    size_t avail_in = len;
-    const uint8_t* next_in = data;
-
-    while ( true ) {
-        size_t avail_out = unzip_size;
-        uint8_t* next_out = unzipbuf;
-        const size_t prev_avail_in = avail_in;
-
-        auto result = BrotliDecoderDecompressStream(brotli, &avail_in, &next_in, &avail_out, &next_out, nullptr);
-        brotli_total_in += prev_avail_in - avail_in;
-
-        if ( result == BROTLI_DECODER_RESULT_ERROR ) {
-            Weird("brotli_decompress_failed", BrotliDecoderErrorString(BrotliDecoderGetErrorCode(brotli)));
-            zip_status = Z_DATA_ERROR;
-            FinishBrotliStream();
-            return;
-        }
-
-        if ( ! ForwardDecompressed(unzip_size - avail_out, unzipbuf) )
-            return;
-
-        if ( result == BROTLI_DECODER_RESULT_SUCCESS ) {
-            zip_status = Z_STREAM_END;
-            FinishBrotliStream();
-            return;
-        }
-
-        // Needs more input: everything was consumed, wait for the next chunk.
-        if ( result == BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT )
-            return;
-
-        // BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT: loop to drain more output.
-    }
-#endif
 }
 
 void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
@@ -169,11 +86,6 @@ void ZIP_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
 
     if ( ! len || zip_status != Z_OK )
         return;
-
-    if ( method == BROTLI ) {
-        DeliverBrotli(len, data);
-        return;
-    }
 
     static unsigned int unzip_size = 4096;
     auto unzipbuf = std::make_unique<Bytef[]>(unzip_size);

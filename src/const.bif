@@ -23,6 +23,7 @@ const max_event_queue_size: count;
 const FTP::max_command_length: count;
 
 const HTTP::max_uncompressed_size: count;
+const HTTP::max_brotli_decoder_memory: count;
 
 const IRC::max_uncompressed_size: count;
 

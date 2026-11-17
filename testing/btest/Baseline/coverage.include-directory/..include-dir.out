@@ -741,6 +741,8 @@
 ./zeek/analyzer/protocol/bittorrent/bittorrent-protocol.pac
 ./zeek/analyzer/protocol/bittorrent/bittorrent.pac
 ./zeek/analyzer/protocol/bittorrent/events.bif.h
+./zeek/analyzer/protocol/brotli
+./zeek/analyzer/protocol/brotli/Brotli.h
 ./zeek/analyzer/protocol/conn-size
 ./zeek/analyzer/protocol/conn-size/ConnSize.h
 ./zeek/analyzer/protocol/conn-size/events.bif.h

@@ -24,11 +24,6 @@ event file_sniff(f: fa_file, meta: fa_metadata)
 	print "file_sniff", meta?$mime_type ? meta$mime_type : "-", f$bof_buffer[:52];
 	}
 
-event zip_analyzer_stats(c: connection, aid: count, total_in: count, total_out: count, exceeded: bool)
-	{
-	print fmt("zip stats: %s in=%d out=%d exceeded=%s", c$id$orig_p, total_in, total_out, exceeded);
-	}
-
 event connection_state_remove(c: connection)
 	{
 	print fmt("body bytes: %s %d", c$id$orig_p, body_bytes[c$uid]);

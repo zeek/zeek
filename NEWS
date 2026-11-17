@@ -47,7 +47,10 @@ New Functionality
 - The HTTP analyzer now decompresses bodies with ``Content-Encoding: br``
   (Brotli) when Zeek is built with libbrotlidec. The dependency is optional and
   detected at configure time; use ``--disable-brotli`` to turn it off.
-  Decompressed output is subject to ``HTTP::max_uncompressed_size``.
+  Decompressed output is subject to ``HTTP::max_uncompressed_size``. The new
+  ``HTTP::max_brotli_decoder_memory`` option limits the decoder's memory use.
+  Without libbrotlidec, Zeek reports ``HTTP_brotli_decompression_unsupported``
+  and passes such bodies through undecoded.
 
 - The DHCPv6 analyzer now supports prefix delegation (IA_PD) and logs
   assigned prefixes in ``dhcpv6.log`` via the ``assigned_prefix`` field.

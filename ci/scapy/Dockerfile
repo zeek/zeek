@@ -6,6 +6,7 @@ RUN apt-get update && apt-get --no-install-recommends -y install \
     git \
     gzip \
     libpcap-dev \
+    python3-brotli \
     python3-cryptography \
     python3-scapy \
     tar \

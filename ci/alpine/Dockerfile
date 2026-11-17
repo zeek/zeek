@@ -2,11 +2,12 @@ FROM alpine:latest
 
 # A version field used by Circle to create new versions on DockerHub
 # during rebuilds.
-ENV DOCKERFILE_VERSION=20260515
+ENV DOCKERFILE_VERSION=20261117
 
 RUN apk add --no-cache \
   bash \
   bison \
+  brotli-dev \
   bsd-compat-headers \
   ccache \
   cmake \

@@ -2,10 +2,11 @@ FROM fedora:43
 
 # A version field used by Circle to create new versions on DockerHub
 # during rebuilds.
-ENV DOCKERFILE_VERSION=20260515
+ENV DOCKERFILE_VERSION=20261117
 
 RUN dnf -y install \
     bison \
+    brotli-devel \
     ccache \
     cmake \
     cppzmq-devel \

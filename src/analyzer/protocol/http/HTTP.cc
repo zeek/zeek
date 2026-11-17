@@ -265,6 +265,7 @@ void HTTP_Entity::DeliverBodyClear(int len, const char* data, bool trailing_CRLF
 
     // All body bytes pass through the top-level entity, including those of
     // nested MIME entities, so forward them as-is for full body analysis.
+    // Line-delivered bodies are forwarded by HTTP_BodyTap instead.
     if ( Depth() == 0 && BifConst::HTTP::enable_full_body_file_analysis )
         http_message->FullBodyDataIn(len, data);
 
@@ -722,6 +723,12 @@ void HTTP_Entity::SubmitAllHeaders() {
             else
                 EndOfData(); // handle the case that content-length = 0
         }
+
+        // As below, a request without a length has no body. Otherwise the
+        // tap would copy, e.g., a CONNECT or Upgrade request's tunneled data.
+        if ( Depth() == 0 && content_length != 0 && encoding == IDENTITY &&
+             (content_length > 0 || expect_body == HTTP_BODY_EXPECTED) )
+            http_message->StartFullBodyTap(content_length);
     }
 
     else if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
@@ -754,6 +761,8 @@ void HTTP_Entity::SubmitAllHeaders() {
         if ( expect_body != HTTP_BODY_EXPECTED )
             // there is no body
             EndOfData();
+        else if ( Depth() == 0 )
+            http_message->StartFullBodyTap(-1);
     }
 }
 
@@ -816,6 +825,9 @@ void HTTP_Message::Done(bool interrupted, const char* detail) {
         file_mgr->EndOfFile(full_body_fuid);
         full_body_fuid.clear();
     }
+
+    if ( auto* tap = analyzer->BodyTap(is_orig) )
+        tap->Stop();
 
     if ( http_message_done )
         GetAnalyzer()->EnqueueConnEvent(http_message_done, analyzer->ConnVal(), val_mgr->Bool(is_orig),
@@ -916,6 +928,136 @@ void HTTP_Message::FullBodyDataIn(int len, const char* data) {
     full_body_offset += len;
 }
 
+void HTTP_Message::StartFullBodyTap(int64_t length) {
+    auto* tap = analyzer->BodyTap(is_orig);
+    if ( ! tap )
+        return;
+
+    // A successful CONNECT reply has no body: the tunnel follows its headers.
+    if ( ! is_orig && analyzer->IsConnectTunnelReply() )
+        return;
+
+    // The tap owns the file from here on.
+    tap->Start(FullBodyFileID(), length, content_line);
+    full_body_fuid.clear();
+}
+
+void HTTP_BodyTap::Start(const std::string& arg_fuid, int64_t length, analyzer::tcp::ContentLine_Analyzer* cl) {
+    Finish();
+
+    if ( arg_fuid.empty() || length == 0 )
+        return;
+
+    content_line = cl;
+    offset = 0;
+    remaining = length > 0 ? length : -1;
+    flushed = Position();
+
+    // ContentLine swallows an LF following a CR that ended the previous chunk.
+    skip_lf = chunk && flushed == chunk_len && chunk_len > 0 && chunk[chunk_len - 1] == '\r';
+
+    // Create the file now, so that it's seen before the files of nested entities.
+    fuid = file_mgr->DataIn(reinterpret_cast<const u_char*>(""), 0, 0, GetAnalyzerTag(), Conn(), IsOrig(), arg_fuid);
+
+    // With a known length, the rest of the chunk can be forwarded right away.
+    if ( remaining > 0 )
+        Flush(chunk_len);
+}
+
+void HTTP_BodyTap::Stop() {
+    if ( fuid.empty() || remaining >= 0 )
+        return; // a body with known length ends by itself
+
+    Flush(Position());
+    Finish();
+}
+
+void HTTP_BodyTap::Done() {
+    Finish();
+    analyzer::tcp::TCP_SupportAnalyzer::Done();
+}
+
+void HTTP_BodyTap::DeliverStream(int len, const u_char* data, bool orig) {
+    chunk = data;
+    chunk_len = len;
+    flushed = 0;
+
+    if ( skip_lf ) {
+        skip_lf = false;
+        if ( len > 0 && data[0] == '\n' )
+            flushed = 1;
+    }
+
+    // Forward a body of known length before HTTP parses it, so that the
+    // file sees its data before the message ends.
+    if ( remaining > 0 )
+        Flush(len);
+
+    ForwardStream(len, data, orig);
+    Flush(len);
+
+    chunk = nullptr;
+    chunk_len = 0;
+}
+
+void HTTP_BodyTap::Undelivered(uint64_t seq, int len, bool orig) {
+    if ( ! fuid.empty() ) {
+        int64_t n = remaining >= 0 ? std::min<int64_t>(len, remaining) : len;
+
+        file_mgr->Gap(offset, n, GetAnalyzerTag(), Conn(), IsOrig(), fuid);
+        offset += n;
+
+        if ( remaining >= 0 ) {
+            remaining -= n;
+            if ( remaining == 0 )
+                Finish();
+        }
+    }
+
+    ForwardUndelivered(seq, len, orig);
+}
+
+int HTTP_BodyTap::Position() const {
+    // ContentLine reports how much of the chunk follows the delivered line.
+    return chunk ? chunk_len - content_line->GetDeliverStreamRemainingLength() : 0;
+}
+
+void HTTP_BodyTap::Flush(int upto) {
+    if ( fuid.empty() || ! chunk || upto <= flushed )
+        return;
+
+    int64_t n = upto - flushed;
+    if ( remaining >= 0 )
+        n = std::min(n, remaining);
+
+    const u_char* data = chunk + flushed;
+    flushed = upto;
+
+    FileDataIn(static_cast<int>(n), data);
+
+    if ( remaining >= 0 ) {
+        remaining -= n;
+        if ( remaining == 0 )
+            Finish();
+    }
+}
+
+void HTTP_BodyTap::FileDataIn(int len, const u_char* data) {
+    if ( fuid.empty() )
+        return;
+
+    fuid = file_mgr->DataIn(data, len, offset, GetAnalyzerTag(), Conn(), IsOrig(), fuid);
+    offset += len;
+}
+
+void HTTP_BodyTap::Finish() {
+    if ( ! fuid.empty() )
+        file_mgr->EndOfFile(fuid);
+
+    fuid.clear();
+    skip_lf = false;
+}
+
 void HTTP_Message::SubmitHeader(analyzer::mime::MIME_Header* h) { MyHTTP_Analyzer()->HTTP_Header(is_orig, h); }
 
 void HTTP_Message::SubmitAllHeaders(analyzer::mime::MIME_HeaderList& hlist) {
@@ -1012,6 +1154,14 @@ HTTP_Analyzer::HTTP_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationA
     upgraded = false;
     upgrade_connection = false;
     upgrade_protocol.clear();
+
+    // The taps must see the stream before ContentLine splits it into lines.
+    if ( BifConst::HTTP::enable_full_body_file_analysis ) {
+        body_tap_orig = new HTTP_BodyTap(conn, true);
+        AddSupportAnalyzer(body_tap_orig);
+        body_tap_resp = new HTTP_BodyTap(conn, false);
+        AddSupportAnalyzer(body_tap_resp);
+    }
 
     content_line_orig = new analyzer::tcp::ContentLine_Analyzer(conn, true);
     AddSupportAnalyzer(content_line_orig);
@@ -1278,9 +1428,12 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig) {
                         RemoveSupportAnalyzer(content_line_resp);
                     }
 
-                    else
-                        // AddChildAnalyzer() will have deleted PIA.
+                    else {
+                        // AddChildAnalyzer() will have deleted PIA. No tunnel
+                        // follows, so later replies are normal messages again.
                         pia = nullptr;
+                        connect_request = false;
+                    }
                 }
 
                 break;
@@ -1355,6 +1508,7 @@ void HTTP_Analyzer::FlipRoles() {
     bool skip_partial_orig = content_line_orig->SkipPartial();
     bool skip_partial_resp = content_line_resp->SkipPartial();
     std::swap(content_line_orig, content_line_resp);
+    std::swap(body_tap_orig, body_tap_resp);
     content_line_orig->SetSkipPartial(skip_partial_orig);
     content_line_resp->SetSkipPartial(skip_partial_resp);
 }

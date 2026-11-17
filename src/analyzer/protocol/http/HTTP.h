@@ -135,6 +135,7 @@ public:
 
     // Support for HTTP::enable_full_body_file_analysis.
     void FullBodyDataIn(int len, const char* data);
+    void StartFullBodyTap(int64_t length);
 
 protected:
     HTTP_Analyzer* analyzer;
@@ -163,6 +164,44 @@ protected:
     RecordValPtr BuildMessageStat(bool interrupted, const char* msg);
 };
 
+// Sees the raw stream before ContentLine_Analyzer splits it into lines and
+// forwards a line-delivered body to file analysis as-is.
+class HTTP_BodyTap final : public analyzer::tcp::TCP_SupportAnalyzer {
+public:
+    // Part of the HTTP analyzer, so it uses its tag.
+    HTTP_BodyTap(Connection* conn, bool orig) : analyzer::tcp::TCP_SupportAnalyzer("HTTP", conn, orig) {}
+
+    // Called while the line ending the headers is delivered. A negative
+    // length means the body ends with Stop().
+    void Start(const std::string& fuid, int64_t length, analyzer::tcp::ContentLine_Analyzer* cl);
+
+    // Ends a body of unknown length after the line just delivered.
+    void Stop();
+
+    void Done() override;
+
+protected:
+    void DeliverStream(int len, const u_char* data, bool orig) override;
+    void Undelivered(uint64_t seq, int len, bool orig) override;
+
+private:
+    int Position() const;
+    void Flush(int upto);
+    void Finish();
+    void FileDataIn(int len, const u_char* data);
+
+    analyzer::tcp::ContentLine_Analyzer* content_line = nullptr;
+    std::string fuid;
+    uint64_t offset = 0;
+    int64_t remaining = -1; // bytes left of the body, -1 if unknown
+    bool skip_lf = false;   // body started after a CR that ended a chunk
+
+    // The chunk currently being forwarded and how much of it was handled.
+    const u_char* chunk = nullptr;
+    int chunk_len = 0;
+    int flushed = 0;
+};
+
 class HTTP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
     HTTP_Analyzer(Connection* conn);
@@ -174,6 +213,11 @@ public:
     void HTTP_Event(const char* category, StringValPtr detail);
 
     void SkipEntityData(bool is_orig);
+
+    HTTP_BodyTap* BodyTap(bool is_orig) const { return is_orig ? body_tap_orig : body_tap_resp; }
+
+    // True while the reply to a CONNECT request switches to a tunnel.
+    bool IsConnectTunnelReply() const { return connect_request; }
 
     bool IsConnectionClose() { return connection_close; }
     int HTTP_ReplyCode() const { return reply_code; };
@@ -284,6 +328,8 @@ protected:
 
     analyzer::tcp::ContentLine_Analyzer* content_line_orig;
     analyzer::tcp::ContentLine_Analyzer* content_line_resp;
+    HTTP_BodyTap* body_tap_orig = nullptr;
+    HTTP_BodyTap* body_tap_resp = nullptr;
 
     HTTP_Message* request_message;
     HTTP_Message* reply_message;

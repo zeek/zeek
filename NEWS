@@ -44,6 +44,11 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Added the ``zeek_invalid_checksums_total`` telemetry counter metric family
+  (with the ``checksum_type`` label dimension: ``ipv4``, ``tcp``, ``udp``,
+  ``icmp``, and ``mobility``) to track the total number of checksum validation
+  failures for the five instrumented checksum types.
+
 - The DHCPv6 analyzer now supports prefix delegation (IA_PD) and logs
   assigned prefixes in ``dhcpv6.log`` via the ``assigned_prefix`` field.
 

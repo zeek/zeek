@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
 #include <map>
 #include <set>
 
@@ -199,5 +201,25 @@ private:
     uint32_t server_port_mask;
     static TableValPtr ignore_checksums_nets_table;
 };
+
+enum class ChecksumType : uint8_t {
+    IPv4 = 0,
+    TCP = 1,
+    UDP = 2,
+    ICMP = 3,
+    Mobility = 4,
+    COUNT = 5,
+};
+
+/**
+ * Increments the telemetry counter for the given checksum validation failure.
+ */
+void CountInvalidChecksum(ChecksumType type);
+
+/**
+ * Initializes the invalid_checksums CounterFamily and pre-allocates handles.
+ * Called once during packet_analysis::Manager::InitPostScript().
+ */
+void init_checksum_telemetry();
 
 } // namespace zeek::packet_analysis::IP

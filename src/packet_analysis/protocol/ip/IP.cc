@@ -130,6 +130,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
     if ( ! packet->l3_checksummed && ! zeek::detail::ignore_checksums && ip4 &&
          ! IPBasedAnalyzer::GetIgnoreChecksumsNets()->Contains(packet->ip_hdr->IPHeaderSrcAddr()) &&
          zeek::detail::in_cksum(reinterpret_cast<const uint8_t*>(ip4), ip_hdr_len) != 0xffff ) {
+        CountInvalidChecksum(ChecksumType::IPv4);
         Weird("bad_IP_checksum", packet);
         if ( zeek::detail::drop_bad_checksums )
             return false;
@@ -216,6 +217,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
         packet->dump_packet = true;
 
         if ( ! zeek::detail::ignore_checksums && mobility_header_checksum(packet->ip_hdr.get()) != 0xffff ) {
+            CountInvalidChecksum(ChecksumType::Mobility);
             Weird("bad_MH_checksum", packet);
             if ( zeek::detail::drop_bad_checksums ) {
                 packet->cap_len = orig_cap_len;

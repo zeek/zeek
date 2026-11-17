@@ -15,6 +15,11 @@
 #
 set -eux
 
+# Only push images to the repositories if we're running on the main zeek repo
+if [ "${CIRCLE_PROJECT_REPONAME}" != "zeek" -o "${CIRCLE_PROJECT_USERNAME}" != "zeek" ]; then
+    exit 0
+fi
+
 REGISTRY_PREFIX=${REGISTRY_PREFIX:-}
 ZEEK_IMAGE_REPO=${ZEEK_IMAGE_REPO:-zeek}
 

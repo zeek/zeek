@@ -1,3 +1,9 @@
+9.0.1-16 | 2026-11-19 18:02:00 +0000
+
+  * CI: Only push docker images on main zeek repo (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 3050b34beaa3588e644d74e7cbaaa8f072ec1ca3)
+
 9.0.1-15 | 2026-11-12 17:10:12 +0000
 
   * cluster/websocket: Suppress bugprone-derived-method-shadowing-base-method (Arne Welzel, Corelight)

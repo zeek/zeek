@@ -1361,7 +1361,7 @@ Redefinable Options
    record to represent additional connection tuple members.
 
 .. zeek:id:: ConnThreshold::generic_packet_thresholds
-   :source-code: base/init-bare.zeek 7101 7101
+   :source-code: base/init-bare.zeek 7105 7105
 
    :Type: :zeek:type:`set` [:zeek:type:`count`]
    :Attributes: :zeek:attr:`&redef`
@@ -4557,7 +4557,7 @@ State Variables
    .. zeek:see:: dns_skip_all_auth dns_skip_addl
 
 .. zeek:id:: done_with_network
-   :source-code: base/init-bare.zeek 7144 7144
+   :source-code: base/init-bare.zeek 7148 7148
 
    :Type: :zeek:type:`bool`
    :Default: ``F``
@@ -10892,7 +10892,7 @@ Types
    .. zeek:see:: connection_SYN_packet
 
 .. zeek:type:: Storage::OperationResult
-   :source-code: base/init-bare.zeek 7078 7089
+   :source-code: base/init-bare.zeek 7082 7093
 
    :Type: :zeek:type:`record`
 
@@ -10919,7 +10919,7 @@ Types
    Returned as the result of the various storage operations.
 
 .. zeek:type:: Storage::ReturnCode
-   :source-code: base/init-bare.zeek 7044 7076
+   :source-code: base/init-bare.zeek 7044 7080
 
    :Type: :zeek:type:`enum`
 
@@ -10978,6 +10978,14 @@ Types
 
          Returned from async operations when the backend is waiting
          for a result.
+
+      .. zeek:enum:: Storage::NOT_SUPPORTED Storage::ReturnCode
+
+         Backend does not support the requested operation.
+
+      .. zeek:enum:: Storage::RESULT_TOO_LARGE Storage::ReturnCode
+
+         Result exceeds the requested maximum number of entries passed in the operation request.
    :Attributes: :zeek:attr:`&redef`
 
    Common set of statuses that can be returned by storage operations. Backend plugins
@@ -11529,7 +11537,7 @@ Types
 
 
 .. zeek:type:: ZAM::Prof::Profile
-   :source-code: base/init-bare.zeek 7108 7137
+   :source-code: base/init-bare.zeek 7112 7141
 
    :Type: :zeek:type:`record`
 

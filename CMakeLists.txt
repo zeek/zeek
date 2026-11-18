@@ -1438,7 +1438,7 @@ if (INSTALL_ZKG)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/zkg-config.in
                    ${CMAKE_CURRENT_BINARY_DIR}/zkg-config @ONLY)
 
-    install(DIRECTORY DESTINATION var/lib/zkg)
+    install(DIRECTORY DESTINATION ${ZEEK_ZKG_STATE_DIR})
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zkg-config DESTINATION ${ZEEK_ZKG_CONFIG_DIR}
             RENAME config)
 endif ()

@@ -12,6 +12,7 @@ zeek_add_subdir_library(
     AnalyzerSet.cc
     Component.cc
     BIFS
-    file_analysis.bif)
+    file_analysis.bif
+)
 
 add_subdirectory(analyzer)

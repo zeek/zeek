@@ -9,6 +9,7 @@ zeek_add_subdir_library(
     Manager.cc
     Component.cc
     BIFS
-    consts.bif)
+    consts.bif
+)
 
 add_subdirectory(protocol)

@@ -10,7 +10,8 @@ zeek_add_subdir_library(
     Manager.cc
     Packet.cc
     PktDumper.cc
-    PktSrc.cc)
+    PktSrc.cc
+)
 
 add_subdirectory(pcap)
 add_subdirectory(pcapng)

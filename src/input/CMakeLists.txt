@@ -7,6 +7,7 @@ zeek_add_subdir_library(
     ReaderBackend.cc
     ReaderFrontend.cc
     BIFS
-    input.bif)
+    input.bif
+)
 
 add_subdirectory(readers)

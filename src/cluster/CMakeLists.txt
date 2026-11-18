@@ -13,7 +13,8 @@ zeek_add_subdir_library(
     Telemetry.cc
     BIFS
     cluster.bif
-    publish_on_change.bif)
+    publish_on_change.bif
+)
 
 add_subdirectory(backend)
 add_subdirectory(serializer)

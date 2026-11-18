@@ -50,10 +50,10 @@ repos:
       args: ["--fix"]
     - id: ruff-format
 
-- repo: https://github.com/aumuell/cmake-format-precommit
-  rev: b0e8f6d30cdc0da7e82dc8f0b560ccdc8c5852aa  # v0.6.13.py3-15
+- repo: https://github.com/BlankSpruce/gersemi-pre-commit
+  rev: 28010ddd6016e1a0f7bd232acb6536ef996ae897  # frozen: 0.29.2
   hooks:
-  - id: cmake-format
+  - id: gersemi
 
 - repo: https://github.com/crate-ci/typos
   rev: v1.35.3

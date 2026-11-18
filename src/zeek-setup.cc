@@ -349,6 +349,9 @@ static void terminate_zeek() {
     if ( cluster::backend != broker_mgr )
         cluster::backend->Terminate();
 
+    // Before the telemetry manager: the storage manager waits for its
+    // expiration thread, which updates telemetry metrics.
+    storage_mgr->Terminate();
     telemetry_mgr->Terminate();
 
     plugin_mgr->FinishPlugins();

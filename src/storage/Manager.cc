@@ -52,6 +52,13 @@ void Manager::InitPostScript() {
     StartExpirationTimer();
 }
 
+void Manager::Terminate() {
+    // New expiration threads aren't started once Zeek is terminating, but one
+    // that was started earlier may still be running.
+    if ( expiration_thread.joinable() )
+        expiration_thread.join();
+}
+
 zeek::expected<BackendPtr, std::string> Manager::InstantiateBackend(const Tag& type) {
     BackendComponent* c = backend_mgr.Lookup(type);
     if ( ! c )

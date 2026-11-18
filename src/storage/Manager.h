@@ -52,6 +52,13 @@ public:
     void InitPostScript();
 
     /**
+     * Shuts down the manager during Zeek's termination. This waits for a running
+     * expiration thread to finish, since that thread uses other managers (e.g.
+     * telemetry) that are destroyed before the storage manager.
+     */
+    void Terminate();
+
+    /**
      * Instantiates a new backend object. The backend will be in a closed state, and
      * OpenBackend() will need to be called to fully initialize it.
      *

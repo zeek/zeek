@@ -1,8 +1,10 @@
 zeek_add_plugin(
-    Zeek MQTT
+    Zeek
+    MQTT
     SOURCES MQTT.cc Plugin.cc
     BIFS types.bif events.bif consts.bif
-    PAC mqtt.pac
+    PAC
+        mqtt.pac
         mqtt-protocol.pac
         commands/connect.pac
         commands/connack.pac
@@ -17,4 +19,5 @@ zeek_add_plugin(
         commands/unsubscribe.pac
         commands/disconnect.pac
         commands/pingreq.pac
-        commands/pingresp.pac)
+        commands/pingresp.pac
+)

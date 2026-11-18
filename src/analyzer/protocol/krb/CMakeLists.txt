@@ -1,8 +1,10 @@
 zeek_add_plugin(
-    Zeek KRB
+    Zeek
+    KRB
     SOURCES Plugin.cc KRB.cc KRB_TCP.cc
     BIFS types.bif events.bif consts.bif
-    PAC krb.pac
+    PAC
+        krb.pac
         krb-protocol.pac
         krb-analyzer.pac
         krb-asn1.pac
@@ -10,11 +12,13 @@ zeek_add_plugin(
         krb-types.pac
         krb-padata.pac
         ${PROJECT_SOURCE_DIR}/src/analyzer/protocol/asn1/asn1.pac
-    PAC krb_TCP.pac
+    PAC
+        krb_TCP.pac
         krb-protocol.pac
         krb-analyzer.pac
         krb-asn1.pac
         krb-defs.pac
         krb-types.pac
         krb-padata.pac
-        ${PROJECT_SOURCE_DIR}/src/analyzer/protocol/asn1/asn1.pac)
+        ${PROJECT_SOURCE_DIR}/src/analyzer/protocol/asn1/asn1.pac
+)

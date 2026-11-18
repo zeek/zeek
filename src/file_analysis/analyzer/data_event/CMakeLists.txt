@@ -1,4 +1,6 @@
 zeek_add_plugin(
-    Zeek FileDataEvent
+    Zeek
+    FileDataEvent
     SOURCES DataEvent.cc Plugin.cc
-    INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}")
+    INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}"
+)

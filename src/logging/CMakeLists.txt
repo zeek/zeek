@@ -7,6 +7,7 @@ zeek_add_subdir_library(
     WriterFrontend.cc
     Types.cc
     BIFS
-    logging.bif)
+    logging.bif
+)
 
 add_subdirectory(writers)

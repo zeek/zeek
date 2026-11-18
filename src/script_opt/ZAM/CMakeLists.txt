@@ -19,4 +19,5 @@ zeek_add_subdir_library(
     ZInstAux.cc
     ZOp.cc
     BIFS
-    zam-prof.bif)
+    zam-prof.bif
+)

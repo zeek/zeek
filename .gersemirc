@@ -1,0 +1,6 @@
+# Copyright (c) 2026-now by the Zeek Project. See LICENSE for details.
+
+definitions:
+  - cmake
+  - auxil/spicy/cmake
+line_length: 100

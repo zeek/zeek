@@ -11,7 +11,8 @@ zeek_add_subdir_library(
     Target.cc
     Configuration.cc
     ReStructuredTextTable.cc
-    utils.cc)
+    utils.cc
+)
 
 # Treat BIFs as builtin (alternative mode).
 bif_target(zeekygen.bif)

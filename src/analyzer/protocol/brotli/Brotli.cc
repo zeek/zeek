@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdlib>
+#include <string>
+#include <string_view>
 
 #ifdef USE_BROTLI
 #include <brotli/decode.h>
@@ -127,7 +129,19 @@ void Brotli_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
             if ( denied_memory > 0 )
                 LimitReachedWeird("brotli_decoder_memory_exceeded", denied_memory, max_decoder_memory);
             else
-                Weird("brotli_decompress_failed", BrotliDecoderErrorString(BrotliDecoderGetErrorCode(state)));
+            {
+                // Older libbrotli (1.0.x) returns "_ERROR_FORMAT_DICTIONARY" where
+                // newer versions return "DICTIONARY". Strip the prefix so the
+                // weird is the same on all versions.
+                std::string_view err = BrotliDecoderErrorString(BrotliDecoderGetErrorCode(state));
+                for ( std::string_view prefix : {"_ERROR_FORMAT_", "_ERROR_"} ) {
+                    if ( err.substr(0, prefix.size()) == prefix ) {
+                        err.remove_prefix(prefix.size());
+                        break;
+                    }
+                }
+                Weird("brotli_decompress_failed", std::string(err).c_str());
+            }
 
             stopped = true;
             FinishStream();

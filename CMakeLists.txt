@@ -248,6 +248,18 @@ else ()
     endif ()
 endif ()
 
+# musl gives new threads a 128 KiB stack by default, while glibc uses the stack
+# rlimit (usually 8 MiB). musl takes a larger default from the PT_GNU_STACK
+# header of the program and its libraries (up to 8 MiB), so request glibc's
+# usual size there. glibc ignores the size in that header.
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    include(CheckSymbolExists)
+    check_symbol_exists(__GLIBC__ "features.h" ZEEK_HAVE_GLIBC)
+    if (NOT ZEEK_HAVE_GLIBC)
+        add_link_options("LINKER:-z,stack-size=8388608")
+    endif ()
+endif ()
+
 include(cmake/CommonCMakeConfig.cmake)
 include(cmake/CheckCompilerArch.cmake)
 include(cmake/RequireCXXStd.cmake)

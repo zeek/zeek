@@ -170,6 +170,12 @@ Changed Functionality
   fields. These records were already parsed and exposed through their
   ``dns_*`` events, but were not summarized in the log.
 
+- On Linux with musl libc (e.g. Alpine), Zeek is now linked with
+  ``-z stack-size=8388608``. musl gives new threads a 128 KiB stack by default
+  and raises that default to the size in the program's PT_GNU_STACK header, so
+  Zeek's threads, including those of bundled libraries, now get 8 MiB as they
+  typically do with glibc.
+
 Deprecated Functionality
 ------------------------
 

@@ -384,6 +384,19 @@ jobs:
     name: ${{ matrix.id }}
 
     steps:
+      # Lower vm.mmap_rnd_bits to fix the following errors with ubuntu-26.04 runners
+      #
+      # FATAL: ThreadSanitizer: encountered an incompatible memory layout but was unable to disable ASLR (perhaps sandboxing is enabled?).
+      # FATAL: Please rerun with lower ASLR entropy, ASLR disabled, and/or sandboxing disabled.
+      #
+      # See also:
+      #
+      #     https://github.com/valkey-io/valkey-search/pull/1617
+      #     https://github.com/valkey-io/valkey-search/issues/1615
+      #
+    - name: Lower vm.mmap_rnd_bits for TSAN
+      run: sudo sysctl -w vm.mmap_rnd_bits=28
+
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
       with:
         fetch-depth: 0

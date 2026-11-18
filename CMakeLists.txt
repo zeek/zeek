@@ -432,6 +432,21 @@ add_custom_target(zeek_autogen_files)
 
 # Define our main targets and place the output files under src (for historic
 # reasons and backwards compatibility).
+add_library(zeek_lib STATIC EXCLUDE_FROM_ALL )
+zeek_target_enable_sanitizers(zeek_lib)
+target_link_libraries(zeek_lib PRIVATE $<BUILD_INTERFACE:zeek_internal>)
+add_dependencies(zeek_lib zeek_autogen_files)
+set_target_properties(zeek_lib PROPERTIES RUNTIME_OUTPUT_NAME libzeek)
+if (NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+    set_target_properties(zeek_lib PROPERTIES LIBRARY_OUTPUT_DIRECTORY src)
+endif ()
+set(zeek_lib_access PRIVATE)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+    target_link_libraries(zeek_lib PRIVATE /usr/lib/libutil.so)
+    target_link_libraries(zeek_lib PRIVATE procstat)
+endif ()
+
 if (ZEEK_STANDALONE)
     add_executable(zeek_exe)
     zeek_target_enable_sanitizers(zeek_exe)
@@ -446,7 +461,6 @@ if (ZEEK_STANDALONE)
     install(TARGETS zeek_exe RUNTIME DESTINATION bin)
     # Export symbols from zeek executable for use by plugins
     set_target_properties(zeek_exe PROPERTIES ENABLE_EXPORTS ON)
-    # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.
     set(zeek_exe_access PRIVATE)
 
     if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
@@ -454,26 +468,8 @@ if (ZEEK_STANDALONE)
         target_link_libraries(zeek_exe PRIVATE procstat)
     endif ()
 else ()
-    add_library(zeek_lib STATIC)
-    zeek_target_enable_sanitizers(zeek_lib)
-endif ()
-
-if (TARGET zeek_lib)
-    target_link_libraries(zeek_lib PRIVATE $<BUILD_INTERFACE:zeek_internal>)
-    add_dependencies(zeek_lib zeek_autogen_files)
-    set_target_properties(zeek_lib PROPERTIES RUNTIME_OUTPUT_NAME libzeek)
-    if (NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
-        set_target_properties(zeek_lib PROPERTIES LIBRARY_OUTPUT_DIRECTORY src)
-    endif ()
+    set_target_properties(zeek_lib PROPERTIES EXCLUDE_FROM_ALL OFF)
     install(TARGETS zeek_lib LIBRARY DESTINATION lib)
-    # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.
-    set(zeek_lib_access PRIVATE)
-
-    if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-        target_link_libraries(zeek_lib PRIVATE /usr/lib/libutil.so)
-        target_link_libraries(zeek_lib PRIVATE procstat)
-    endif ()
-
 endif ()
 
 # When building our fuzzers, we also need one extra top-level target that

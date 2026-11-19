@@ -18,6 +18,18 @@ namespace zeek::analyzer::brotli {
  * Create instances with Instantiate(), which returns nullptr when Zeek was
  * built without Brotli support. Without it, none of the other members are
  * defined.
+ *
+ * How memory limit enforcement works:
+ *
+ * libbrotlidec allocates its decoder state (mainly the sliding window, which
+ * a stream can make up to 16 MiB) through allocator callbacks. The analyzer
+ * passes its own Alloc() and Free() functions, with itself as the opaque
+ * pointer, when creating the decoder. Alloc() stores each block's size in a
+ * small header in front of the block and adds it to a per-instance counter;
+ * Free() reads the header and subtracts it again. If an allocation would push
+ * the counter above max_decoder_memory, Alloc() returns nullptr. The decoder
+ * then fails, and the analyzer reports brotli_decoder_memory_exceeded and
+ * stops decompressing that stream.
  */
 class Brotli_Analyzer final : public analyzer::tcp::TCP_SupportAnalyzer {
 public:

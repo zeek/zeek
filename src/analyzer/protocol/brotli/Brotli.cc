@@ -16,6 +16,19 @@
 
 namespace zeek::analyzer::brotli {
 
+std::unique_ptr<analyzer::tcp::TCP_SupportAnalyzer> Brotli_Analyzer::Instantiate(Connection* conn, bool orig,
+                                                                                  uint64_t max_uncompressed_size,
+                                                                                  uint64_t max_decoder_memory) {
+#ifdef USE_BROTLI
+    // The constructor is private, so std::make_unique() can't call it.
+    return std::unique_ptr<Brotli_Analyzer>(new Brotli_Analyzer(conn, orig, max_uncompressed_size, max_decoder_memory));
+#else
+    return nullptr;
+#endif
+}
+
+#ifdef USE_BROTLI
+
 namespace {
 
 // Each allocation stores its size in front of the block, so Free() can
@@ -29,9 +42,7 @@ Brotli_Analyzer::Brotli_Analyzer(Connection* conn, bool orig, uint64_t max_uncom
     : analyzer::tcp::TCP_SupportAnalyzer("Brotli", conn, orig),
       max_uncompressed_size(max_uncompressed_size),
       max_decoder_memory(max_decoder_memory) {
-#ifdef USE_BROTLI
     state = BrotliDecoderCreateInstance(Alloc, Free, this);
-#endif
 
     if ( ! state ) {
         Weird("brotli_init_failed");
@@ -98,18 +109,15 @@ bool Brotli_Analyzer::ForwardDecompressed(size_t len, const uint8_t* data) {
 }
 
 void Brotli_Analyzer::FinishStream() {
-#ifdef USE_BROTLI
     if ( state ) {
         BrotliDecoderDestroyInstance(state);
         state = nullptr;
     }
-#endif
 }
 
 void Brotli_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
     analyzer::tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);
 
-#ifdef USE_BROTLI
     if ( len <= 0 || stopped || ! state )
         return;
 
@@ -166,7 +174,8 @@ void Brotli_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
 
         // BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT: loop to drain more output.
     }
-#endif
 }
+
+#endif // USE_BROTLI
 
 } // namespace zeek::analyzer::brotli

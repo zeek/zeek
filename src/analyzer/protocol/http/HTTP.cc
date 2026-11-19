@@ -225,11 +225,18 @@ void HTTP_Entity::DeliverBody(int len, const char* data, bool trailing_CRLF) {
         }
     }
     else if ( encoding == BROTLI ) {
-#ifdef USE_BROTLI
         if ( ! brotli ) {
-            brotli = std::make_unique<analyzer::brotli::Brotli_Analyzer>(http_message->MyHTTP_Analyzer()->Conn(), false,
-                                                                         BifConst::HTTP::max_uncompressed_size,
-                                                                         BifConst::HTTP::max_brotli_decoder_memory);
+            brotli = analyzer::brotli::Brotli_Analyzer::Instantiate(http_message->MyHTTP_Analyzer()->Conn(), false,
+                                                                    BifConst::HTTP::max_uncompressed_size,
+                                                                    BifConst::HTTP::max_brotli_decoder_memory);
+            if ( ! brotli ) {
+                // Zeek was built without libbrotlidec. Report it once and pass the body through as is.
+                http_message->MyHTTP_Analyzer()->Weird("HTTP_brotli_decompression_unsupported");
+                encoding = IDENTITY;
+                DeliverBodyClear(len, data, trailing_CRLF);
+                return;
+            }
+
             brotli->SetOutputHandler(new UncompressedOutput(this));
         }
 
@@ -240,12 +247,6 @@ void HTTP_Entity::DeliverBody(int len, const char* data, bool trailing_CRLF) {
             brotli->Done();
             brotli.reset();
         }
-#else
-        // Zeek was built without libbrotlidec. Report it once and pass the body through as is.
-        http_message->MyHTTP_Analyzer()->Weird("HTTP_brotli_decompression_unsupported");
-        encoding = IDENTITY;
-        DeliverBodyClear(len, data, trailing_CRLF);
-#endif
     }
     else
         DeliverBodyClear(len, data, trailing_CRLF);

@@ -63,7 +63,7 @@ protected:
     int64_t header_length;
     enum : uint8_t { IDENTITY, GZIP, COMPRESS, DEFLATE, BROTLI } encoding;
     std::unique_ptr<analyzer::zip::ZIP_Analyzer> zip;
-    std::unique_ptr<analyzer::brotli::Brotli_Analyzer> brotli;
+    std::unique_ptr<analyzer::tcp::TCP_SupportAnalyzer> brotli; // Created by Brotli_Analyzer::Instantiate().
     bool deliver_body;
     bool is_partial_content;
     uint64_t offset;

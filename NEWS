@@ -44,6 +44,23 @@ Breaking Changes
 New Functionality
 -----------------
 
+- The HTTP analyzer can now optionally forward the full body of each HTTP message
+  to the file analysis framework, regardless of its ``Content-Type``. MIME parsing
+  hides parts of ``message/*`` and ``multipart`` bodies from file analysis, e.g.
+  data before the first boundary, which allowed bypassing file detection (#1799).
+
+  To enable this feature, set the ``HTTP::enable_full_body_file_analysis`` option.
+  The fuid of the full body file is available as ``c$http$orig_body_fuid`` or
+  ``c$http$resp_body_fuid``, and files of nested MIME entities use it as their
+  ``parent_fuid``:
+
+	redef HTTP::enable_full_body_file_analysis = T;
+
+	event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) {
+		if ( ! is_orig && f$id == c$http$resp_body_fuid )
+			Files::add_analyzer(f, Files::ANALYZER_EXTRACT);
+	}
+
 - The DHCPv6 analyzer now supports prefix delegation (IA_PD) and logs
   assigned prefixes in ``dhcpv6.log`` via the ``assigned_prefix`` field.
 

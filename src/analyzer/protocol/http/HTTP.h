@@ -129,6 +129,14 @@ public:
     void Weird(const char* msg);
     bool IsOrig() { return is_orig; }
 
+    // Support for HTTP::enable_full_body_file_analysis.
+    void FullBodyDataIn(int len, const char* data);
+    void KeepLineEndingsForFullBody();
+
+    // Terminator of the line just delivered. Always "\r\n" unless line
+    // endings are kept for full body analysis.
+    std::string_view LineTerminator() const;
+
 protected:
     HTTP_Analyzer* analyzer;
     analyzer::tcp::ContentLine_Analyzer* content_line;
@@ -144,6 +152,11 @@ protected:
     // Total length of content gaps that are "successfully" skipped.
     // Note: this might NOT include all content gaps!
     int64_t content_gap_length;
+
+    std::string full_body_fuid; // fuid of the full body file, if any
+    uint64_t full_body_offset = 0;
+    bool full_body_started = false;
+    bool keep_line_endings = false;
 
     HTTP_Entity* current_entity;
 

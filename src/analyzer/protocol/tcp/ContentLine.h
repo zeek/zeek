@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string_view>
+
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::tcp {
@@ -34,6 +36,12 @@ public:
     void SetCRLFAsEOL(int crlf = (CR_as_EOL | LF_as_EOL)) { CR_LF_as_EOL = crlf; }
 
     int CRLFAsEOL() { return CR_LF_as_EOL; }
+
+    // Returns the terminator of the most recently delivered line as seen
+    // in the stream: "\r\n", "\n" or "\r". It's empty if the line had no
+    // terminator, e.g. when flushed at the end of the stream. The parent
+    // can call this during its DeliverStream() invocation.
+    std::string_view LastEOL() const { return last_eol; }
 
     bool HasPartialLine() const;
 
@@ -122,6 +130,13 @@ protected:
     bool skip_partial;
 
     int deliver_stream_remaining_length;
+
+    // Terminator of the last delivered line, see LastEOL().
+    std::string_view last_eol;
+
+    // True while flushing a partial line with a terminator that
+    // isn't part of the stream.
+    bool flushing = false;
 };
 
 } // namespace zeek::analyzer::tcp

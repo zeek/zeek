@@ -1,3 +1,9 @@
+8.0.11-10 | 2026-11-19 18:00:03 +0000
+
+  * Restore ability to set LOCALVERSION when building Docker images (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit e392402c64972c1aa4701e3fd7a8fe6621c61d73)
+
 8.0.11-9 | 2026-11-17 13:21:06 -0700
 
   * CI: Only push docker images on main zeek repo (Tim Wojtulewicz, Corelight)

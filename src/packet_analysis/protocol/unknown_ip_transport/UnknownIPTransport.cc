@@ -40,6 +40,7 @@ bool UnknownIPTransportAnalyzer::InitConnKey(size_t len, const uint8_t* data, Pa
 }
 
 void UnknownIPTransportAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remaining, Packet* pkt) {
+    pkt->session = c;
     auto* adapter = static_cast<UnknownIPSessionAdapter*>(c->GetSessionAdapter());
 
     const u_char* data = pkt->ip_hdr->Payload();

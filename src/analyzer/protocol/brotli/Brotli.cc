@@ -17,8 +17,8 @@
 namespace zeek::analyzer::brotli {
 
 std::unique_ptr<analyzer::tcp::TCP_SupportAnalyzer> Brotli_Analyzer::Instantiate(Connection* conn, bool orig,
-                                                                                  uint64_t max_uncompressed_size,
-                                                                                  uint64_t max_decoder_memory) {
+                                                                                 uint64_t max_uncompressed_size,
+                                                                                 uint64_t max_decoder_memory) {
 #ifdef USE_BROTLI
     // The constructor is private, so std::make_unique() can't call it.
     return std::unique_ptr<Brotli_Analyzer>(new Brotli_Analyzer(conn, orig, max_uncompressed_size, max_decoder_memory));
@@ -136,11 +136,10 @@ void Brotli_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
         if ( result == BROTLI_DECODER_RESULT_ERROR ) {
             if ( denied_memory > 0 )
                 LimitReachedWeird("brotli_decoder_memory_exceeded", denied_memory, max_decoder_memory);
-            else
-            {
-                // Older libbrotli (1.0.x) returns "_ERROR_FORMAT_DICTIONARY" where
-                // newer versions return "DICTIONARY". Strip the prefix so the
-                // weird is the same on all versions.
+            else {
+                // Newer libbrotli (1.1) returns "_ERROR_FORMAT_DICTIONARY" where
+                // older versions (1.0.x) return "DICTIONARY". Strip the prefix so
+                // the weird is the same on all versions.
                 std::string_view err = BrotliDecoderErrorString(BrotliDecoderGetErrorCode(state));
                 for ( std::string_view prefix : {"_ERROR_FORMAT_", "_ERROR_"} ) {
                     if ( err.substr(0, prefix.size()) == prefix ) {

@@ -1,20 +1,30 @@
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
-bison_target(PACParser pac_parse.yy ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.cc
-             DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.h COMPILE_FLAGS "--debug")
-flex_target(PACScanner ${CMAKE_CURRENT_SOURCE_DIR}/pac_scan.ll
-            ${CMAKE_CURRENT_BINARY_DIR}/pac_scan.cc)
+bison_target(
+    PACParser
+    pac_parse.yy
+    ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.cc
+    DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.h
+    COMPILE_FLAGS "--debug"
+)
+flex_target(
+    PACScanner
+    ${CMAKE_CURRENT_SOURCE_DIR}/pac_scan.ll
+    ${CMAKE_CURRENT_BINARY_DIR}/pac_scan.cc
+)
 add_flex_bison_dependency(PACScanner PACParser)
-if (MSVC)
+if(MSVC)
     set_property(SOURCE pac_scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "/wd4018")
-else ()
+else()
     set_property(SOURCE pac_scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
-endif ()
+endif()
 
 set(binpac_bison_generated_files
-    ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.cc ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.h
-    ${CMAKE_CURRENT_BINARY_DIR}/pac_scan.cc)
+    ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.h
+    ${CMAKE_CURRENT_BINARY_DIR}/pac_scan.cc
+)
 
 set_source_files_properties(${binpac_bison_generated_files} PROPERTIES SKIP_LINTING ON)
 
@@ -66,7 +76,8 @@ set(binpac_SRCS
     pac_output.cc
     pac_utils.cc
     pac_exception.cc
-    pac_main.cc)
+    pac_main.cc
+)
 
 add_executable(binpac)
 target_sources(binpac PRIVATE ${binpac_SRCS})
@@ -75,15 +86,15 @@ zeek_target_add_linters(binpac)
 target_include_directories(binpac BEFORE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(binpac BEFORE PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
-if (MSVC)
+if(MSVC)
     target_compile_options(binpac PUBLIC "/J")
     # If building separately from zeek, we need to add the libunistd subdirectory
     # so that linking doesn't fail.
-    if ("${CMAKE_PROJECT_NAME}" STREQUAL "BinPAC")
+    if("${CMAKE_PROJECT_NAME}" STREQUAL "BinPAC")
         add_subdirectory(${PROJECT_SOURCE_DIR}auxil/libunistd EXCLUDE_FROM_ALL)
-    endif ()
+    endif()
     target_link_libraries(binpac PRIVATE libunistd)
-endif ()
+endif()
 
 install(TARGETS binpac DESTINATION bin)
 

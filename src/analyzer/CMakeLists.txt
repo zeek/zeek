@@ -8,7 +8,8 @@ zeek_add_subdir_library(
     SOURCES
     Analyzer.cc
     Component.cc
-    Manager.cc)
+    Manager.cc
+)
 
 # Treat BIFs as builtin (alternative mode).
 bif_target(analyzer.bif)

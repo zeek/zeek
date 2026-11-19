@@ -1,4 +1,6 @@
 zeek_add_plugin(
-    Zeek Login
+    Zeek
+    Login
     SOURCES Login.cc RSH.cc Telnet.cc Rlogin.cc NVT.cc Plugin.cc
-    BIFS events.bif functions.bif)
+    BIFS events.bif functions.bif
+)

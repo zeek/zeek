@@ -1,3 +1,1 @@
-zeek_add_plugin(
-    PacketAnalyzer PPPSerial
-    SOURCES PPPSerial.cc Plugin.cc)
+zeek_add_plugin(PacketAnalyzer PPPSerial SOURCES PPPSerial.cc Plugin.cc)

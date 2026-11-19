@@ -9,7 +9,8 @@ zeek_add_subdir_library(
     storage.bif
     storage-async.bif
     storage-events.bif
-    storage-sync.bif)
+    storage-sync.bif
+)
 
 add_subdirectory(backend)
 add_subdirectory(serializer)

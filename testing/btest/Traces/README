@@ -198,3 +198,6 @@ Trace Index/Sources:
   Lab traffic using AsyncSSH 2.24.1
 - ssh/sntrup761x25519-sha512@openssh.com.pcap
   Lab traffic using AsyncSSH 2.24.1
+- ntlm/oem-utf16.pcap
+  Flow extracted and rewritten from `smb2_locks.tshark.pcap`
+  attached to https://gitlab.com/wireshark/wireshark/-/work_items/18810

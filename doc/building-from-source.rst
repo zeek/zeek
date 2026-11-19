@@ -84,6 +84,15 @@ To install these, you can use:
   instead. Zeek's build will fall back to an in-tree version of C++
   bindings to ZeroMQ in that case.
 
+* Alpine Linux:
+
+  .. code-block:: console
+
+     sudo apk add bash bison bsd-compat-headers cmake cppzmq flex-dev g++ libpcap-dev linux-headers make musl-fts-dev openssl-dev python3 python3-dev swig zlib-dev
+
+  musl doesn't include the fts functions, so ``musl-fts-dev`` is
+  required. Without it, ``./configure`` succeeds but the build fails.
+
 * FreeBSD:
 
   Most required dependencies should come with a minimal FreeBSD install

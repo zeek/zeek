@@ -28,6 +28,21 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 	prefix: Prefix_Type(qualifier_field);
 	data: case (object_type_field) of {
 	# device attributes g0
+		0x00C4 -> attrib196: AttributeCommon;
+		0x00C5 -> attrib197: AttributeCommon;
+		0x00C6 -> attrib198: AttributeCommon;
+		0x00C7 -> attrib199: AttributeCommon;
+		0x00C8 -> attrib200: AttributeCommon;
+		0x00C9 -> attrib201: AttributeCommon;
+		0x00CA -> attrib202: AttributeCommon;
+		0x00CB -> attrib203: AttributeCommon;
+		0x00CC -> attrib204: AttributeCommon;
+		0x00CD -> attrib205: AttributeCommon;
+		0x00CE -> attrib206: AttributeCommon;
+		0x00CF -> attrib207: AttributeCommon;
+		0x00D0 -> attrib208: AttributeCommon;
+		0x00D1 -> attrib209: AttributeCommon;
+		0x00D2 -> attrib210: AttributeCommon;
 		0x00D3 -> attrib211: AttributeCommon;
 		0x00D4 -> attrib212: AttributeCommon;
 		0x00D5 -> attrib213: AttributeCommon;
@@ -61,6 +76,7 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x00F1 -> attrib241: AttributeCommon;
 		0x00F2 -> attrib242: AttributeCommon;
 		0x00F3 -> attrib243: AttributeCommon;
+		0x00F4 -> attrib244: AttributeCommon;
 		0x00F5 -> attrib245: AttributeCommon;
 		0x00F6 -> attrib246: AttributeCommon;
 		0x00F7 -> attrib247: AttributeCommon;
@@ -338,6 +354,21 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 	prefix: Prefix_Type(qualifier_field);
 	data: case (object_type_field) of {
 	# device attributes g0
+		0x00C4 -> attrib196: AttributeCommon;
+		0x00C5 -> attrib197: AttributeCommon;
+		0x00C6 -> attrib198: AttributeCommon;
+		0x00C7 -> attrib199: AttributeCommon;
+		0x00C8 -> attrib200: AttributeCommon;
+		0x00C9 -> attrib201: AttributeCommon;
+		0x00CA -> attrib202: AttributeCommon;
+		0x00CB -> attrib203: AttributeCommon;
+		0x00CC -> attrib204: AttributeCommon;
+		0x00CD -> attrib205: AttributeCommon;
+		0x00CE -> attrib206: AttributeCommon;
+		0x00CF -> attrib207: AttributeCommon;
+		0x00D0 -> attrib208: AttributeCommon;
+		0x00D1 -> attrib209: AttributeCommon;
+		0x00D2 -> attrib210: AttributeCommon;
 		0x00D3 -> attrib211: AttributeCommon;
 		0x00D4 -> attrib212: AttributeCommon;
 		0x00D5 -> attrib213: AttributeCommon;
@@ -371,6 +402,7 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x00F1 -> attrib241: AttributeCommon;
 		0x00F2 -> attrib242: AttributeCommon;
 		0x00F3 -> attrib243: AttributeCommon;
+		0x00F4 -> attrib244: AttributeCommon;
 		0x00F5 -> attrib245: AttributeCommon;
 		0x00F6 -> attrib246: AttributeCommon;
 		0x00F7 -> attrib247: AttributeCommon;

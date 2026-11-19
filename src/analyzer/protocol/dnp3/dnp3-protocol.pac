@@ -91,6 +91,16 @@ type DNP3_Application_Response_Header = record {
 type Request_Objects(function_code: uint8) = record {
 	object_header: Object_Header(function_code);
 	data: case (object_header.object_type_field) of {
+		# device attributes g0: a WRITE carries the attribute values, a READ only the object header
+		0x00C4, 0x00C5, 0x00C6, 0x00C7, 0x00C8, 0x00C9, 0x00CA, 0x00CB,
+		0x00CC, 0x00CD, 0x00CE, 0x00CF, 0x00D0, 0x00D1, 0x00D2, 0x00D3,
+		0x00D4, 0x00D5, 0x00D6, 0x00D7, 0x00D8, 0x00D9, 0x00DA, 0x00DB,
+		0x00DC, 0x00DD, 0x00DE, 0x00DF, 0x00E0, 0x00E1, 0x00E2, 0x00E3,
+		0x00E4, 0x00E5, 0x00E6, 0x00E7, 0x00E8, 0x00E9, 0x00EA, 0x00EB,
+		0x00EC, 0x00ED, 0x00EE, 0x00EF, 0x00F0, 0x00F1, 0x00F2, 0x00F3,
+		0x00F4, 0x00F5, 0x00F6, 0x00F7, 0x00F8, 0x00F9, 0x00FA, 0x00FC
+			-> g0_attribs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item * ( function_code == WRITE ) ] &transient;
+
 		# binary output command g12
 		0x0c01 -> g12v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;
 		0x0c02 -> g12v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item] &transient;

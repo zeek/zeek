@@ -39,6 +39,7 @@ RUN apt-get -q update \
 
 RUN git config --global --add safe.directory '*'
 
+ARG LOCAL_VERSION_FLAG
 ARG ZEEK_CONFIGURE_FLAGS="--ccache --generator=Ninja --build-type=Release --disable-btest-pcaps --disable-broker-tests --disable-cpp-tests"
 
 # We bind mount the build context as `/src/zeek` source directory,
@@ -48,7 +49,7 @@ RUN --mount=type=bind,target=/src/zeek,readwrite \
     --mount=type=cache,target=/tmp/ccache \
     cd /src/zeek \
     && CCACHE_DIR=/tmp/ccache \
-       ./configure --build-dir=/tmp/build ${ZEEK_CONFIGURE_FLAGS} \
+       ./configure --build-dir=/tmp/build ${ZEEK_CONFIGURE_FLAGS} ${LOCAL_VERSION_FLAG} \
     && CCACHE_DIR=/tmp/ccache \
        ninja -C /tmp/build install
 

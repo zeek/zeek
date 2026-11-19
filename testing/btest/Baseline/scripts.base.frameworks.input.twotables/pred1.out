@@ -3,8 +3,8 @@
 Input::EVENT_NEW
 [i=-42]
 [b=T, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=XXXXXXXXXX.XXXXXX, iv=1.0 min 40.0 secs, s=hurz, sc={
-4,
 2,
+4,
 1,
 3
 }, ss={
@@ -18,8 +18,8 @@ BB
 Input::EVENT_NEW
 [i=-44]
 [b=F, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=XXXXXXXXXX.XXXXXX, iv=1.0 min 40.0 secs, s=hurz, sc={
-4,
 2,
+4,
 1,
 3
 }, ss={
@@ -33,8 +33,8 @@ BB
 Input::EVENT_REMOVED
 [i=-42]
 [b=T, e=SSH::LOG, c=21, p=123/unknown, sn=10.0.0.0/24, a=1.2.3.4, d=3.14, t=XXXXXXXXXX.XXXXXX, iv=1.0 min 40.0 secs, s=hurz, sc={
-4,
 2,
+4,
 1,
 3
 }, ss={

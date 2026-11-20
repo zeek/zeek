@@ -444,6 +444,37 @@ add_custom_target(zeek_autogen_files)
 
 # Define our main targets and place the output files under src (for historic
 # reasons and backwards compatibility).
+add_library(zeek_lib STATIC EXCLUDE_FROM_ALL )
+zeek_target_enable_sanitizers(zeek_lib)
+target_link_libraries(zeek_lib PUBLIC $<BUILD_INTERFACE:zeek_internal>)
+
+add_dependencies(zeek_lib zeek_autogen_files)
+set_target_properties(zeek_lib PROPERTIES RUNTIME_OUTPUT_NAME libzeek)
+if (NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+    set_target_properties(zeek_lib PROPERTIES LIBRARY_OUTPUT_DIRECTORY src)
+endif ()
+set(zeek_lib_access PUBLIC)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+    target_link_libraries(zeek_lib PRIVATE /usr/lib/libutil.so)
+    target_link_libraries(zeek_lib PRIVATE procstat)
+endif ()
+
+# Helper to link `zeek_lib`. Since it is a STATIC archive, but contains e.g., global constructors we need to link everything.
+function (zeek_link_lib target)
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.24)
+        # TODO: Remove platform-specific fallbacks once we require cmake-3.24.
+        target_link_libraries(${target} PRIVATE $<LINK_LIBRARY:WHOLE_ARCHIVE,zeek_lib>)
+    elseif (APPLE)
+        target_link_libraries(${target} PRIVATE "-Wl,-force_load,$<TARGET_FILE:zeek_lib>" zeek_lib)
+    elseif (MSVC)
+        target_link_libraries(${target} PRIVATE "/WHOLEARCHIVE:$<TARGET_FILE:zeek_lib>" zeek_lib)
+    elseif (UNIX)
+        target_link_libraries(${target} PRIVATE "-Wl,--whole-archive" zeek_lib
+                                                "-Wl,--no-whole-archive")
+    endif ()
+endfunction ()
+
 if (ZEEK_STANDALONE)
     add_executable(zeek_exe)
     zeek_target_enable_sanitizers(zeek_exe)
@@ -458,7 +489,6 @@ if (ZEEK_STANDALONE)
     install(TARGETS zeek_exe RUNTIME DESTINATION bin)
     # Export symbols from zeek executable for use by plugins
     set_target_properties(zeek_exe PROPERTIES ENABLE_EXPORTS ON)
-    # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.
     set(zeek_exe_access PRIVATE)
 
     if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
@@ -466,26 +496,8 @@ if (ZEEK_STANDALONE)
         target_link_libraries(zeek_exe PRIVATE procstat)
     endif ()
 else ()
-    add_library(zeek_lib STATIC)
-    zeek_target_enable_sanitizers(zeek_lib)
-endif ()
-
-if (TARGET zeek_lib)
-    target_link_libraries(zeek_lib PRIVATE $<BUILD_INTERFACE:zeek_internal>)
-    add_dependencies(zeek_lib zeek_autogen_files)
-    set_target_properties(zeek_lib PROPERTIES RUNTIME_OUTPUT_NAME libzeek)
-    if (NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
-        set_target_properties(zeek_lib PROPERTIES LIBRARY_OUTPUT_DIRECTORY src)
-    endif ()
+    set_target_properties(zeek_lib PROPERTIES EXCLUDE_FROM_ALL OFF)
     install(TARGETS zeek_lib LIBRARY DESTINATION lib)
-    # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.
-    set(zeek_lib_access PRIVATE)
-
-    if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-        target_link_libraries(zeek_lib PRIVATE /usr/lib/libutil.so)
-        target_link_libraries(zeek_lib PRIVATE procstat)
-    endif ()
-
 endif ()
 
 # When building our fuzzers, we also need one extra top-level target that
@@ -1161,14 +1173,16 @@ if (NOT DISABLE_SPICY)
         if (BINARY_PACKAGING_MODE)
             hilti_link_object_libraries_in_tree(zeek_exe PRIVATE)
             spicy_link_object_libraries_in_tree(zeek_exe PRIVATE)
+            hilti_link_object_libraries_in_tree(zeek_lib PUBLIC)
+            spicy_link_object_libraries_in_tree(zeek_lib PUBLIC)
         else ()
             if (TARGET zeek_exe)
                 hilti_link_libraries_in_tree(zeek_exe PRIVATE)
                 spicy_link_libraries_in_tree(zeek_exe PRIVATE)
             endif ()
             if (TARGET zeek_lib)
-                hilti_link_libraries_in_tree(zeek_lib PRIVATE)
-                spicy_link_libraries_in_tree(zeek_lib PRIVATE)
+                hilti_link_libraries_in_tree(zeek_lib PUBLIC)
+                spicy_link_libraries_in_tree(zeek_lib PUBLIC)
             endif ()
         endif ()
 

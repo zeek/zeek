@@ -121,6 +121,16 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
     else
         tablename = it->second;
 
+    // Quote the table name
+    char* quoted_name = sqlite3_mprintf("\"%w\"", tablename.c_str());
+
+    if ( ! quoted_name ) {
+        InternalError("Could not malloc memory");
+        return false;
+    }
+    string quoted_tablename = quoted_name;
+    sqlite3_free(quoted_name);
+
     if ( checkError(sqlite3_open_v2(fullpath.string().c_str(), &db,
                                     SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr)) )
         return false;
@@ -179,7 +189,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
         return false;
     }
 
-    string create = "CREATE TABLE IF NOT EXISTS " + tablename + " (\n";
+    string create = "CREATE TABLE IF NOT EXISTS " + quoted_tablename + " (\n";
     //"id SERIAL UNIQUE NOT NULL"; // SQLite has rowids, we do not need a counter here.
 
     for ( unsigned int i = 0; i < num_fields; ++i ) {
@@ -224,7 +234,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
 
     // create the prepared statement that will be re-used forever...
     string insert = "VALUES (";
-    string names = "INSERT INTO " + tablename + " ( ";
+    string names = "INSERT INTO " + quoted_tablename + " ( ";
 
     for ( unsigned int i = 0; i < num_fields; i++ ) {
         bool ac = true;

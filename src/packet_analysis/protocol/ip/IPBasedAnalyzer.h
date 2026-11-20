@@ -211,15 +211,22 @@ enum class ChecksumType : uint8_t {
     COUNT = 5,
 };
 
+struct ChecksumCounters {
+    uint64_t num_ipv4 = 0;
+    uint64_t num_tcp = 0;
+    uint64_t num_udp = 0;
+    uint64_t num_icmp = 0;
+    uint64_t num_mobility = 0;
+};
+
 /**
- * Increments the telemetry counter for the given checksum validation failure.
+ * Increments the internal counter for the given checksum validation failure.
  */
 void CountInvalidChecksum(ChecksumType type);
 
 /**
- * Initializes the invalid_checksums CounterFamily and pre-allocates handles.
- * Called once during packet_analysis::Manager::InitPostScript().
+ * Returns the current cumulative checksum validation failure counters.
  */
-void init_checksum_telemetry();
+const ChecksumCounters& GetChecksumCounters();
 
 } // namespace zeek::packet_analysis::IP

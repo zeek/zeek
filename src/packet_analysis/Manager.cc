@@ -11,7 +11,6 @@
 #include "zeek/iosource/PktDumper.h"
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Dispatcher.h"
-#include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 #include "zeek/plugin/Manager.h"
 
 using namespace zeek::packet_analysis;
@@ -52,8 +51,6 @@ void Manager::InitPostScript(const std::string& unprocessed_output_file) {
     if ( ! unprocessed_output_file.empty() )
         // This gets automatically cleaned up by iosource_mgr. No need to delete it locally.
         unprocessed_dumper = iosource_mgr->OpenPktDumper(unprocessed_output_file, true);
-
-    IP::init_checksum_telemetry();
 }
 
 void Manager::Done() {}

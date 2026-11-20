@@ -2,8 +2,6 @@
 
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 
-#include <array>
-#include <cassert>
 #include <cinttypes>
 #include <cstddef>
 
@@ -17,8 +15,6 @@
 #include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
 #include "zeek/plugin/Manager.h"
 #include "zeek/session/Manager.h"
-#include "zeek/telemetry/Counter.h"
-#include "zeek/telemetry/Manager.h"
 
 using namespace zeek;
 using namespace zeek::packet_analysis::IP;
@@ -306,44 +302,31 @@ TableValPtr IPBasedAnalyzer::GetIgnoreChecksumsNets() {
 }
 
 namespace {
-
-std::shared_ptr<zeek::telemetry::CounterFamily> invalid_checksums_family = nullptr;
-std::array<std::shared_ptr<zeek::telemetry::Counter>,
-           static_cast<std::size_t>(zeek::packet_analysis::IP::ChecksumType::COUNT)>
-    checksum_counters{};
-
+zeek::packet_analysis::IP::ChecksumCounters checksum_counters;
 } // namespace
 
-void zeek::packet_analysis::IP::init_checksum_telemetry() {
-    static bool initialized = false;
-    if ( initialized )
-        return;
-
-    invalid_checksums_family = telemetry_mgr->CounterFamily(
-        "zeek", "invalid_checksums", {"checksum_type"},
-        "Total number of checksum validation failures");
-
-    checksum_counters[static_cast<std::size_t>(ChecksumType::IPv4)] =
-        invalid_checksums_family->GetOrAdd({{"checksum_type", "ipv4"}});
-    checksum_counters[static_cast<std::size_t>(ChecksumType::TCP)] =
-        invalid_checksums_family->GetOrAdd({{"checksum_type", "tcp"}});
-    checksum_counters[static_cast<std::size_t>(ChecksumType::UDP)] =
-        invalid_checksums_family->GetOrAdd({{"checksum_type", "udp"}});
-    checksum_counters[static_cast<std::size_t>(ChecksumType::ICMP)] =
-        invalid_checksums_family->GetOrAdd({{"checksum_type", "icmp"}});
-    checksum_counters[static_cast<std::size_t>(ChecksumType::Mobility)] =
-        invalid_checksums_family->GetOrAdd({{"checksum_type", "mobility"}});
-
-    initialized = true;
+void zeek::packet_analysis::IP::CountInvalidChecksum(ChecksumType type) {
+    switch ( type ) {
+        case ChecksumType::IPv4:
+            ++checksum_counters.num_ipv4;
+            break;
+        case ChecksumType::TCP:
+            ++checksum_counters.num_tcp;
+            break;
+        case ChecksumType::UDP:
+            ++checksum_counters.num_udp;
+            break;
+        case ChecksumType::ICMP:
+            ++checksum_counters.num_icmp;
+            break;
+        case ChecksumType::Mobility:
+            ++checksum_counters.num_mobility;
+            break;
+        case ChecksumType::COUNT:
+            break;
+    }
 }
 
-void zeek::packet_analysis::IP::CountInvalidChecksum(ChecksumType type) {
-    auto idx = static_cast<std::size_t>(type);
-    if ( idx >= static_cast<std::size_t>(ChecksumType::COUNT) )
-        return;
-
-    auto& counter = checksum_counters[idx];
-    assert(counter);
-    if ( counter )
-        counter->Inc();
+const zeek::packet_analysis::IP::ChecksumCounters& zeek::packet_analysis::IP::GetChecksumCounters() {
+    return checksum_counters;
 }

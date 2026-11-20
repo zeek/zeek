@@ -1,4 +1,4 @@
-# @TEST-DOC: Verifies zeek_invalid_checksums_total telemetry metric across failure, pass, drop, and ignore modes.
+# @TEST-DOC: Verifies get_checksum_stats() BIF and Prometheus telemetry metric across failure, pass, drop, and ignore modes.
 #
 # 1. Corrupted checksum fixtures (IPv4)
 # @TEST-EXEC: zeek -b -r $TRACES/chksums/ip4-bad-chksum.pcap %INPUT >out-ipv4
@@ -22,7 +22,10 @@
 # 5. Active drop mode (counters increment even when packets are dropped)
 # @TEST-EXEC: zeek -b -r $TRACES/chksums/ip4-tcp-bad-chksum.pcap %INPUT drop_bad_checksums=T >out-drop
 #
-# 6. Baseline comparisons
+# 6. Standalone BIF verification (without loading policy/misc/stats or telemetry)
+# @TEST-EXEC: zeek -b -r $TRACES/chksums/ip4-tcp-bad-chksum.pcap test-bif-bare.zeek >out-bif-bare
+#
+# 7. Baseline comparisons
 # @TEST-EXEC: btest-diff out-ipv4
 # @TEST-EXEC: btest-diff out-tcp
 # @TEST-EXEC: btest-diff out-udp
@@ -35,12 +38,17 @@
 # @TEST-EXEC: btest-diff out-cli-ignore
 # @TEST-EXEC: btest-diff out-subnet-ignore
 # @TEST-EXEC: btest-diff out-drop
+# @TEST-EXEC: btest-diff out-bif-bare
 
-@load base/frameworks/telemetry
+@load policy/misc/stats
 
 redef running_under_test = T;
 
 event zeek_done() {
+    local cs = get_checksum_stats();
+    print fmt("bif: ipv4=%d tcp=%d udp=%d icmp=%d mobility=%d",
+              cs$num_ipv4, cs$num_tcp, cs$num_udp, cs$num_icmp, cs$num_mobility);
+
     local metrics = Telemetry::collect_metrics("zeek", "invalid_checksums*");
     local counts: table[string] of double = table();
 
@@ -57,6 +65,14 @@ event zeek_done() {
     for ( i in checksum_types ) {
         local checksum_type = checksum_types[i];
         local val = checksum_type in counts ? counts[checksum_type] : 0.0;
-        print fmt("%s = %0.0f", checksum_type, val);
+        print fmt("telemetry: %s = %0.0f", checksum_type, val);
     }
 }
+
+# @TEST-START-FILE test-bif-bare.zeek
+event zeek_done() {
+    local cs = get_checksum_stats();
+    print fmt("bare bif: ipv4=%d tcp=%d udp=%d icmp=%d mobility=%d",
+              cs$num_ipv4, cs$num_tcp, cs$num_udp, cs$num_icmp, cs$num_mobility);
+}
+# @TEST-END-FILE

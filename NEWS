@@ -183,6 +183,15 @@ Changed Functionality
   fields. These records were already parsed and exposed through their
   ``dns_*`` events, but were not summarized in the log.
 
+- The CHANGES and VERSION files have been removed. Use ``git log`` in order to
+  get something like CHANGES:
+
+    git log --no-merge
+
+  and ``zeek --version`` or the new ``get-version.py`` script to get the VERSION:
+
+    python3 tools/get-version.py
+
 Deprecated Functionality
 ------------------------
 

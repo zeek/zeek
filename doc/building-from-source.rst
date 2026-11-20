@@ -206,6 +206,7 @@ build time:
     * krb5 libraries and headers
     * ipsumdump (for trace-summary; https://github.com/kohler/ipsumdump)
     * hiredis (for the Redis storage backend)
+    * libbrotlidec (for HTTP bodies with ``Content-Encoding: br``)
 
 Geolocation is probably the most interesting and can be installed on most
 platforms by following the instructions for :ref:`address geolocation and AS

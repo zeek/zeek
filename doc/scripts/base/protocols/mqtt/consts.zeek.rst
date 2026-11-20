@@ -10,25 +10,25 @@ Constants definitions for MQTT.
 
 Summary
 ~~~~~~~
-Constants
-#########
-=============================================================================================== =
-:zeek:id:`MQTT::msg_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`MQTT::qos_levels`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`MQTT::return_codes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`MQTT::versions`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-=============================================================================================== =
+Redefinable Options
+###################
+=================================================================================================================== =
+:zeek:id:`MQTT::msg_types`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`MQTT::qos_levels`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`MQTT::return_codes`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`MQTT::versions`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+=================================================================================================================== =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
-Constants
-#########
+Redefinable Options
+###################
 .. zeek:id:: MQTT::msg_types
    :source-code: base/protocols/mqtt/consts.zeek 6 6
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -56,7 +56,7 @@ Constants
    :source-code: base/protocols/mqtt/consts.zeek 29 29
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -73,7 +73,7 @@ Constants
    :source-code: base/protocols/mqtt/consts.zeek 35 35
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -93,7 +93,7 @@ Constants
    :source-code: base/protocols/mqtt/consts.zeek 23 23
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

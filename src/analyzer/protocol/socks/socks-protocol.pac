@@ -202,4 +202,3 @@ refine connection SOCKS_Conn += {
 		return selected_auth_method_;
 		%}
 };
-

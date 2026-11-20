@@ -61,5 +61,3 @@ function monitor(dir: string, callback: function(fname: string),
 	{
 	event Dir::monitor_ev(dir, set(), callback, poll_interval);
 	}
-
-

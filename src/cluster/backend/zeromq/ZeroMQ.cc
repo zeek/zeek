@@ -275,6 +275,9 @@ ZeroMQBackend::ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_pt
       total_xpub_drops(
           zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_xpub_drops", {},
                                                "Number of published events dropped due to XPUB socket HWM.")),
+      total_log_push_drops(
+          zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_log_push_drops", {},
+                                               "Number of log messages dropped due to PUSH socket HWM.")),
       total_onloop_drops(
           zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_onloop_drops", {},
                                                "Number of received events dropped due to OnLoop queue full.")),
@@ -725,21 +728,22 @@ bool ZeroMQBackend::DoPublishLogWrites(const logging::detail::LogWriteHeader& he
         }
 
         if ( ! result ) {
-            // XXX: Not  exactly clear what we should do if we reach HWM.
-            //      we could block and hope a logger comes along that empties
-            //      our internal queue, or discard messages and log very loudly
-            //      and have metrics about it. However, this may happen regularly
-            //      at shutdown.
-            //
-            //      Maybe that should be configurable?
-
             // If no logging endpoints were configured, that almost seems on
             // purpose (and there's a warning elsewhere about this), so skip
             // logging an error when sending fails.
             if ( connect_log_endpoints.empty() )
                 return true;
 
-            reporter->Error("Failed to send log write. HWM reached?");
+            total_log_push_drops->Inc();
+
+            // Warn once about a dropped message.
+            //
+            // TODO: warn every n seconds?
+            if ( log_push_drop_last_warn_at == 0.0 ) {
+                ZEROMQ_THREAD_PRINTF("warn: dropped a log message due to hwm\n");
+                log_push_drop_last_warn_at = util::current_time(true);
+            }
+
             return false;
         }
     }

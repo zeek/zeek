@@ -215,10 +215,10 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x2804 -> aos_dp: empty;
 
 	# analog output g41
-		0x2901 -> ao_32: empty;
-		0x2902 -> ao_16: empty;
-		0x2903 -> ao_sp: empty;
-		0x2904 -> ao_dp: empty;
+		0x2901 -> ao_32: AnaOut32;
+		0x2902 -> ao_16: AnaOut16;
+		0x2903 -> ao_sp: AnaOutSP;
+		0x2904 -> ao_dp: AnaOutDP;
 
 	# analog output event g42
 		0x2a00 -> aoe_default: empty;
@@ -391,12 +391,13 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x0203 -> biewrtime: BinInEveRtime;
 
 	# double-bit Binary Input g3
-		0x0301 -> dbibytes: bytestring &restofdata; # don;t quit understand specification
+		0x0301 -> dbibytes: uint8; # four packed double-bit values
 		0x0302 -> dbiflag: uint8;
 
 	# double-bit Binary Input Event g4
-		0x0401 -> dbieatime: DoubleInEveAtime;
-		0x0402 -> dbiertime: DoubleInEveRtime;
+		0x0401 -> dbiewotime: uint8; # flags only
+		0x0402 -> dbieatime: DoubleInEveAtime;
+		0x0403 -> dbiertime: DoubleInEveRtime;
 
 	# binary output g10
 		0x0a01 -> bowoflag:  uint8;  # warning: returning integer index?

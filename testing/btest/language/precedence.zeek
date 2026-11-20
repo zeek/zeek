@@ -108,4 +108,3 @@ event zeek_init()
 	test_case( "conditional operator and ||", r3 );
 
 }
-

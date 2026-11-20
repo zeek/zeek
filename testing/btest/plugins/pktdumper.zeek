@@ -5,4 +5,3 @@
 # @TEST-EXEC: echo === >>output
 # @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -r $TRACES/port4242.pcap -w foo::XXX %INPUT FilteredTraceDetection::enable=F >>output
 # @TEST-EXEC: btest-diff output
-

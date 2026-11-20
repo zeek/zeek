@@ -4,14 +4,18 @@
 
 #include <openssl/evp.h>
 #include <cstdint>
+#include <utility>
 
 #include "zeek/Base64.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
+#include "zeek/Val.h"
 #include "zeek/analyzer/protocol/mime/consts.bif.h"
 #include "zeek/analyzer/protocol/mime/events.bif.h"
 #include "zeek/digest.h"
 #include "zeek/file_analysis/Manager.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 // Here are a few things to do:
 //
@@ -258,6 +262,29 @@ int MIME_get_token(int len, const char* data, data_chunk_t* token, bool is_bound
     }
 
     return -1;
+}
+
+// Sets more = true if the caller should continue extracting data.
+int MIME_get_list_value(int len, const char* data, data_chunk_t* token, bool& more) {
+    int j = 0;
+    while ( j < len && data[j] != ',' )
+        ++j;
+
+    more = j < len;
+
+    int start = 0;
+    int end = j;
+
+    while ( start < end && is_lws(data[start]) )
+        ++start;
+
+    while ( end > start && is_lws(data[end - 1]) )
+        --end;
+
+    token->data = data + start;
+    token->length = end - start;
+
+    return more ? j + 1 : len;
 }
 
 int MIME_get_slash_token_pair(int len, const char* data, data_chunk_t* first, data_chunk_t* second) {
@@ -624,7 +651,7 @@ void MIME_Entity::NewHeader(int len, const char* data) {
     ASSERT(! is_lws(*data));
 
     current_header_line = new MIME_Multiline();
-    current_header_line->append(len, data);
+    AppendHeaderLine(len, data);
 }
 
 void MIME_Entity::ContHeader(int len, const char* data) {
@@ -637,17 +664,38 @@ void MIME_Entity::ContHeader(int len, const char* data) {
         return;
     }
 
-    if ( zeek::BifConst::MIME::max_header_bytes > 0 &&
-         current_header_line->get_total_bytes() >= zeek::BifConst::MIME::max_header_bytes ) {
+    AppendHeaderLine(len, data);
+}
+
+void MIME_Entity::AppendHeaderLine(int len, const char* data) {
+    auto limit = zeek::BifConst::MIME::max_header_bytes;
+    auto to_append = len;
+    if ( limit > 0 ) {
+        auto total = current_header_line->get_total_bytes();
+
+        if ( total >= limit )
+            to_append = 0;
+        else if ( std::cmp_greater(len, limit - total) )
+            to_append = static_cast<int>(limit - total);
+
+        // Note this weirds every time we try to append, regardless of if we already did.
+        if ( to_append < len && message->GetAnalyzer() )
+            message->GetAnalyzer()->LimitReachedWeird("exceeded_mime_max_header_bytes", total + len);
+    }
+
+    if ( zeek::BifConst::MIME::max_header_continuation_lines > 0 &&
+         current_header_line->get_fold_lines() >= zeek::BifConst::MIME::max_header_continuation_lines ) {
         if ( message->GetAnalyzer() )
-            message->GetAnalyzer()->LimitReachedWeird("exceeded_mime_max_header_bytes",
-                                                      current_header_line->get_total_bytes());
+            message->GetAnalyzer()->LimitReachedWeird("exceeded_mime_max_continuation_lines",
+                                                      current_header_line->get_fold_lines());
 
         return;
     }
 
-    current_header_line->append(len, data);
+    if ( to_append > 0 )
+        current_header_line->append(to_append, data);
 }
+
 
 void MIME_Entity::FinishHeader() {
     if ( current_header_line == nullptr )
@@ -1224,7 +1272,7 @@ MIME_Mail::~MIME_Mail() {
     if ( sha256_hash )
         zeek::detail::hash_state_free(sha256_hash);
 
-    delete_strings(all_content);
+    all_content.clear();
     delete data_buffer;
     delete top_level;
 }
@@ -1242,15 +1290,13 @@ void MIME_Mail::BeginEntity(MIME_Entity* /* entity */) {
 
 void MIME_Mail::EndEntity(MIME_Entity* /* entity */) {
     if ( mime_entity_data ) {
-        String* s = concatenate(entity_content);
+        auto s = StringVal::concatenate(entity_content);
 
-        analyzer->EnqueueConnEvent(mime_entity_data, analyzer->ConnVal(), val_mgr->Count(s->Len()),
-                                   make_intrusive<StringVal>(s));
+        analyzer->EnqueueConnEvent(mime_entity_data, analyzer->ConnVal(), val_mgr->Count(entity_content_size),
+                                   std::move(s));
 
-        if ( ! mime_all_data )
-            delete_strings(entity_content);
-        else
-            entity_content.clear();
+        entity_content_size = 0;
+        entity_content.clear();
     }
 
     if ( mime_end_entity )
@@ -1289,12 +1335,52 @@ void MIME_Mail::SubmitData(int len, const char* buf) {
         zeek::detail::hash_update(sha256_hash, reinterpret_cast<const u_char*>(buf), len);
 
     if ( mime_entity_data || mime_all_data ) {
-        String* s = new String(reinterpret_cast<const u_char*>(buf), len, false);
+        auto slen = static_cast<size_t>(len);
+        auto s = zeek::make_intrusive<StringVal>(len, buf);
 
-        if ( mime_entity_data )
-            entity_content.push_back(s);
-        if ( mime_all_data )
-            all_content.push_back(s);
+        if ( mime_entity_data ) {
+            const auto limit = BifConst::MIME::max_mime_entity_data_size;
+
+            if ( limit == 0 || entity_content_size < limit ) {
+                // How much room is remaining: Use slen if unlimited.
+                size_t remaining = limit > 0 ? limit - entity_content_size : slen;
+
+                auto tmps = s;
+                if ( remaining < slen ) {
+                    tmps = zeek::make_intrusive<StringVal>(remaining, buf);
+                    assert(entity_content_size + remaining == limit);
+                }
+
+                entity_content.push_back(std::move(tmps));
+            }
+
+            if ( limit > 0 && entity_content_size <= limit && (entity_content_size + slen) > limit )
+                analyzer->LimitReachedWeird("exceeded_max_mime_entity_data_size", limit);
+
+            entity_content_size += slen; // Keep track of the total size.
+        }
+
+        if ( mime_all_data ) {
+            const auto limit = BifConst::MIME::max_mime_all_data_size;
+
+            if ( limit == 0 || all_content_size < limit ) {
+                // How much room is remaining: Use slen if unlimited.
+                size_t remaining = limit > 0 ? limit - all_content_size : slen;
+
+                auto tmps = s;
+                if ( remaining < slen ) {
+                    tmps = zeek::make_intrusive<StringVal>(remaining, buf);
+                    assert(all_content_size + remaining == limit);
+                }
+
+                all_content.push_back(std::move(tmps));
+            }
+
+            if ( limit > 0 && all_content_size <= limit && (all_content_size + slen) > limit )
+                analyzer->LimitReachedWeird("exceeded_max_mime_all_data_size", limit);
+
+            all_content_size += slen; // Keep track of the total size.
+        }
     }
 
     if ( mime_segment_data ) {
@@ -1336,11 +1422,10 @@ bool MIME_Mail::RequestBuffer(int* plen, char** pbuf) {
 
 void MIME_Mail::SubmitAllData() {
     if ( mime_all_data ) {
-        String* s = concatenate(all_content);
-        delete_strings(all_content);
+        auto s = StringVal::concatenate(all_content);
+        all_content.clear();
 
-        analyzer->EnqueueConnEvent(mime_all_data, analyzer->ConnVal(), val_mgr->Count(s->Len()),
-                                   make_intrusive<StringVal>(s));
+        analyzer->EnqueueConnEvent(mime_all_data, analyzer->ConnVal(), val_mgr->Count(all_content_size), std::move(s));
     }
 }
 
@@ -1361,3 +1446,194 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail) {
 }
 
 } // namespace zeek::analyzer::mime
+
+TEST_SUITE_BEGIN("MIME");
+
+using zeek::analyzer::mime::MIME_get_list_value;
+
+TEST_CASE("get_list_value") {
+    std::vector<std::string> expected;
+    auto parse = [](std::string_view sv) -> std::vector<std::string> {
+        int len = static_cast<int>(sv.size());
+        const char* data = sv.data();
+        zeek::data_chunk_t chunk;
+
+        std::vector<std::string> result;
+
+        bool more = true;
+        while ( more ) {
+            int consumed = MIME_get_list_value(len, data, &chunk, more);
+            std::string value = {chunk.data, static_cast<size_t>(chunk.length)};
+            result.push_back(std::move(value));
+
+            len -= consumed;
+            data += consumed;
+        }
+
+        return result;
+    };
+
+    SUBCASE("empty") { // feeding empty is at least one entry!
+        auto values = parse("");
+        expected = {""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("empty-space") { // feeding empty is at least one entry!
+        auto values = parse(" ");
+        expected = {""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("only-comma") {
+        auto values = parse(",");
+        expected = {"", ""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("only-comma-space") {
+        auto values = parse(", ");
+        expected = {"", ""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("only-space-comma") {
+        auto values = parse(" ,");
+        expected = {"", ""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("only-space-comma-space") {
+        auto values = parse(" , ");
+        expected = {"", ""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("simple") {
+        auto values = parse("chunked");
+        expected = {"chunked"};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("simple fronting") {
+        auto values = parse(" chunked");
+        expected = {"chunked"};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("simple trailing") {
+        auto values = parse("chunked ");
+        expected = {"chunked"};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("strange fronting comma") {
+        auto values = parse("  ,  chunked");
+        expected = {"", "chunked"};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("gzip-chunked-1") {
+        auto values = parse("gzip, chunked");
+        expected = {"gzip", "chunked"};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("gzip-chunked-no-space") {
+        auto values = parse("gzip,chunked");
+        expected = {"gzip", "chunked"};
+
+        CHECK_EQ(values.size(), expected.size());
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("gzip-chunked-no-comma") {
+        auto values = parse("gzip chunked");
+        expected = {"gzip chunked"};
+
+        CHECK_EQ(values.size(), expected.size());
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("deflate-gzip-chunked-no-comma") {
+        auto values = parse("deflate,gzip chunked");
+        expected = {"deflate", "gzip chunked"};
+
+        CHECK_EQ(values.size(), expected.size());
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("trailing-comma") {
+        auto values = parse("gzip,");
+        expected = {"gzip", ""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("trailing-comma-space") {
+        auto values = parse("gzip, ");
+        expected = {"gzip", ""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("trailing-comma-comma-space") {
+        auto values = parse("gzip,, ");
+        expected = {"gzip", "", ""};
+
+        CHECK_EQ(values, expected);
+    }
+    SUBCASE("trailing-comma-space-comma-space") {
+        auto values = parse("gzip, , ");
+        expected = {"gzip", "", ""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("fronting") {
+        auto values = parse(",gzip");
+        expected = {"", "gzip"};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("fronting-space-comma") {
+        auto values = parse(" ,gzip");
+        expected = {"", "gzip"};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("fronting-space-comma-space-comma") {
+        auto values = parse(" , , gzip");
+        expected = {"", "", "gzip"};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("trailing-fronting") {
+        auto values = parse(",gzip,");
+        expected = {"", "gzip", ""};
+
+        CHECK_EQ(values, expected);
+    }
+
+    SUBCASE("tabs") {
+        auto values = parse("gzip,\tchunked");
+        expected = {"gzip", "chunked"};
+
+        CHECK_EQ(values, expected);
+    }
+}
+TEST_SUITE_END();

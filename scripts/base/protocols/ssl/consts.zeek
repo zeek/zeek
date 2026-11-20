@@ -24,7 +24,7 @@ export {
 		[DTLSv10] = "DTLSv10",
 		[DTLSv12] = "DTLSv12",
 		[DTLSv13] = "DTLSv13"
-	} &default=function(i: count):string
+	} &redef &default=function(i: count):string
 		{
 		if ( i/0xFF == 0x7F ) # TLS 1.3 draft
 		  return fmt("TLSv13-draft%d", i % 0x7F );
@@ -74,7 +74,7 @@ export {
 	const alert_levels: table[count] of string = {
 		[1] = "warning",
 		[2] = "fatal",
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &redef &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	## Mapping between numeric codes and human readable strings for hash
 	## algorithms.
@@ -156,7 +156,7 @@ export {
 		[117] = "general_error", # draft-ietf-tls-rfc8446bis-14
 		[120] = "no_application_protocol",
 		[121] = "ech_required", # RFC 9849
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &redef &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	# Map SSL Extension values to consts for easier readability of code.
 	# More information can be found here:
@@ -330,7 +330,7 @@ export {
 		[56026] = "grease_0xDADA",
 		[60138] = "grease_0xEAEA",
 		[64250] = "grease_0xFAFA"
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &redef &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	## Mapping between numeric codes and human readable string for SSL/TLS elliptic curves.
 	# See https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
@@ -413,7 +413,7 @@ export {
 		[56026] = "grease_0xDADA",
 		[60138] = "grease_0xEAEA",
 		[64250] = "grease_0xFAFA"
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &redef &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	## Mapping between numeric codes and human readable string for SSL/TLS EC point formats.
 	# See https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-9
@@ -421,7 +421,7 @@ export {
 		[0] = "uncompressed",
 		[1] = "ansiX962_compressed_prime",
 		[2] = "ansiX962_compressed_char2"
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &redef &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	# SSLv2
 	const SSLv20_CK_RC4_128_WITH_MD5 = 0x010080;
@@ -1279,6 +1279,6 @@ export {
 		[56026] = "grease_0xDADA",
 		[60138] = "grease_0xEAEA",
 		[64250] = "grease_0xFAFA"
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &redef &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 }

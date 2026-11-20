@@ -3,4 +3,16 @@ module SSH;
 type Algorithm_Prefs: record;
 type Capabilities: record;
 
+## Families of SSH key exchange methods, which determine how the SSH analyzer
+## parses key exchange messages.
+##
+## .. zeek:see:: SSH::kex_methods
+enum KexMethod %{
+	KEX_DH,
+	KEX_DH_GEX,
+	KEX_ECC,
+	KEX_GSS,
+	KEX_RSA,
+%}
+
 module GLOBAL;

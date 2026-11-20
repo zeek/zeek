@@ -42,4 +42,3 @@ event socks_login_userpass_request%(c: connection, user: string, password: strin
 ## 
 ## code: The response code for the attempted login.
 event socks_login_userpass_reply%(c: connection, code: count%);
-

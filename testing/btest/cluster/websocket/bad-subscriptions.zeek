@@ -29,6 +29,8 @@
 @load ./zeromq-test-bootstrap
 redef exit_only_after_terminate = T;
 
+redef Cluster::max_websocket_client_subscriptions = 4;
+
 global ping: event(msg: string, c: count) &is_used;
 global pong: event(msg: string, c: count) &is_used;
 
@@ -51,7 +53,7 @@ event Cluster::websocket_client_lost(info: Cluster::EndpointInfo, code: count, r
 	{
 	++lost;
 	print "Cluster::websocket_client_lost", lost;
-	if ( lost == 4 )
+	if ( lost == 8 )
 		terminate();
 	}
 # @TEST-END-FILE
@@ -69,7 +71,7 @@ def run(ws_url):
     with connect(ws_url) as ws:
         ws.send('["broken", "brrr')
         err = json.loads(ws.recv())
-        print("broken array response", err)
+        print("broken array", err)
 
     with connect(ws_url) as ws:
         ws.send('[1, 2]')
@@ -80,6 +82,26 @@ def run(ws_url):
         ws.send('[1, "/my_topic"]')
         err = json.loads(ws.recv())
         print("mix error", err)
+
+    with connect(ws_url) as ws:
+        ws.send('[[]]')
+        err = json.loads(ws.recv())
+        print("nested array error", err)
+
+    with connect(ws_url) as ws:
+        ws.send('"string"')
+        err = json.loads(ws.recv())
+        print("string error", err)
+
+    with connect(ws_url) as ws:
+        ws.send('{}')
+        err = json.loads(ws.recv())
+        print("object error", err)
+
+    with connect(ws_url) as ws:
+        ws.send('["a", "b", "c", "d", "e"]')
+        err = json.loads(ws.recv())
+        print("too many subscriptions", err)
 
     # This should work - maybe duplicate isn't great, but good for testing.
     with connect(ws_url) as ws:

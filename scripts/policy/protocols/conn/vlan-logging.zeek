@@ -23,4 +23,3 @@ event connection_state_remove(c: connection)
 	if ( c?$inner_vlan )
 		c$conn$inner_vlan = c$inner_vlan;
 	}
-

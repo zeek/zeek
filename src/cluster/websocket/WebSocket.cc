@@ -27,8 +27,9 @@
 #include "broker/error.hh"
 #include "broker/format/json.hh"
 #include "broker/zeek.hh"
-#include "rapidjson/document.h"
+#include "rapidjson/memorystream.h"
 #include "rapidjson/rapidjson.h"
+#include "rapidjson/reader.h"
 
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define WS_DEBUG(...) PLUGIN_DBG_LOG(zeek::plugin::Cluster_WebSocket::plugin, __VA_ARGS__)
@@ -429,27 +430,76 @@ void WebSocketEventDispatcher::Process(const WebSocketBackendReadyToPublish& rea
     HandleSubscriptionsActive(entry);
 }
 
+namespace {
+
+/**
+ * A rapidjson handler for parsing the subscriptions array from a WebSocket client.
+ */
+struct SubscriptionsArrayHandler : rapidjson::BaseReaderHandler<rapidjson::UTF8<>, SubscriptionsArrayHandler> {
+    SubscriptionsArrayHandler(size_t max_strings) : max_strings(max_strings) {}
+
+    // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
+    bool StartArray() {
+        ++depth;
+        // When a nested array starts, stop immediately.
+        return depth == 1;
+    }
+
+    // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
+    bool EndArray(rapidjson::SizeType) {
+        --depth;
+        return depth == 0;
+    }
+
+    // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
+    bool String(const char* s, rapidjson::SizeType len, bool) {
+        if ( depth == 0 ) // top-level string is bad
+            return false;
+
+        if ( max_strings > 0 && strings.size() >= max_strings ) {
+            had_too_many_strings = true;
+            return false;
+        }
+
+        strings.emplace_back(s, len);
+
+        return true;
+    }
+
+    // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
+    bool Default() {
+        // Stop parsing any other type (object, number, bool, ...)
+        return false;
+    }
+
+    int depth = 0;
+    size_t max_strings;
+    std::vector<std::string> strings;
+    bool had_too_many_strings = false;
+};
+} // namespace
+
 void WebSocketEventDispatcher::HandleSubscriptions(WebSocketClientEntry& entry, std::string_view buf) {
-    rapidjson::Document doc;
-    doc.Parse(buf.data(), buf.size());
-    if ( ! doc.IsArray() ) {
-        entry.wsc->SendError(broker::enum_str(broker::ec::deserialization_failed), "subscriptions not an array");
+    static const auto max_subscriptions =
+        zeek::id::find_val<CountVal>("Cluster::max_websocket_client_subscriptions")->AsCount();
+
+    rapidjson::Reader reader;
+    SubscriptionsArrayHandler subscriptions_array_handler{max_subscriptions};
+    rapidjson::MemoryStream stream{buf.data(), buf.size()};
+
+    auto result = reader.Parse<rapidjson::ParseFlag::kParseIterativeFlag>(stream, subscriptions_array_handler);
+
+    if ( result.IsError() ) {
+        if ( subscriptions_array_handler.had_too_many_strings )
+            entry.wsc->SendError(broker::enum_str(broker::ec::deserialization_failed),
+                                 "parsing subscriptions failed: too many subscriptions provided");
+        else
+            entry.wsc->SendError(broker::enum_str(broker::ec::deserialization_failed), "parsing subscriptions failed");
+
         return;
     }
 
-    std::vector<std::string> subscriptions;
-
-    for ( rapidjson::SizeType i = 0; i < doc.Size(); i++ ) {
-        if ( ! doc[i].IsString() ) {
-            entry.wsc->SendError(broker::enum_str(broker::ec::deserialization_failed),
-                                 "individual subscription not a string");
-            return;
-        }
-
-        subscriptions.emplace_back(doc[i].GetString());
-    }
-
-    entry.wsc->SetSubscriptions(subscriptions);
+    entry.wsc->SetSubscriptions(subscriptions_array_handler.strings);
 
     auto cb = [this, id = entry.id, wsc = entry.wsc](const std::string& topic,
                                                      const Backend::SubscriptionCallbackInfo& info) {
@@ -464,7 +514,7 @@ void WebSocketEventDispatcher::HandleSubscriptions(WebSocketClientEntry& entry, 
         }
     };
 
-    for ( const auto& subscription : subscriptions ) {
+    for ( const auto& subscription : subscriptions_array_handler.strings ) {
         if ( ! entry.backend->Subscribe(subscription, cb) ) {
             zeek::reporter->Error("Subscribe for WebSocket client failed!");
             QueueReply(WebSocketCloseReply{entry.wsc, 1011, "Could not subscribe. Something bad happened!"});

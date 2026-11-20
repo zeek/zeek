@@ -6,6 +6,7 @@
 %extern{
 #include "zeek/Desc.h"
 
+#include "zeek/analyzer/protocol/ssl/consts.bif.h"
 #include "zeek/analyzer/protocol/ssl/types.bif.h"
 #include "zeek/analyzer/protocol/ssl/events.bif.h"
 %}

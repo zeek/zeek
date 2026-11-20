@@ -627,6 +627,12 @@ const io_poll_interval_default = 100 &redef;
 ## .. zeek:see:: io_poll_interval_default
 const io_poll_interval_live = 10 &redef;
 
+## The maximum number of events queued before Zeek will drain the
+## event queue outside of the usual drain points.
+##
+## Set this value to 0 for unlimited queue size.
+const max_event_queue_size = 2000 &redef;
+
 ## Whether Zeek is being run under test. This can be used to alter functionality
 ## while testing, but should be used sparingly.
 const running_under_test: bool = F &redef;
@@ -682,12 +688,44 @@ export {
 	const factory = ConnKey::CONNKEY_FIVETUPLE &redef;
 }
 
+module DNP3;
+
+export {
+	## The maximum DNP3 application layer fragment size.
+	##
+	## DNP3 reassembles multiple link layer fragments to a single
+	## application layer fragment before passing it on to the analyzer.
+	## When a single DNP3 application layer fragment exceeds this value,
+	## Zeek will mark the connection's history with an X, raise a
+	## dnp3_max_application_layer_fragment_size_exceeded weird and
+	## switch the DNP3 analyzer into "skipping mode".
+	##
+	## Setting the value to 0 disables the limit.
+	##
+	## If you find the default to be too low for real-world DNP3 traffic,
+	## please report to the Zeek project, preferably including sample traffic.
+	const max_application_layer_fragment_size = 100 * 1024 &redef;
+}
+
 module FTP;
 
 export {
 	## Limits the size of commands accepted by the FTP analyzer. Longer commands
 	## raise a FTP_max_command_length_exceeded weird and are discarded.
 	const max_command_length = 100 &redef;
+}
+
+module IMAP;
+
+export {
+	## Limits the maximum number of capabilities exposed via the
+	## :zeek:see:`imap_capabilities` event from a server in response to
+	## a CAPABILITY command. As of 2026, there's only
+	## `78 capabilities allocated by IANA <https://www.iana.org/assignments/imap-capabilities>`_.
+	## More capabilities are discarded and an imap_max_capabilities_reached
+	## weird raised and the connection history marked with an X. Setting this
+	## value to 0 disables the limit.
+	const max_capabilities = 100 &redef;
 }
 
 module SMTP;
@@ -819,6 +857,25 @@ export {
 	## the all lower-case value is used. If there's still no match Zeek
 	## uses dynamic protocol detection for the upgraded to protocol instead.
 	const upgrade_analyzers: table[string] of Analyzer::Tag &redef;
+
+	## Maximum number of uncompressed bytes a ZIP support analyzer forwards.
+	## This applies to gzip content encoding. Set to 0 to disable the limit.
+	const max_uncompressed_size = 128 * 1024 * 1024 &redef;
+
+	## Only allow that many pending requests on a single connection.
+	## If this number is exceeded, all pending requests are flushed
+	## out and request/response tracking reset to prevent unbounded
+	## state growth.
+	const max_pending_requests = 100 &redef;
+}
+
+module IRC;
+
+export {
+	## Maximum number of uncompressed bytes a ZIP support analyzer forwards.
+	## This applies to compressed server-to-server links. Set to 0 to disable
+	## the limit.
+	const max_uncompressed_size = 128 * 1024 * 1024 &redef;
 }
 
 module WebSocket;
@@ -1012,6 +1069,10 @@ type connection: record {
 	## The inner VLAN, if applicable for this connection.
 	inner_vlan: int &optional;
 };
+
+## The maximum size of a connection's history field. Setting this value to 0
+## disables the limit.
+const max_connection_history_size = 1000 &redef;
 
 ## Default amount of time a file can be inactive before the file analysis
 ## gives up and discards any internal state related to the file.
@@ -1712,18 +1773,34 @@ const TCP_RESET = 6;	##< Endpoint has sent RST.
 const UDP_INACTIVE = 0;	##< Endpoint is still inactive.
 const UDP_ACTIVE = 1;	##< Endpoint has sent something.
 
-## If true, don't verify checksums, and accept packets that give a length of
-## zero in the IPv4 header. This is useful when running against traces of local
-## traffic and the NIC checksum offloading feature is enabled. It can also
-## be useful for running on altered trace files, and for saving a few cycles
-## at the risk of analyzing invalid data.
+## If true, don't verify checksums at all. This saves the cost of computing
+## them, but bad checksums are then neither reported through weirds nor
+## recorded in the connection's history (``C``/``c``).
 ## With this option, packets that have a value of zero in the total-length field
 ## of the IPv4 header are also accepted, and the capture-length is used instead.
-## The total-length field is commonly set to zero when the NIC sequence offloading
-## feature is enabled.
+## The total-length field is commonly set to zero when the NIC segmentation
+## offloading feature is enabled.
 ## Note that the ``-C`` command-line option overrides the setting of this
 ## variable.
+##
+## .. zeek:see:: drop_bad_checksums
 const ignore_checksums = F &redef;
+
+## If true, packets that fail checksum validation are dropped. Otherwise,
+## by default, packets with bad checksums will be analyzed. Bad checksums are reported
+## through weirds and the connection history (``C`` and ``c``).
+##
+## With this set to false, packets with a value of zero in the
+## total-length field of the IPv4 header are accepted as with
+## :zeek:see:`ignore_checksums`.
+##
+## Analyzing packets with bad checksums (the default) means Zeek may process
+## packets that are discarded by the endpoint. If that matters for your deployment,
+## set this to true.
+##
+## This has no effect for packets whose checksums are not validated due to
+## :zeek:see:`ignore_checksums` or :zeek:see:`ignore_checksums_nets`.
+const drop_bad_checksums = F &redef;
 
 ## Checksums are ignored for all packets with a src address within this set of
 ## networks. Useful for cases where a host might be seeing packets collected
@@ -1853,6 +1930,12 @@ const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024 &redef;
 ## buffering.
 const tcp_max_old_segments = 0 &redef;
 
+## The maximum number of blocks the TCP reassembler will hold. If this limit reached, the
+## reassembler will reset its state and stop reassembly for that direction.. A
+## ``tcp_max_reassembler_blocks_exceeded`` weird will be emitted. Set this to zero to
+## disable the limit.
+const tcp_max_reassembler_blocks: count = 50000 &redef;
+
 ## Defines destination TCP ports for which the contents of the originator stream
 ## should be delivered via :zeek:see:`tcp_contents`.
 ##
@@ -1981,6 +2064,9 @@ const rpc_timeout = 24 sec &redef;
 ## :zeek:see:`rpc_discarded_pending_calls` event. Setting this value
 ## to 0 disables the limit. This may lead to unbounded state growth.
 const rpc_max_pending_calls = 1000 &redef;
+
+## Maximum length of an RPC message.
+const rpc_max_length = 65536 &redef;
 
 ## How long to hold onto fragments for possible reassembly.  A value of 0.0
 ## means "forever", which resists evasion, but can lead to state accrual.
@@ -3310,6 +3396,34 @@ global dns_max_queries = 25 &redef;
 ## reported and parsing of the chain is halted. See :rfc:`1035#section-4.1.4`.
 global dns_max_compression_chain_depth = 20 &redef;
 
+## The maximum number of character strings extracted from a single TXT
+## resource record and exposed via the :zeek:see:`dns_TXT_reply` event.
+## When this limit is reached, the connection history is marked with an X, additional
+## character strings in the resource record skipped and a DNS_TXT_too_many_character_strings
+## weird raised. Setting this value to 0 disables the limit.
+global dns_max_txt_character_strings = 257 &redef;
+
+## The maximum number of character strings extracted from a single SPF
+## resource record and exposed via the :zeek:see:`dns_SPF_reply` event.
+## When this limit is reached, the connection history is marked with an X, additional
+## character strings in the resource record skipped and a DNS_SPF_too_many_character_strings
+## weird raised. Setting this value to 0 disables the limit.
+global dns_max_spf_character_strings = 257 &redef;
+
+## The maximum number of type bitmaps extracted from a single NSEC
+## resource record and exposed via the :zeek:see:`dns_NSEC` event.
+## When this limit is reached, the connection history is marked with an X, additional
+## type bitmaps in the resource record skipped and a DNS_NSEC_too_many_type_bitmaps
+## weird raised. Setting this value to 0 disables the limit.
+global dns_max_nsec_type_bitmaps = 256 &redef;
+
+## The maximum number of type bitmaps extracted from a single NSEC3
+## resource record and exposed via the :zeek:see:`dns_NSEC3` event.
+## When this limit is reached, the connection history is marked with an X, additional
+## type bitmaps in the resource record skipped and a DNS_NSEC3_too_many_type_bitmaps
+## weird raised. Setting this value to 0 disables the limit.
+global dns_max_nsec3_type_bitmaps = 256 &redef;
+
 ## HTTP session statistics.
 ##
 ## .. zeek:see:: http_stats
@@ -3813,6 +3927,30 @@ export {
 	## Stop analysis of MIME headers that exceed this byte limit.
 	## Setting this value to 0 removes the limit.
 	const max_header_bytes = 65536 &redef;
+
+	## Stop analysis of MIME headers that exceed this number of
+	## continuation lines. Setting this value to 0 removes the limit.
+	const max_header_continuation_lines = 1000 &redef;
+
+	## Accumulate at most this many bytes for the data argument of the
+	## :zeek:see:`mime_entity_data` event. When exceeded, the connection's
+	## history is marked with an X and an exceeded_max_mime_entity_data_size
+	## weird is raised. Additional data is discarded.
+	##
+	## Setting this value to 0 removes the limit, but you should almost
+	## never process this many bytes using Zeek script. Instead, consider
+	## implementing a custom file analyzer or extending protocol parsers.
+	const max_mime_entity_data_size = 128 * 1024 * 1024 &redef;
+
+	## Accumulate at most this many bytes for the data argument of the
+	## :zeek:see:`mime_all_data` event. When exceeded, the connection's
+	## history is marked with an X and an exceeded_max_mime_all_data_size
+	## weird is raised. Additional data is discarded.
+	##
+	## Setting this value to 0 removes the limit, but you should almost
+	## never process this many bytes using Zeek script. Instead, consider
+	## implementing a custom file analyzer or extending protocol parsers.
+	const max_mime_all_data_size = 128 * 1024 * 1024 &redef;
 }
 
 module MOUNT3;
@@ -3910,6 +4048,41 @@ export {
 	## .. :zeek:see:`Log::flush_interval`
 	const write_buffer_size = 1000 &redef;
 
+	## Sets the high water mark of the log writer backend thread queues
+	## within the logging framework.
+	##
+	## Zeek batches up to :zeek:see:`Log::write_buffer_size` log records for
+	## delivery to log writer backend threads. Each such batch is placed into a
+	## per writer queue and takes up one slot in it. If the queue's size reaches the
+	## configured high water mark, Zeek will discard any new batches that don't
+	## fit and increase the :zeek:metric:`zeek_log_writer_backend_thread_queue_drops_total`
+	## metric by the number of log records in the dropped batch.
+	##
+	## Each entry in this queue holds up to :zeek:see:`Log::write_buffer_size`
+	## log records. Under extreme loads, Zeek may therefore still buffer many
+	## log records per log writer when setting the limit to 100 and consume
+	## significant amounts of memory. Consider tweaking :zeek:see:`Log::write_buffer_size`
+	## as well, to control the maximum memory usage.
+	##
+	## Setting this value to zero disables the high water mark and makes the
+	## queues unbounded. This can result in out-of-memory scenarios when writer
+	## threads are falling behind due to the queues backing up.
+	##
+	## .. versionadded:: 9.1
+	const backend_thread_queue_hwm = 0 &redef;
+
+	## Reporting of dropped log writes is rate limited to avoid overwhelming
+	## the system. This interval specifies for how long to suppress repeated
+	## drop reporting events.
+	##
+	## This rate-limit is across all log writes at this point. If you ever see
+	## the message about dropped log writes, check the metric
+	## :zeek:metric:`zeek_log_writer_backend_thread_queue_drops_total` for
+	## details.
+	##
+	## .. versionadded:: 9.1
+	const drop_report_suppress_interval = 1sec &redef;
+
 	## Maximum size of a message that can be sent to a remote logger or logged
 	## locally. If this limit is met, report a ``log_line_too_large`` weird and drop
 	## the log entry. This isn't necessarily the full size of a line that might be
@@ -3970,6 +4143,8 @@ export {
 	## several tests.
 	const heartbeat_interval = 1.0 secs &redef;
 }
+
+@load base/bif/plugins/Zeek_SSH.types.bif
 
 module SSH;
 
@@ -4071,6 +4246,48 @@ export {
 	## is reached, a ``SSH_max_kexinit_languages_exceeded``
 	## weird is raised and an X added to the connection's history.
 	const max_kexinit_languages = 100 &redef;
+
+	## Maps negotiated key exchange method names to the family the SSH
+	## analyzer uses to parse the following key exchange messages. Patterns
+	## must match the whole name. If several patterns match, the first one in
+	## table order wins. Methods without a match raise an
+	## ``ssh_unknown_kex_algorithm`` weird and their key exchange messages are
+	## not parsed.
+	## Pattern matching uses a lazily constructed DFA that retains its states.
+	## Avoid complex patterns, particularly wildcards followed by additional
+	## characters, as peer-controlled algorithm names may cause significant
+	## memory growth.
+	## See :zeek:see:`table_pattern_matcher_stats` for diagnostics.
+	const kex_methods: table[pattern] of KexMethod = {
+		[/rsa1024-sha1/] = KEX_RSA, # untested
+		[/rsa2048-sha256/] = KEX_RSA, # untested
+		[/diffie-hellman-group1-sha1/] = KEX_DH, # untested
+		[/diffie-hellman-group14-sha1/] = KEX_DH, # untested
+		[/diffie-hellman-group14-sha256/] = KEX_DH, # untested
+		[/diffie-hellman-group14-sha256@ssh.com/] = KEX_DH,
+		[/diffie-hellman-group15-sha512/] = KEX_DH,
+		[/diffie-hellman-group16-sha512/] = KEX_DH, # untested
+		[/diffie-hellman-group17-sha512/] = KEX_DH,
+		[/diffie-hellman-group18-sha512/] = KEX_DH,
+		[/diffie-hellman-group-exchange-sha1/] = KEX_DH_GEX,
+		[/diffie-hellman-group-exchange-sha256/] = KEX_DH_GEX,
+		[/diffie-hellman-group-exchange-sha512@ssh.com/] = KEX_DH_GEX,
+		[/gss-.*/] = KEX_GSS,
+		[/ecdh-sha2-.*/] = KEX_ECC,
+		[/ecmqv-sha2/] = KEX_ECC,
+		[/curve25519-sha256.*/] = KEX_ECC,
+		[/curve448-sha512/] = KEX_ECC,
+		[/sntrup761x25519-sha512.*/] = KEX_ECC,
+		[/mlkem.*/] = KEX_ECC,
+	} &ordered &redef;
+}
+
+module MySQL;
+
+export {
+	## The maximum number of query attributes allowed in a COM_QUERY
+	## command. Parsing aborts with an analyzer violation if exceeded.
+	const max_com_query_attributes = 65535 &redef;
 }
 
 module NTLM;
@@ -4267,6 +4484,12 @@ export {
 	## reached, a `smb_andx_depth_exceeded` weird is raised. Setting this to zero will
 	## disable the functionality.
 	const SMB::max_andx_depth = 10 &redef;
+
+	## Maximum size of the internal per connection ``tree_is_pipe_map``
+	## before discarding entries to avoid unbounded state growth.
+	##
+	## .. zeek:see:: smb_discarded_tree_is_pipe_map
+	const max_tree_is_pipe_map_size = 1000 &redef;
 }
 
 module SMB1;
@@ -5269,6 +5492,11 @@ export {
 		## Bit-flags that describe the characteristics of the section.
 		characteristics  : set[count];
 	};
+
+	## Maximum number of COFF sections that will be processed (i.e. the maximum value
+	## of the NumberOfSections field). If this limit is reached a binpac exception
+	## will be reported. Setting this to zero will disable the limit.
+	const max_number_of_sections: count = 4000 &redef;
 }
 
 module SSL;
@@ -5297,6 +5525,11 @@ export {
 	## content_type alert (21). The remaining alerts are discarded. For
 	## TLS 1.3 connections, this is implicitly 1 as defined by RFC 8446.
 	const SSL::max_alerts_per_record = 10 &redef;
+
+	## Maximum number of certificates parsed across TLS Certificate handshake
+	## messages on a single connection. The remaining certificates are
+	## discarded. A value of 0 disables the limit.
+	const SSL::max_certificates = 100 &redef;
 }
 
 module GLOBAL;
@@ -5360,6 +5593,20 @@ export {
 		## References to the final certificate chain, if verification successful. End-host certificate is first.
 		chain_certs: vector of opaque of x509 &optional;
 	};
+
+	## The maximum size of an X509 file in bytes. If this limit is exceeded, a
+	## x509_response_too_large weird will be reported. Setting this value to zero
+	## disables the limitation.
+	const max_bytes: count = 4194304 &redef;
+}
+
+module OCSP;
+
+export {
+	## The maximum size of an OCSP file in bytes. If this limit is exceeded, a
+	## ocsp_response_too_large weird will be reported. Setting this value to zero
+	## disables the limitation.
+	const max_bytes: count = 1048576 &redef;
 }
 
 module SOCKS;
@@ -5842,6 +6089,11 @@ export {
 		## The encrypted session key for the client
 		enc_part		: KRB::Encrypted_Data;
 	};
+
+	## The maximum number of PA_DATA records that will be processed from a single
+	## connection. If the limit is reached, a "krb_max_pa_data_records_exceeded" weird
+	## will be reported. Setting this to zero will disable the limitation.
+	const max_pa_data_records: count = 5000 &redef;
 }
 
 module JSON;
@@ -6008,14 +6260,18 @@ module DCE_RPC;
 
 export {
 	## The maximum number of simultaneous fragmented commands that
-	## the DCE_RPC analyzer will tolerate before the it will generate
-	## a weird and skip further input.
+	## the DCE_RPC analyzer will tolerate before it will generate
+	## a weird and discard all pending commands.
+	##
+	## Setting this variable to 0 disables the limit.
 	const max_cmd_reassembly = 20 &redef;
 
 	## The maximum number of fragmented bytes that the DCE_RPC analyzer
 	## will tolerate on a command before the analyzer will generate a weird
-	## and skip further input.
-	const max_frag_data = 30000 &redef;
+	## and discard the fragment.
+	##
+	## Setting this variable to 0 disables the limit.
+	const max_frag_data = 1024 * 1024 &redef;
 }
 
 module NCP;
@@ -6274,6 +6530,10 @@ export {
 	## payload information in :zeek:see:`mqtt_publish` events (and the
 	## default MQTT logs generated from that).
 	option max_payload_size = 100;
+
+	## The maximum number of topics to parse from one MQTT SUBSCRIBE or
+	## UNSUBSCRIBE message. A value of zero removes the limit.
+	const max_topics_per_subscription: count = 1024 &redef;
 }
 
 module Gnutella;
@@ -6313,6 +6573,10 @@ export {
 	##
 	## This currently has no effect for backend BROKER.
 	const log_serializer = Cluster::LOG_SERIALIZER_ZEEK_BIN_V1 &redef;
+
+	## The maximum number of subscriptions a WebSocket client may request.
+	## Set this value to 0 for unlimited.
+	const max_websocket_client_subscriptions = 1000 &redef;
 
 	## Default maximum batch size for the :zeek:attr:`&publish_on_change` attribute.
 	option default_table_publish_on_change_max_batch_size = 10;
@@ -6808,6 +7072,10 @@ export {
 		## Returned from async operations when the backend is waiting
 		## for a result.
 		IN_PROGRESS,
+		## Backend does not support the requested operation.
+		NOT_SUPPORTED,
+		## Result exceeds the requested maximum number of entries passed in the operation request.
+		RESULT_TOO_LARGE,
 	} &redef;
 
 	## Returned as the result of the various storage operations.

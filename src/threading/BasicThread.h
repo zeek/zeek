@@ -189,6 +189,13 @@ protected:
      */
     void Kill();
 
+    /**
+     * Returns true if SignalStop() has been called.
+     *
+     * This method is safe to call from any thread.
+     */
+    bool Stopping() const { return stopping; }
+
     /** Called by child thread's launcher when it's done processing. */
     ZEEK_DISABLE_TSAN void Done();
 
@@ -198,8 +205,9 @@ private:
 
     const char* name;
     std::thread thread;
-    bool started;                 // Set to to true once running.
-    std::atomic_bool terminating; // Set to to true to signal termination.
+    bool started;                 // Set to true once running.
+    std::atomic_bool stopping;    // Set to true to signal stopping.
+    std::atomic_bool terminating; // Set to true to signal termination.
     std::atomic_bool killed;      // Set to true once forcefully killed.
 
     // For implementing Fmt().

@@ -18,6 +18,34 @@ module ASN1;
 
 import spicy;
 
+@if HAVE_ZEEK
+import zeek;
+global _max_aggregate_elements: optional<uint64>; # appease spicy-format with a comment
+function max_aggregate_elements(): uint64 {
+    if (!_max_aggregate_elements)
+        _max_aggregate_elements = zeek::get_count("LDAP::max_asn1_aggregate_elements");
+
+    return *_max_aggregate_elements;
+}
+@else
+function max_aggregate_elements(): uint64 {
+    return 20000;
+}
+@endif
+
+function count_aggregate_element(elements_seen: uint64&): bool {
+    local limit = max_aggregate_elements();
+
+    if (limit == 0)
+        return True;
+
+    if (*elements_seen >= limit)
+        throw "ASN.1 aggregate element limit exceeded: %s" % limit;
+
+    *elements_seen += 1;
+    return True;
+}
+
 # Maximum ASN.1 nesting depth
 const MAX_ASN1_DEPTH: uint8 = 32;
 
@@ -200,7 +228,7 @@ public type ASN1Header = unit {
 
 #- ASN.1 message body ---------------------------------------------------------
 
-public type ASN1Body = unit(head: ASN1Header, recursive: bool, depth: uint8) {
+public type ASN1Body = unit(head: ASN1Header, recursive: bool, depth: uint8, counter: uint64&) {
     switch (head.tag.type_) {
         ASN1Type::Boolean -> bool_value: uint8 &convert=cast<bool>($$) &requires=head.len.len == 1;
         ASN1Type::Integer,
@@ -224,7 +252,7 @@ public type ASN1Body = unit(head: ASN1Header, recursive: bool, depth: uint8) {
         ASN1Type::VisibleString,
         ASN1Type::UniversalString -> str_value: ASN1String(head.tag, head.len.len);
         ASN1Type::Sequence,
-        ASN1Type::Set -> seq: ASN1SubMessages(head.len.len, depth) if(recursive);
+        ASN1Type::Set -> seq: ASN1SubMessages(head.len.len, depth, counter) if(recursive);
 
         # TODO: ASN1Type values not handled yet
         ASN1Type::ObjectDescriptor,
@@ -240,8 +268,8 @@ public type ASN1Body = unit(head: ASN1Header, recursive: bool, depth: uint8) {
 
 #- ASN.1 array of ASN.1 sequence/set sub-messages (up to msgLen bytes) --------
 
-public type ASN1SubMessages = unit(msgLen: uint64, depth: uint8) {
-    submessages: ASN1Message(True, depth + 1)[] &eod;
+public type ASN1SubMessages = unit(msgLen: uint64, depth: uint8, counter: uint64&) {
+    submessages: ASN1Message(True, counter, depth + 1)[] &eod;
 } &size=msgLen;
 
 #- ASN.1 message with header and body -----------------------------------------
@@ -249,12 +277,12 @@ public type ASN1SubMessages = unit(msgLen: uint64, depth: uint8) {
 # - if Universal, body:ASN1Body is parsed
 # - else, application_data:bytes stores data array
 
-public type ASN1Message = unit(recursive: bool, depth: uint8 = 0) {
+public type ASN1Message = unit(recursive: bool, counter: uint64&, depth: uint8 = 0) {
     var application_id: int32;
 
     head: ASN1Header;
     switch (self.head.tag.class) {
-        ASN1Class::Universal -> body: ASN1Body(self.head, recursive, depth);
+        ASN1Class::Universal -> body: ASN1Body(self.head, recursive, depth, counter);
         ASN1Class::Application,
         ASN1Class::ContextSpecific,
         ASN1Class::Private -> application_data: bytes &size=self.head.len.len {
@@ -265,5 +293,8 @@ public type ASN1Message = unit(recursive: bool, depth: uint8 = 0) {
     on %init {
         if (depth > MAX_ASN1_DEPTH)
             throw "ASN.1 exceeded max recursion depth";
+
+        if (recursive && depth > 0)
+            count_aggregate_element(counter);
     }
 };

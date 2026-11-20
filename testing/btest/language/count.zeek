@@ -59,4 +59,3 @@ event zeek_init()
 	local str2 = fmt("max count value = %d", c6);
 	test_case( str2, str2 == "max count value = 18446744073709551615" );
 }
-

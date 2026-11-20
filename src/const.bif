@@ -13,11 +13,18 @@ const exit_only_after_terminate: bool;
 const digest_salt: string;
 const max_analyzer_violations: count;
 const netbios_ssn_session_timeout: interval;
+const max_connection_history_size: count;
 
 const io_poll_interval_default: count;
 const io_poll_interval_live: count;
 
+const max_event_queue_size: count;
+
 const FTP::max_command_length: count;
+
+const HTTP::max_uncompressed_size: count;
+
+const IRC::max_uncompressed_size: count;
 
 const NFS3::return_data: bool;
 const NFS3::return_data_max: count;
@@ -33,6 +40,8 @@ const Threading::heartbeat_interval: interval;
 
 const Log::flush_interval: interval;
 const Log::write_buffer_size: count;
+const Log::backend_thread_queue_hwm: count;
+const Log::drop_report_suppress_interval: interval;
 
 const Storage::expire_interval: interval;
 
@@ -40,3 +49,5 @@ const EventMetadata::add_network_timestamp: bool;
 const EventMetadata::add_missing_remote_network_timestamp: bool;
 
 const SMB::max_andx_depth: count;
+
+const PE::max_number_of_sections: count;

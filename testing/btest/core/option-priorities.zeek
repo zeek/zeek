@@ -25,4 +25,3 @@ event zeek_init()
 	Option::set("testbool", F, "here");
 	print "New value", testbool;
 	}
-

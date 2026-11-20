@@ -1,5 +1,5 @@
 # @TEST-EXEC: zcat <$TRACES/smtp/mime-header-size-limit.pcap.gz | zeek -b -r - %INPUT
-# @TEST-EXEC: btest-diff weird.log
+# @TEST-EXEC: btest-diff-cut -m weird.log
 # @TEST-EXEC: btest-diff-cut -m uid service history conn.log
 
 @load base/protocols/smtp
@@ -8,3 +8,6 @@
 # Avoid log_string_field_truncated weird
 redef Log::default_max_field_string_bytes = 0;
 redef Log::default_max_total_string_bytes = 0;
+
+# Disable continuation limit for this test.
+redef MIME::max_header_continuation_lines = 0;

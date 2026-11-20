@@ -20,16 +20,8 @@ refine flow SIP_Flow += {
 		return content_length;
 		%}
 
-	function proc_sip_request(junk: bytestring, method: bytestring, uri: bytestring, vers: SIP_Version): bool
+	function proc_sip_request(method: bytestring, uri: bytestring, vers: SIP_Version): bool
 		%{
-		if ( junk.length() )
-			{
-			zeek::String zs{junk.begin(), junk.length(), false};
-			auto addl = zs.Render();
-			connection()->zeek_analyzer()->Weird("sip_junk_before_request", addl);
-			delete [] addl;
-			}
-
 		if ( sip_request )
 			{
 			zeek::BifEvent::enqueue_sip_request(connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(),
@@ -156,7 +148,7 @@ refine flow SIP_Flow += {
 };
 
 refine typeattr SIP_RequestLine += &let {
-       proc: bool = $context.flow.proc_sip_request(junk, method, uri, version);
+       proc: bool = $context.flow.proc_sip_request(method, uri, version);
 };
 
 refine typeattr SIP_ReplyLine += &let {

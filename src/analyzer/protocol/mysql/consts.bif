@@ -1,0 +1,1 @@
+const MySQL::max_com_query_attributes: count;

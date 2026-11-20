@@ -3,4 +3,4 @@
 # Replace absolute paths in Spicy error message with the basename. This is more
 # restrictive than diff-remove-abspath to avoid catching other stuff.
 
-sed -E 's#/([^:/]{1,}/){1,}([^:/]{1,}\.spicy[:,])#<...>/\2#g'
+sed -E 's#([a-zA-Z]:)?/([^:/]{1,}/){1,}([^:/]{1,}\.spicy[:,])#<...>/\3#g'

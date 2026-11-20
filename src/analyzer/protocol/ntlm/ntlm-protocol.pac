@@ -23,8 +23,9 @@ type NTLM_Negotiate(offset: uint16) = record {
 } &let {
 	absolute_offset : uint16 = offsetof(payload) + offset;
 	version         : NTLM_Version withinput payload &if(flags.negotiate_version && (absolute_offset < min(domain_name_fields.offset, workstation_fields.offset)));
-	domain_name     : NTLM_String(domain_name_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(flags.negotiate_oem_domain_supplied);
-	workstation     : NTLM_String(workstation_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(flags.negotiate_oem_workstation_supplied);
+	# The NEGOTIATE message's strings are always OEM (MS-NLMP 2.2.1.1).
+	domain_name     : NTLM_String(domain_name_fields, absolute_offset, false) withinput payload &if(flags.negotiate_oem_domain_supplied);
+	workstation     : NTLM_String(workstation_fields, absolute_offset, false) withinput payload &if(flags.negotiate_oem_workstation_supplied);
 };
 
 type NTLM_Challenge(offset: uint16) = record {
@@ -36,9 +37,21 @@ type NTLM_Challenge(offset: uint16) = record {
 	payload             : bytestring &restofdata;
 } &let {
 	absolute_offset : uint16 = offsetof(payload) + offset;
+	payload_length : uint32 = sizeof(payload);
+	target_info_valid : bool = flags.negotiate_target_info &&
+	                           $context.connection.validate_target_info_offset(
+	                               target_info_fields.offset, absolute_offset, payload_length);
+	target_info_offset : uint32 = target_info_valid ?
+	                              target_info_fields.offset - absolute_offset : 0;
+	target_info_length : uint32 = target_info_valid ?
+	                              min(target_info_fields.length,
+	                                  payload_length - target_info_offset) : 0;
 	version         : NTLM_Version withinput payload &if(flags.negotiate_version && (absolute_offset < min(target_name_fields.offset, target_info_fields.offset)));
 	target_name     : NTLM_String(target_name_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(flags.request_target);
-	target_info     : NTLM_AV_Pair_Sequence(target_info_fields.offset - absolute_offset) withinput payload &if(flags.negotiate_target_info);
+	target_info     : NTLM_AV_Pair_Sequence(target_info_offset)
+	                      withinput payload
+	                      &length=target_info_offset + target_info_length
+	                      &if(target_info_valid);
 };
 
 type NTLM_Authenticate(offset: uint16) = record {
@@ -88,7 +101,7 @@ type NTLM_String(fields: NTLM_StringData, offset: uint16, unicode: bool) = recor
 	string : Fixed_Length_String(unicode) &length=fields.length;
 };
 
-type NTLM_AV_Pair_Sequence(offset: uint16) = record {
+type NTLM_AV_Pair_Sequence(offset: uint32) = record {
 	pad1  : padding to offset;
 	pairs : NTLM_AV_Pair[] &until($element.last);
 };

@@ -42,4 +42,3 @@ POP3_CMD_DEF(END)
 // ===========================================
 // UPDATE - State
 // no commands here
-

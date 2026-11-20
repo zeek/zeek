@@ -30,4 +30,3 @@ event zeek_init()
 	Log::enable_stream(SSH::LOG);
 	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="failure", $country="MX"]);
 }
-

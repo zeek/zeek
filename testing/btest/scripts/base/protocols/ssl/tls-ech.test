@@ -7,4 +7,3 @@ event ssl_extension_encrypted_client_hello(c: connection, is_client: bool, kdf_i
 	{
 	print "ssl_extension_encrypted_client_hello", c$id$orig_h, c$id$resp_h, kdf_id, aead_id, config_id, |enc|, payload_length;
 	}
-

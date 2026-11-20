@@ -8,4 +8,3 @@
 @load base/protocols/smb
 
 redef SMB::logged_file_actions += { SMB::FILE_READ, SMB::FILE_WRITE };
-

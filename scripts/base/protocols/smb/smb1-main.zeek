@@ -14,7 +14,6 @@ event smb1_message(c: connection, hdr: SMB1::Header, is_orig: bool) &priority=5
 		local state: SMB::State;
 		state$fid_map = table();
 		state$tid_map = table();
-		state$pipe_map = table();
 		state$pending_cmds = table();
 		c$smb_state = state;
 		}
@@ -24,9 +23,8 @@ event smb1_message(c: connection, hdr: SMB1::Header, is_orig: bool) &priority=5
 	local mid = hdr$mid;
 
 	if ( tid !in smb_state$tid_map )
-		{
-		smb_state$tid_map[tid] = SMB::TreeInfo($uid=c$uid, $id=c$id);
-		}
+		SMB::insert_new_tree_info(c, tid);
+
 	smb_state$current_tree = smb_state$tid_map[tid];
 	if ( smb_state$current_tree?$path )
 		{
@@ -146,26 +144,21 @@ event smb1_nt_create_andx_request(c: connection, hdr: SMB1::Header, name: string
 
 event smb1_nt_create_andx_response(c: connection, hdr: SMB1::Header, file_id: count, file_size: count, times: SMB::MACTimes) &priority=5
 	{
+	SMB::set_current_file(c, file_id);
+
 	c$smb_state$current_cmd$referenced_file$action = SMB::FILE_OPEN;
-	c$smb_state$current_cmd$referenced_file$fid = file_id;
 	c$smb_state$current_cmd$referenced_file$size = file_size;
 
 	# I'm seeing negative data from IPC tree transfers
 	if ( times$modified as double > 0.0 )
 		c$smb_state$current_cmd$referenced_file$times = times;
 
-	# We can identify the file by its file id now so let's stick it
-	# in the file map.
-	c$smb_state$fid_map[file_id] = c$smb_state$current_cmd$referenced_file;
-
-	c$smb_state$current_file = c$smb_state$fid_map[file_id];
-
 	SMB::write_file_log(c$smb_state);
 	}
 
 event smb1_read_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, length: count) &priority=5
 	{
-	SMB::set_current_file(c$smb_state, file_id);
+	SMB::set_current_file(c, file_id);
 	c$smb_state$current_file$action = SMB::FILE_READ;
 	if ( c$smb_state$current_file?$name )
 		c$smb_state$current_cmd$argument = c$smb_state$current_file$name;
@@ -181,7 +174,7 @@ event smb1_read_andx_request(c: connection, hdr: SMB1::Header, file_id: count, o
 
 event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, data_len: count) &priority=5
 	{
-	SMB::set_current_file(c$smb_state, file_id);
+	SMB::set_current_file(c, file_id);
 	c$smb_state$current_file$action = SMB::FILE_WRITE;
 	if ( !c$smb_state$current_cmd?$argument &&
 	     # TODO: figure out why name isn't getting set sometimes.
@@ -205,7 +198,7 @@ event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, 
 
 event smb1_close_request(c: connection, hdr: SMB1::Header, file_id: count) &priority=5
 	{
-	SMB::set_current_file(c$smb_state, file_id);
+	SMB::set_current_file(c, file_id);
 	c$smb_state$current_file$action = SMB::FILE_CLOSE;
 	}
 
@@ -261,15 +254,4 @@ event smb1_session_setup_andx_response(c: connection, hdr: SMB1::Header, respons
 event smb1_transaction_request(c: connection, hdr: SMB1::Header, name: string, sub_cmd: count, parameters: string, data: string)
 	{
 	c$smb_state$current_cmd$sub_command = SMB1::trans_sub_commands[sub_cmd];
-	}
-
-event smb1_write_andx_request(c: connection, hdr: SMB1::Header, file_id: count, offset: count, data_len: count)
-	{
-	if ( ! c$smb_state?$current_file || ! c$smb_state$current_file?$uuid )
-		{
-		# TODO: figure out why the uuid isn't getting set sometimes.
-		return;
-		}
-
-	c$smb_state$pipe_map[file_id] = c$smb_state$current_file$uuid;
 	}

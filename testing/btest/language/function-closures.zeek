@@ -196,4 +196,3 @@ event zeek_init()
 	
 	dog("bark");
 	} # zeek_init
-

@@ -401,6 +401,9 @@ protected:
     // Start the regular log flushing timer.
     void StartLogFlushTimer();
 
+    // Return a backend queue drop counter metric with labels taken from frontend.
+    telemetry::CounterPtr GetBackendQueueDropCounter(const WriterFrontend& frontend);
+
 private:
     struct Filter;
     struct Stream;
@@ -463,6 +466,7 @@ private:
     std::shared_ptr<telemetry::CounterFamily> total_log_writer_discarded_writes_family;
     std::shared_ptr<telemetry::CounterFamily> total_log_writer_truncated_string_fields_family;
     std::shared_ptr<telemetry::CounterFamily> total_log_writer_truncated_container_fields_family;
+    std::shared_ptr<telemetry::CounterFamily> total_log_writer_backend_thread_queue_drops_family;
 
     zeek_uint_t last_delay_token = 0;
     std::vector<detail::WriteContext> active_writes;

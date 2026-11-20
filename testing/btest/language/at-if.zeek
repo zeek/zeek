@@ -55,4 +55,3 @@ event zeek_init()
 	test_case( "@if...@else", xyz == 1 );
 
 }
-

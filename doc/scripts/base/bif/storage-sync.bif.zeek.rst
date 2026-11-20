@@ -17,8 +17,10 @@ Functions
 :zeek:id:`Storage::Sync::__close_backend`: :zeek:type:`function`
 :zeek:id:`Storage::Sync::__erase`: :zeek:type:`function`
 :zeek:id:`Storage::Sync::__get`: :zeek:type:`function`
+:zeek:id:`Storage::Sync::__get_all`: :zeek:type:`function`
 :zeek:id:`Storage::Sync::__open_backend`: :zeek:type:`function`
 :zeek:id:`Storage::Sync::__put`: :zeek:type:`function`
+:zeek:id:`Storage::Sync::__size`: :zeek:type:`function`
 ================================================================ =
 
 
@@ -44,6 +46,12 @@ Functions
    :Type: :zeek:type:`function` (backend: :zeek:type:`opaque` of Storage::BackendHandle, key: :zeek:type:`any`) : :zeek:type:`Storage::OperationResult`
 
 
+.. zeek:id:: Storage::Sync::__get_all
+   :source-code: base/bif/storage-sync.bif.zeek 28 28
+
+   :Type: :zeek:type:`function` (backend: :zeek:type:`opaque` of Storage::BackendHandle, max_entries: :zeek:type:`count`) : :zeek:type:`Storage::OperationResult`
+
+
 .. zeek:id:: Storage::Sync::__open_backend
    :source-code: base/bif/storage-sync.bif.zeek 13 13
 
@@ -54,6 +62,12 @@ Functions
    :source-code: base/bif/storage-sync.bif.zeek 19 19
 
    :Type: :zeek:type:`function` (backend: :zeek:type:`opaque` of Storage::BackendHandle, key: :zeek:type:`any`, value: :zeek:type:`any`, overwrite: :zeek:type:`bool`, expire_time: :zeek:type:`interval`) : :zeek:type:`Storage::OperationResult`
+
+
+.. zeek:id:: Storage::Sync::__size
+   :source-code: base/bif/storage-sync.bif.zeek 31 31
+
+   :Type: :zeek:type:`function` (backend: :zeek:type:`opaque` of Storage::BackendHandle) : :zeek:type:`Storage::OperationResult`
 
 
 

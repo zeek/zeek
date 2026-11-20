@@ -528,6 +528,12 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
         return false;
     }
 
+    if ( separator.empty() ) {
+        // Reject empty separators.
+        Error("InputRaw::record_separator must not be empty");
+        return false;
+    }
+
     fname = info.source;
     mtime = 0;
     ino = 0;

@@ -118,6 +118,7 @@ protected:
     // {begin, continuation, end} of a header.
     void NewHeader(int len, const char* data);
     void ContHeader(int len, const char* data);
+    void AppendHeaderLine(int len, const char* data);
     void FinishHeader();
 
     void ParseMIMEHeader(MIME_Header* h);
@@ -261,11 +262,13 @@ protected:
     bool compute_content_hash_sha256 = false;
     int buffer_start;
     int data_start;
-    int content_hash_length;
+    size_t content_hash_length;
     detail::HashDigestState* md5_hash = nullptr;
     detail::HashDigestState* sha256_hash = nullptr;
-    std::vector<const String*> entity_content;
-    std::vector<const String*> all_content;
+    std::vector<StringValPtr> entity_content;
+    size_t entity_content_size = 0;
+    std::vector<StringValPtr> all_content;
+    size_t all_content_size = 0;
 
     String* data_buffer;
 
@@ -289,6 +292,7 @@ extern int MIME_get_token(int len, const char* data, data_chunk_t* token, bool i
 extern int MIME_get_slash_token_pair(int len, const char* data, data_chunk_t* first, data_chunk_t* second);
 extern int MIME_get_value(int len, const char* data, String*& buf, bool is_boundary = false);
 extern int MIME_get_field_name(int len, const char* data, data_chunk_t* name);
+extern int MIME_get_list_value(int len, const char* data, data_chunk_t* token, bool& more);
 extern String* MIME_decode_quoted_pairs(data_chunk_t buf);
 
 } // namespace analyzer::mime

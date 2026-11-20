@@ -147,4 +147,3 @@ event NetControl::acld_remove_rule(id: count, r: NetControl::Rule, ar: NetContro
 	}
 
 # @TEST-END-FILE
-

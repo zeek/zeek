@@ -15,4 +15,3 @@ type XMPP_TOKEN(is_orig: bool) = record {
 	: XML_END;
 	tagcontent: CONTENT;
 };
-

@@ -23,6 +23,10 @@ type MQTT_string = record {
 	str : bytestring &length=len;
 };
 
+type MQTT_subscription_topic_counter = empty &let {
+	reset: bool = $context.flow.reset_subscription_topic_count();
+};
+
 # These values are all defined in the commands/*.pac files...
 type Command(pdu: MQTT_PDU, msg_type: uint8) = case msg_type of {
 	default -> unknown : empty;

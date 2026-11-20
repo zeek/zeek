@@ -41,4 +41,3 @@ event testevent(msg: string)
         }
 
 # @TEST-END-FILE
-

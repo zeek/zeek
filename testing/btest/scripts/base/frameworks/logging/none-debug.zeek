@@ -34,4 +34,3 @@ event zeek_init()
 	Log::add_filter(SSH::LOG, [$name="f1", $exclude=set("t", "id.orig_h"), $config=config]);
 	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="success"]);
 }
-

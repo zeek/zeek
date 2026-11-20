@@ -2,6 +2,7 @@
 	zeek::IntrusivePtr<zeek::TimeVal> filetime2zeektime(uint64_t ts);
 	zeek::RecordValPtr build_version_record(NTLM_Version* val);
 	zeek::RecordValPtr build_negotiate_flag_record(NTLM_Negotiate_Flags* val);
+	zeek::StringValPtr ntlm_string_val(zeek::Connection* conn, NTLM_String* val);
 %}
 
 %code{
@@ -26,6 +27,16 @@
 		result->Assign(3, ${val.ntlm_revision});
 
 		return result;
+		}
+
+	zeek::StringValPtr ntlm_string_val(zeek::Connection* conn, NTLM_String* val)
+		{
+		if ( val->unicode() )
+			return utf16_to_utf8_val(conn, val->string()->data());
+
+		// OEM strings are in the sender's code page, which the message
+		// doesn't name: keep their bytes as they are.
+		return to_stringval(val->string()->data());
 		}
 
 	zeek::RecordValPtr build_negotiate_flag_record(NTLM_Negotiate_Flags* val)
@@ -59,6 +70,22 @@
 %}
 
 refine connection NTLM_Conn += {
+
+	function validate_target_info_offset(field_offset: uint32, absolute_offset: uint16,
+	                                     payload_length: uint32): bool
+		%{
+		bool valid = field_offset >= absolute_offset;
+		if ( valid )
+			{
+			auto relative_offset = field_offset - absolute_offset;
+			valid = relative_offset <= payload_length;
+			}
+
+		if ( ! valid )
+			zeek_analyzer()->AnalyzerViolation("invalid NTLM target info offset");
+
+		return valid;
+		%}
 
 	function build_av_record(val: NTLM_AV_Pair_Sequence, len: uint16): ZeekVal
 		%{
@@ -121,10 +148,10 @@ refine connection NTLM_Conn += {
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_domain_name() )
-		        result->Assign(1, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.domain_name.string.data}));
+		        result->Assign(1, ntlm_string_val(zeek_analyzer()->Conn(), ${val.domain_name}));
 
 		if ( ${val}->has_workstation() )
-		        result->Assign(2, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.workstation.string.data}));
+		        result->Assign(2, ntlm_string_val(zeek_analyzer()->Conn(), ${val.workstation}));
 
 		if ( ${val}->has_version() )
 		        result->Assign(3, build_version_record(${val.version}));
@@ -146,7 +173,7 @@ refine connection NTLM_Conn += {
 		result->Assign(1, ${val.challenge});
 
 		if ( ${val}->has_target_name() )
-			result->Assign(2, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.target_name.string.data}));
+			result->Assign(2, ntlm_string_val(zeek_analyzer()->Conn(), ${val.target_name}));
 
 		if ( ${val}->has_version() )
 			result->Assign(3, build_version_record(${val.version}));
@@ -170,13 +197,13 @@ refine connection NTLM_Conn += {
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
 		if ( ${val}->has_domain_name() )
-			result->Assign(1, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.domain_name.string.data}));
+			result->Assign(1, ntlm_string_val(zeek_analyzer()->Conn(), ${val.domain_name}));
 
 		if ( ${val}->has_user_name() )
-			result->Assign(2, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.user_name.string.data}));
+			result->Assign(2, ntlm_string_val(zeek_analyzer()->Conn(), ${val.user_name}));
 
 		if ( ${val}->has_workstation() )
-			result->Assign(3, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.workstation.string.data}));
+			result->Assign(3, ntlm_string_val(zeek_analyzer()->Conn(), ${val.workstation}));
 
 		if ( ${val}->has_encrypted_session_key() )
 			result->Assign(4, to_stringval(${val.encrypted_session_key.string.data}));

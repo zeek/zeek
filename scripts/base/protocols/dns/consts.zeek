@@ -102,7 +102,7 @@ export {
 		[65282] = "WINS-R",
 		[65422] = "XPF",
 		[65521] = "INTEGRITY", # google: https://docs.google.com/document/d/14eCqVyT_3MSj7ydqNFl1Yl0yg1fs6g24qmYUUdi5V-k/edit
-	} &default = function(n: count): string { return fmt("query-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("query-%d", n); };
 
 	## Errors used for non-TSIG/EDNS types.
 	const base_errors = {
@@ -132,13 +132,13 @@ export {
 		[23] = "BADCOOKIE",     # Bad EDNS cookie value
 		[3842] = "BADSIG",      # 16 <= number collision with EDNS(16);
 		                        # this is a translation from TSIG(16)
-	} &default = function(n: count): string { return fmt("rcode-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("rcode-%d", n); };
 
 	## This deciphers EDNS Z field values.
 	const edns_zfield = {
 		[0]     = "NOVALUE",    # regular entry
 		[32768] = "DNS_SEC_OK", # accepts DNS Sec RRs
-	} &default="?";
+	} &redef &default = function(n: count): string { return fmt("edns_zfield-%d", n); };
 
 	## Possible values of the CLASS field in resource records or QCLASS
 	## field in query messages.
@@ -149,7 +149,7 @@ export {
 		[4]   = "C_HESIOD",
 		[254] = "C_NONE",
 		[255] = "C_ANY",
-	} &default = function(n: count): string { return fmt("qclass-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("qclass-%d", n); };
 
 	## Possible values of the algorithms used in DNSKEY, DS and RRSIG records
 	const algorithms = {
@@ -172,7 +172,7 @@ export {
 		[253] = "PrivateDNS",
 		[254] = "PrivateOID",
 		[255] = "reserved255",
-	} &default = function(n: count): string { return fmt("algorithm-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("algorithm-%d", n); };
 
 	## Possible digest types used in DNSSEC.
 	const digests = {
@@ -181,7 +181,7 @@ export {
 		[2] = "SHA256",
 		[3] = "GOST_R_34_11_94",
 		[4] = "SHA384",
-	} &default = function(n: count): string { return fmt("digest-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("digest-%d", n); };
 
 	## SVCB/HTTPS SvcParam keys as defined in :rfc:`9460#name-initial-contents`.
 	## Keep in sync with src/analyzer/protocol/dns/DNS.h SVCPARAM_Key.
@@ -193,7 +193,7 @@ export {
 		[4] = "ipv4hint",
 		[5] = "ech",
 		[6] = "ipv6hint",
-	} &default = function(n: count): string { return fmt("key-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("key-%d", n); };
 
 	const DNS_OP_QUERY = 0;
 	const DNS_OP_IQUERY = 1;
@@ -210,7 +210,7 @@ export {
 		[4] = "notify",
 		[5] = "dynamic-update",
 		[6] = "dso",
-	} &default = function(n: count): string { return fmt("opcode-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("opcode-%d", n); };
 
 	## Mapping of DNS operation type codes to human readable string representation for
 	## NetBIOS Name Service (NBNS) queries. These codes are defined in
@@ -221,5 +221,5 @@ export {
 		[6] = "netbios-release",
 		[7] = "netbios-wack",
 		[8] = "netbios-refresh",
-	} &default = function(n: count): string { return fmt("netbios-opcode-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("netbios-opcode-%d", n); };
 }

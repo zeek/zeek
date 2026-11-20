@@ -18,6 +18,7 @@ add_subdirectory(linux_sll2)
 add_subdirectory(llc)
 add_subdirectory(snap)
 add_subdirectory(novell_802_3)
+add_subdirectory(l2tp)
 
 add_subdirectory(arp)
 add_subdirectory(ip)

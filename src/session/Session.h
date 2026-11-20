@@ -231,7 +231,7 @@ public:
      *
      * @param code Code to add
      */
-    void AddHistory(char code) { history += code; }
+    void AddHistory(char code);
 
     /**
      * @return The current history value.

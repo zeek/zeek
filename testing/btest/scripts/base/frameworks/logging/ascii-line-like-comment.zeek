@@ -20,4 +20,3 @@ event zeek_init()
 	Log::write(Test::LOG, [$data="#Kaputt"]);
 	Log::write(Test::LOG, [$data="Test2"]);
 }
-

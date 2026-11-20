@@ -10,4 +10,3 @@ event zeek_init() &priority=5
 	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_XMPP, ports);
 	}
-

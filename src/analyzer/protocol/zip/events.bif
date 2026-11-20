@@ -1,0 +1,17 @@
+## Generated when the ZIP support analyzer is done forwarding data, once per analyzer that sees
+## compressed traffic. This is not a ZIP file analyzer, instead used by some analyzers (HTTP, IRC)
+## for compressed content.
+##
+## c: The connection.
+##
+## aid: The analyzer identifier of the ZIP analyzer.
+##
+## total_in: The total number of compressed input bytes handled by the ZIP analyzer.
+##
+## total_out: The total number of uncompressed output bytes handled by the ZIP analyzer. This is
+##            capped if the limit is exceeded.
+##
+## exceeded: True if this stream exceeded either :zeek:see:`HTTP::max_uncompressed_size` or
+##           :zeek:see:`IRC::max_uncompressed_size`, depending on the parent analyzer. If so,
+##           total_out will not exceed that cap. False if the cap was not exceeded.
+event zip_analyzer_stats%(c: connection, aid: count, total_in: count, total_out: count, exceeded: bool%);

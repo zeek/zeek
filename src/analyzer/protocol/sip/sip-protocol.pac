@@ -1,5 +1,4 @@
 type SIP_TOKEN  = RE/[a-zA-Z0-9_.!%*+`'~-]+/;
-type NOT_SIP_TOKEN  = RE/[^a-zA-Z0-9_.!%*+`'~-]*/;
 type SIP_WS     = RE/[ \t]*/;
 type SIP_URI    = RE/[[:alnum:]@[:punct:]]+/;
 
@@ -19,7 +18,6 @@ type SIP_Reply = record {
 };
 
 type SIP_RequestLine = record {
-	junk:		NOT_SIP_TOKEN;
 	method:		SIP_TOKEN;
 	:		SIP_WS;
 	uri:		SIP_URI;

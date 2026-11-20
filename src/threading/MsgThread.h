@@ -283,6 +283,16 @@ protected:
      */
     virtual const zeek::detail::Location* GetLocationInfo() const { return nullptr; }
 
+    /**
+     * Returns the in queue's approximate pending value.
+     */
+    uint64_t ApproximatePendingIn() const { return queue_in.ApproximatePending(); }
+
+    /**
+     * Returns the out queue's approximate pending value.
+     */
+    uint64_t ApproximatePendingOut() const { return queue_out.ApproximatePending(); }
+
 private:
     /**
      * Pops a message sent by the main thread from the main-to-chold

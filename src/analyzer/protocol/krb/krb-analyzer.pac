@@ -169,6 +169,57 @@ bool proc_error_arguments(zeek::RecordVal* rv, const std::vector<KRB_ERROR_Arg*>
 %}
 
 refine connection KRB_Conn += {
+	%member{
+		uint16_t kdc_req_arg_mask;
+	%}
+
+	%init{
+		kdc_req_arg_mask = 0;
+	%}
+
+	function reset_kdc_req_args(): bool
+		%{
+		kdc_req_arg_mask = 0;
+		return true;
+		%}
+
+	function validate_kdc_req_arg(index: uint8): bool
+		%{
+		if ( index > 11 )
+			throw binpac::Exception("invalid unknown Kerberos request argument");
+
+		auto bit = static_cast<uint16_t>(1U << index);
+		if ( kdc_req_arg_mask & bit )
+			throw binpac::Exception("invalid duplicate Kerberos request argument");
+
+		kdc_req_arg_mask |= bit;
+		return true;
+		%}
+
+	%member{
+		uint64_t pa_data_index = 0;
+	%}
+
+	function next_pa_data_index(): uint64
+		%{
+		pa_data_index++;
+		return pa_data_index;
+		%}
+
+	function check_pa_data_index(index: uint64): bool
+		%{
+		if ( zeek::BifConst::KRB::max_pa_data_records > 0 && index >= zeek::BifConst::KRB::max_pa_data_records ) {
+		   zeek_analyzer()->LimitReachedWeird("krb_max_pa_data_records_exceeded", zeek::BifConst::KRB::max_pa_data_records);
+		   return true;
+		}
+
+		return false;
+		%}
+
+	function max_pa_data_index(): int
+		%{
+		return zeek::BifConst::KRB::max_pa_data_records;
+		%}
 
 	function proc_krb_kdc_req_msg(msg: KRB_KDC_REQ): bool
 		%{

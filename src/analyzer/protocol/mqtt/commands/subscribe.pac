@@ -1,3 +1,7 @@
+%extern{
+        #include "zeek/analyzer/protocol/mqtt/consts.bif.h"
+%}
+
 refine casetype Command += {
 	MQTT_SUBSCRIBE -> subscribe : MQTT_subscribe;
 };
@@ -9,14 +13,21 @@ type MQTT_subscribe_topic = record {
 
 type MQTT_subscribe = record {
 	msg_id : uint16;
-	topics : MQTT_subscribe_topic[];
+	topic_counter : MQTT_subscription_topic_counter;
+	topics : MQTT_subscribe_topic[]
+		&until($element != nullptr && $context.flow.subscription_topic_limit_reached());
+	excess_topics : bytestring &restofdata &transient;
 } &let {
+	has_excess_topics: bool = sizeof(excess_topics) > 0;
 	proc: bool = $context.flow.proc_mqtt_subscribe(this);
 };
 
 refine flow MQTT_Flow += {
 	function proc_mqtt_subscribe(msg: MQTT_subscribe): bool
 		%{
+		if ( ${msg.has_excess_topics} )
+			connection()->zeek_analyzer()->LimitReachedWeird("mqtt_excessive_subscription_topics", zeek::BifConst::MQTT::max_topics_per_subscription);
+
 		if ( mqtt_subscribe )
 			{
 			auto topics = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);

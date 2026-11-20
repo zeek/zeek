@@ -32,5 +32,3 @@ event smb1_nt_create_andx_request%(c: connection, hdr: SMB1::Header, file_name: 
 ##
 ## .. zeek:see:: smb1_message smb1_nt_create_andx_request
 event smb1_nt_create_andx_response%(c: connection, hdr: SMB1::Header, file_id: count, file_size: count, times: SMB::MACTimes%);
-
-

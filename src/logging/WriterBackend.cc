@@ -15,7 +15,30 @@
 using zeek::threading::Field;
 using zeek::threading::Value;
 
-namespace zeek::logging {
+namespace zeek {
+
+namespace BifConst::Log {
+// from const.bif.netvar_h, but that has some Val references, so using extern.
+extern zeek_uint_t backend_thread_queue_hwm;
+} // namespace BifConst::Log
+
+namespace logging {
+
+namespace detail {
+
+bool writer_backend_thread_queue_full(const WriterBackend& backend) {
+    if ( BifConst::Log::backend_thread_queue_hwm == 0 )
+        return false;
+
+    // Note that ApproximatePendingIn() is not only log writes, it can
+    // also be heartbeats, flush or rotation messages. In an overload
+    // situation, one would expect it to represent the number of
+    // WriteMessage instances.
+    auto approx_pending = backend.ApproximatePendingIn();
+    return approx_pending >= BifConst::Log::backend_thread_queue_hwm;
+}
+
+} // namespace detail
 
 class RotationFinishedMessage final : public threading::OutputMessage<WriterFrontend> {
 public:
@@ -203,32 +226,40 @@ bool WriterBackend::Write(int arg_num_fields, std::span<detail::LogRecord> recor
 
     bool success = true;
 
-    if ( ! Failed() ) {
-        // Populate a Value* array for backwards compat with plugin
-        // provided WriterBackend implementations that expect to
-        // receive a threading::Value**.
-        //
-        // We keep the raw pointer for this API, as threading::Value
-        // itself manages strings, sets and vectors using raw pointers,
-        // so this is more consistent than mixing.
-        std::vector<Value*> valps;
-        valps.reserve(num_fields);
-
-        for ( auto& record : records ) {
-            for ( int f = 0; f < num_fields; f++ )
-                valps.emplace_back(&record[f]);
-
-            success = DoWrite(num_fields, fields, &valps[0]);
-
-            valps.clear();
-
-            if ( ! success )
-                break;
-        }
-    }
+    if ( ! Failed() )
+        success = DoWrites(num_fields, fields, records);
 
     if ( ! success )
         DisableFrontend();
+
+    return success;
+}
+
+bool WriterBackend::DoWrites(int num_fields, const threading::Field* const* fields,
+                             std::span<detail::LogRecord> records) {
+    // Populate a Value* array for backwards compat with plugin
+    // provided WriterBackend implementations that expect to
+    // receive a threading::Value**.
+    //
+    // We keep the raw pointer for this API, as threading::Value
+    // itself manages strings, sets and vectors using raw pointers,
+    // so this is more consistent than mixing.
+    std::vector<Value*> valps;
+    valps.reserve(num_fields);
+
+    bool success = true;
+
+    for ( auto& record : records ) {
+        for ( int f = 0; f < num_fields; f++ )
+            valps.emplace_back(&record[f]);
+
+        success = DoWrite(num_fields, fields, valps.data());
+
+        valps.clear();
+
+        if ( ! success )
+            break;
+    }
 
     return success;
 }
@@ -304,5 +335,5 @@ bool WriterBackend::OnHeartbeat(double network_time, double current_time) {
 
     return DoHeartbeat(network_time, current_time);
 }
-
-} // namespace zeek::logging
+} // namespace logging
+} // namespace zeek

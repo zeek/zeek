@@ -4,6 +4,7 @@
 
 #include "zeek/analyzer/protocol/socks/socks_pac.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
+#include "zeek/const.bif.netvar_h"
 
 namespace zeek::analyzer::socks {
 
@@ -47,6 +48,21 @@ void SOCKS_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
         // Note that we assume that no payload data arrives before both endpoints
         // are done with their part of the SOCKS protocol.
         if ( ! pia ) {
+            // Check if there's SOCKS analyzers already in the chain of analyzers
+            // and keep count of the depth so we can report a weird if it hits a
+            // limit.
+            size_t depth = 0;
+            const auto tag = GetAnalyzerTag();
+            for ( analyzer::Analyzer* current = this; current; current = current->Parent() )
+                if ( current->GetAnalyzerTag() == tag )
+                    ++depth;
+
+            if ( depth >= BifConst::Tunnel::max_depth ) {
+                LimitReachedWeird("exceeded_tunnel_max_depth", depth);
+                SetSkip(true);
+                return;
+            }
+
             pia = new analyzer::pia::PIA_TCP(Conn());
             if ( AddChildAnalyzer(pia) ) {
                 pia->FirstPacket(true, TransportProto::TRANSPORT_TCP);

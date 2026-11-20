@@ -766,6 +766,7 @@
 ./zeek/analyzer/protocol/dhcp/types.bif.h
 ./zeek/analyzer/protocol/dnp3
 ./zeek/analyzer/protocol/dnp3/DNP3.h
+./zeek/analyzer/protocol/dnp3/consts.bif.h
 ./zeek/analyzer/protocol/dnp3/dnp3-analyzer.pac
 ./zeek/analyzer/protocol/dnp3/dnp3-objects.pac
 ./zeek/analyzer/protocol/dnp3/dnp3-protocol.pac
@@ -796,6 +797,7 @@
 ./zeek/analyzer/protocol/gssapi/gssapi.pac
 ./zeek/analyzer/protocol/http
 ./zeek/analyzer/protocol/http/HTTP.h
+./zeek/analyzer/protocol/http/consts.bif.h
 ./zeek/analyzer/protocol/http/events.bif.h
 ./zeek/analyzer/protocol/http/functions.bif.h
 ./zeek/analyzer/protocol/ident
@@ -803,6 +805,7 @@
 ./zeek/analyzer/protocol/ident/events.bif.h
 ./zeek/analyzer/protocol/imap
 ./zeek/analyzer/protocol/imap/IMAP.h
+./zeek/analyzer/protocol/imap/consts.bif.h
 ./zeek/analyzer/protocol/imap/events.bif.h
 ./zeek/analyzer/protocol/imap/imap-analyzer.pac
 ./zeek/analyzer/protocol/imap/imap-protocol.pac
@@ -813,6 +816,7 @@
 ./zeek/analyzer/protocol/krb
 ./zeek/analyzer/protocol/krb/KRB.h
 ./zeek/analyzer/protocol/krb/KRB_TCP.h
+./zeek/analyzer/protocol/krb/consts.bif.h
 ./zeek/analyzer/protocol/krb/events.bif.h
 ./zeek/analyzer/protocol/krb/krb-analyzer.pac
 ./zeek/analyzer/protocol/krb/krb-asn1.pac
@@ -858,12 +862,14 @@
 ./zeek/analyzer/protocol/mqtt/commands/subscribe.pac
 ./zeek/analyzer/protocol/mqtt/commands/unsuback.pac
 ./zeek/analyzer/protocol/mqtt/commands/unsubscribe.pac
+./zeek/analyzer/protocol/mqtt/consts.bif.h
 ./zeek/analyzer/protocol/mqtt/events.bif.h
 ./zeek/analyzer/protocol/mqtt/mqtt-protocol.pac
 ./zeek/analyzer/protocol/mqtt/mqtt.pac
 ./zeek/analyzer/protocol/mqtt/types.bif.h
 ./zeek/analyzer/protocol/mysql
 ./zeek/analyzer/protocol/mysql/MySQL.h
+./zeek/analyzer/protocol/mysql/consts.bif.h
 ./zeek/analyzer/protocol/mysql/events.bif.h
 ./zeek/analyzer/protocol/mysql/mysql-analyzer.pac
 ./zeek/analyzer/protocol/mysql/mysql-protocol.pac
@@ -1097,6 +1103,7 @@
 ./zeek/analyzer/protocol/xmpp/xmpp.pac
 ./zeek/analyzer/protocol/zip
 ./zeek/analyzer/protocol/zip/ZIP.h
+./zeek/analyzer/protocol/zip/events.bif.h
 ./zeek/binpac-lib.pac
 ./zeek/binpac.pac
 ./zeek/binpac_zeek-lib.pac
@@ -1184,6 +1191,7 @@
 ./zeek/file_analysis/analyzer/x509/OCSP.h
 ./zeek/file_analysis/analyzer/x509/X509.h
 ./zeek/file_analysis/analyzer/x509/X509Common.h
+./zeek/file_analysis/analyzer/x509/consts.bif.h
 ./zeek/file_analysis/analyzer/x509/events.bif.h
 ./zeek/file_analysis/analyzer/x509/functions.bif.h
 ./zeek/file_analysis/analyzer/x509/ocsp_events.bif.h
@@ -1313,6 +1321,8 @@
 ./zeek/packet_analysis/protocol/ip/conn_key/vlan_fivetuple/Factory.h
 ./zeek/packet_analysis/protocol/iptunnel
 ./zeek/packet_analysis/protocol/iptunnel/IPTunnel.h
+./zeek/packet_analysis/protocol/l2tp
+./zeek/packet_analysis/protocol/l2tp/L2TP.h
 ./zeek/packet_analysis/protocol/linux_sll
 ./zeek/packet_analysis/protocol/linux_sll/LinuxSLL.h
 ./zeek/packet_analysis/protocol/linux_sll2

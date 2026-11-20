@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer	source
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	34884	127.0.0.1	445	SMB_discarded_messages_state	state=tree fid_map=0 tid_map=2 pending_cmds=20 pipe_map=0	F	zeek	SMB2
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	34884	127.0.0.1	445	SMB_discarded_messages_state	state=tree fid_map=0 tid_map=2 pending_cmds=20	F	zeek	SMB2
 #close XXXX-XX-XX-XX-XX-XX

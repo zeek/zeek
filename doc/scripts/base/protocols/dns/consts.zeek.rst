@@ -11,117 +11,48 @@ for DNS analysis scripts.
 
 Summary
 ~~~~~~~
+Redefinable Options
+###################
+===================================================================================================================== ===============================================================================
+:zeek:id:`DNS::algorithms`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`      Possible values of the algorithms used in DNSKEY, DS and RRSIG records
+:zeek:id:`DNS::base_errors`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`     Errors used for non-TSIG/EDNS types.
+:zeek:id:`DNS::classes`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`         Possible values of the CLASS field in resource records or QCLASS
+                                                                                                                      field in query messages.
+:zeek:id:`DNS::digests`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`         Possible digest types used in DNSSEC.
+:zeek:id:`DNS::edns_zfield`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`     This deciphers EDNS Z field values.
+:zeek:id:`DNS::netbios_opcodes`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` Mapping of DNS operation type codes to human readable string representation for
+                                                                                                                      NetBIOS Name Service (NBNS) queries.
+:zeek:id:`DNS::opcodes`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`         Mapping of DNS operation type codes to human readable string representation.
+:zeek:id:`DNS::query_types`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`     Mapping of DNS query type codes to human readable string
+                                                                                                                      representation.
+:zeek:id:`DNS::svcparam_keys`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`   SVCB/HTTPS SvcParam keys as defined in :rfc:`9460#name-initial-contents`.
+===================================================================================================================== ===============================================================================
+
 Constants
 #########
-================================================================================================= ===============================================================================
-:zeek:id:`DNS::ANY`: :zeek:type:`count`                                                           A QTYPE value describing a request for all records.
+========================================================= ========================================================
+:zeek:id:`DNS::ANY`: :zeek:type:`count`                   A QTYPE value describing a request for all records.
 :zeek:id:`DNS::DNS_OP_DSO`: :zeek:type:`count`
 :zeek:id:`DNS::DNS_OP_DYNAMIC_UPDATE`: :zeek:type:`count`
 :zeek:id:`DNS::DNS_OP_IQUERY`: :zeek:type:`count`
 :zeek:id:`DNS::DNS_OP_NOTIFY`: :zeek:type:`count`
 :zeek:id:`DNS::DNS_OP_QUERY`: :zeek:type:`count`
 :zeek:id:`DNS::DNS_OP_SERVER_STATUS`: :zeek:type:`count`
-:zeek:id:`DNS::EDNS`: :zeek:type:`count`                                                          An OPT RR TYPE value described by EDNS.
-:zeek:id:`DNS::NONE`: :zeek:type:`count`                                                          A class representing no classes, used by dynamic update.
-:zeek:id:`DNS::PTR`: :zeek:type:`count`                                                           RR TYPE value for a domain name pointer.
-:zeek:id:`DNS::algorithms`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`      Possible values of the algorithms used in DNSKEY, DS and RRSIG records
-:zeek:id:`DNS::base_errors`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`     Errors used for non-TSIG/EDNS types.
-:zeek:id:`DNS::classes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`         Possible values of the CLASS field in resource records or QCLASS
-                                                                                                  field in query messages.
-:zeek:id:`DNS::digests`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`         Possible digest types used in DNSSEC.
-:zeek:id:`DNS::edns_zfield`: :zeek:type:`table` :zeek:attr:`&default` = ``"?"``                   This deciphers EDNS Z field values.
-:zeek:id:`DNS::netbios_opcodes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function` Mapping of DNS operation type codes to human readable string representation for
-                                                                                                  NetBIOS Name Service (NBNS) queries.
-:zeek:id:`DNS::opcodes`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`         Mapping of DNS operation type codes to human readable string representation.
-:zeek:id:`DNS::query_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`     Mapping of DNS query type codes to human readable string
-                                                                                                  representation.
-:zeek:id:`DNS::svcparam_keys`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`   SVCB/HTTPS SvcParam keys as defined in :rfc:`9460#name-initial-contents`.
-================================================================================================= ===============================================================================
+:zeek:id:`DNS::EDNS`: :zeek:type:`count`                  An OPT RR TYPE value described by EDNS.
+:zeek:id:`DNS::NONE`: :zeek:type:`count`                  A class representing no classes, used by dynamic update.
+:zeek:id:`DNS::PTR`: :zeek:type:`count`                   RR TYPE value for a domain name pointer.
+========================================================= ========================================================
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
-Constants
-#########
-.. zeek:id:: DNS::ANY
-   :source-code: base/protocols/dns/consts.zeek 10 10
-
-   :Type: :zeek:type:`count`
-   :Default: ``255``
-
-   A QTYPE value describing a request for all records.
-
-.. zeek:id:: DNS::DNS_OP_DSO
-   :source-code: base/protocols/dns/consts.zeek 203 203
-
-   :Type: :zeek:type:`count`
-   :Default: ``6``
-
-
-.. zeek:id:: DNS::DNS_OP_DYNAMIC_UPDATE
-   :source-code: base/protocols/dns/consts.zeek 202 202
-
-   :Type: :zeek:type:`count`
-   :Default: ``5``
-
-
-.. zeek:id:: DNS::DNS_OP_IQUERY
-   :source-code: base/protocols/dns/consts.zeek 199 199
-
-   :Type: :zeek:type:`count`
-   :Default: ``1``
-
-
-.. zeek:id:: DNS::DNS_OP_NOTIFY
-   :source-code: base/protocols/dns/consts.zeek 201 201
-
-   :Type: :zeek:type:`count`
-   :Default: ``4``
-
-
-.. zeek:id:: DNS::DNS_OP_QUERY
-   :source-code: base/protocols/dns/consts.zeek 198 198
-
-   :Type: :zeek:type:`count`
-   :Default: ``0``
-
-
-.. zeek:id:: DNS::DNS_OP_SERVER_STATUS
-   :source-code: base/protocols/dns/consts.zeek 200 200
-
-   :Type: :zeek:type:`count`
-   :Default: ``2``
-
-
-.. zeek:id:: DNS::EDNS
-   :source-code: base/protocols/dns/consts.zeek 8 8
-
-   :Type: :zeek:type:`count`
-   :Default: ``41``
-
-   An OPT RR TYPE value described by EDNS.
-
-.. zeek:id:: DNS::NONE
-   :source-code: base/protocols/dns/consts.zeek 9 9
-
-   :Type: :zeek:type:`count`
-   :Default: ``254``
-
-   A class representing no classes, used by dynamic update.
-
-.. zeek:id:: DNS::PTR
-   :source-code: base/protocols/dns/consts.zeek 7 7
-
-   :Type: :zeek:type:`count`
-   :Default: ``12``
-
-   RR TYPE value for a domain name pointer.
-
+Redefinable Options
+###################
 .. zeek:id:: DNS::algorithms
    :source-code: base/protocols/dns/consts.zeek 155 155
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -155,7 +86,7 @@ Constants
    :source-code: base/protocols/dns/consts.zeek 108 108
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -195,7 +126,7 @@ Constants
    :source-code: base/protocols/dns/consts.zeek 145 145
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -217,7 +148,7 @@ Constants
    :source-code: base/protocols/dns/consts.zeek 178 178
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -237,7 +168,7 @@ Constants
    :source-code: base/protocols/dns/consts.zeek 138 138
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = ``"?"``
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -254,7 +185,7 @@ Constants
    :source-code: base/protocols/dns/consts.zeek 218 218
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -276,7 +207,7 @@ Constants
    :source-code: base/protocols/dns/consts.zeek 206 206
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -297,7 +228,7 @@ Constants
    :source-code: base/protocols/dns/consts.zeek 14 14
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -403,7 +334,7 @@ Constants
    :source-code: base/protocols/dns/consts.zeek 188 188
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -421,5 +352,81 @@ Constants
 
    SVCB/HTTPS SvcParam keys as defined in :rfc:`9460#name-initial-contents`.
    Keep in sync with src/analyzer/protocol/dns/DNS.h SVCPARAM_Key.
+
+Constants
+#########
+.. zeek:id:: DNS::ANY
+   :source-code: base/protocols/dns/consts.zeek 10 10
+
+   :Type: :zeek:type:`count`
+   :Default: ``255``
+
+   A QTYPE value describing a request for all records.
+
+.. zeek:id:: DNS::DNS_OP_DSO
+   :source-code: base/protocols/dns/consts.zeek 203 203
+
+   :Type: :zeek:type:`count`
+   :Default: ``6``
+
+
+.. zeek:id:: DNS::DNS_OP_DYNAMIC_UPDATE
+   :source-code: base/protocols/dns/consts.zeek 202 202
+
+   :Type: :zeek:type:`count`
+   :Default: ``5``
+
+
+.. zeek:id:: DNS::DNS_OP_IQUERY
+   :source-code: base/protocols/dns/consts.zeek 199 199
+
+   :Type: :zeek:type:`count`
+   :Default: ``1``
+
+
+.. zeek:id:: DNS::DNS_OP_NOTIFY
+   :source-code: base/protocols/dns/consts.zeek 201 201
+
+   :Type: :zeek:type:`count`
+   :Default: ``4``
+
+
+.. zeek:id:: DNS::DNS_OP_QUERY
+   :source-code: base/protocols/dns/consts.zeek 198 198
+
+   :Type: :zeek:type:`count`
+   :Default: ``0``
+
+
+.. zeek:id:: DNS::DNS_OP_SERVER_STATUS
+   :source-code: base/protocols/dns/consts.zeek 200 200
+
+   :Type: :zeek:type:`count`
+   :Default: ``2``
+
+
+.. zeek:id:: DNS::EDNS
+   :source-code: base/protocols/dns/consts.zeek 8 8
+
+   :Type: :zeek:type:`count`
+   :Default: ``41``
+
+   An OPT RR TYPE value described by EDNS.
+
+.. zeek:id:: DNS::NONE
+   :source-code: base/protocols/dns/consts.zeek 9 9
+
+   :Type: :zeek:type:`count`
+   :Default: ``254``
+
+   A class representing no classes, used by dynamic update.
+
+.. zeek:id:: DNS::PTR
+   :source-code: base/protocols/dns/consts.zeek 7 7
+
+   :Type: :zeek:type:`count`
+   :Default: ``12``
+
+   RR TYPE value for a domain name pointer.
 
 

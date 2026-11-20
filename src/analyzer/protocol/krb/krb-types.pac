@@ -3,7 +3,7 @@
 %header{
 zeek::ValPtr GetStringFromPrincipalName(const KRB_Principal_Name* pname);
 
-zeek::VectorValPtr proc_cipher_list(const Array* list);
+zeek::VectorValPtr proc_cipher_list(const EType_Array* list);
 
 zeek::VectorValPtr proc_host_address_list(const ZeekAnalyzer a, const KRB_Host_Addresses* list);
 zeek::RecordValPtr proc_host_address(const ZeekAnalyzer a, const KRB_Host_Address* addr);
@@ -27,7 +27,7 @@ zeek::ValPtr GetStringFromPrincipalName(const KRB_Principal_Name* pname)
 	return zeek::make_intrusive<zeek::StringVal>("unknown");
 }
 
-zeek::VectorValPtr proc_cipher_list(const Array* list)
+zeek::VectorValPtr proc_cipher_list(const EType_Array* list)
 {
 	auto ciphers = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
 	for ( const auto& data : *(list->data()) )

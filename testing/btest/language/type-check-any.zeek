@@ -20,5 +20,3 @@ event zeek_init()
 	check(1);
 	check(x);
 	}
-
-

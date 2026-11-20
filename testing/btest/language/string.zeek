@@ -71,4 +71,3 @@ event zeek_init()
 	test_case( "!in operator", s25 !in s23 );
 
 }
-

@@ -78,4 +78,3 @@ event zeek_init() &priority=5
 			}
 		}
 	}
-

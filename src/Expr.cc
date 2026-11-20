@@ -37,7 +37,7 @@ const char* expr_name(ExprTag t) {
     // rather than symbols, and (2) don't have custom ExprDescribe printers.
     // Adding the spaces here lets them leverage the UnaryExpr::ExprDescribe
     // method without it having to know about such expressions.
-    static const char* expr_names[static_cast<int>(NUM_EXPRS)] = {
+    static const char* expr_names[] = {
         "name",
         "const",
         "(*)",
@@ -111,8 +111,9 @@ const char* expr_name(ExprTag t) {
 
         "nop", // don't add after this, it's used to compute NUM_EXPRS
     };
+    static_assert(std::size(expr_names) == NUM_EXPRS, "expr_names out of sync with ExprTag");
 
-    if ( static_cast<int>(t) >= NUM_EXPRS ) {
+    if ( static_cast<int>(t) < 0 || static_cast<int>(t) >= NUM_EXPRS ) {
         static char errbuf[512];
 
         // This isn't quite right - we return a static buffer,

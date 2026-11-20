@@ -15,6 +15,7 @@
    base/bif/packet_analysis.bif.zeek </scripts/base/bif/packet_analysis.bif.zeek>
    base/bif/CPP-load.bif.zeek </scripts/base/bif/CPP-load.bif.zeek>
    base/bif/mmdb.bif.zeek </scripts/base/bif/mmdb.bif.zeek>
+   base/bif/plugins/Zeek_SSH.types.bif.zeek </scripts/base/bif/plugins/Zeek_SSH.types.bif.zeek>
    base/bif/plugins/Zeek_SNMP.types.bif.zeek </scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek>
    base/bif/plugins/Zeek_KRB.types.bif.zeek </scripts/base/bif/plugins/Zeek_KRB.types.bif.zeek>
    base/bif/telemetry_functions.bif.zeek </scripts/base/bif/telemetry_functions.bif.zeek>
@@ -78,6 +79,8 @@
    base/packet-protocols/novell_802_3/main.zeek </scripts/base/packet-protocols/novell_802_3/main.zeek>
    base/packet-protocols/snap/__load__.zeek </scripts/base/packet-protocols/snap/__load__.zeek>
    base/packet-protocols/snap/main.zeek </scripts/base/packet-protocols/snap/main.zeek>
+   base/packet-protocols/l2tp/__load__.zeek </scripts/base/packet-protocols/l2tp/__load__.zeek>
+   base/packet-protocols/l2tp/main.zeek </scripts/base/packet-protocols/l2tp/main.zeek>
    base/packet-protocols/gre/__load__.zeek </scripts/base/packet-protocols/gre/__load__.zeek>
    base/packet-protocols/gre/main.zeek </scripts/base/packet-protocols/gre/main.zeek>
    base/packet-protocols/iptunnel/__load__.zeek </scripts/base/packet-protocols/iptunnel/__load__.zeek>
@@ -178,6 +181,7 @@
    base/bif/plugins/Zeek_DCE_RPC.events.bif.zeek </scripts/base/bif/plugins/Zeek_DCE_RPC.events.bif.zeek>
    base/bif/plugins/Zeek_DHCP.events.bif.zeek </scripts/base/bif/plugins/Zeek_DHCP.events.bif.zeek>
    base/bif/plugins/Zeek_DHCP.types.bif.zeek </scripts/base/bif/plugins/Zeek_DHCP.types.bif.zeek>
+   base/bif/plugins/Zeek_DNP3.consts.bif.zeek </scripts/base/bif/plugins/Zeek_DNP3.consts.bif.zeek>
    base/bif/plugins/Zeek_DNP3.events.bif.zeek </scripts/base/bif/plugins/Zeek_DNP3.events.bif.zeek>
    base/bif/plugins/Zeek_DNS.events.bif.zeek </scripts/base/bif/plugins/Zeek_DNS.events.bif.zeek>
    base/bif/plugins/Zeek_File.events.bif.zeek </scripts/base/bif/plugins/Zeek_File.events.bif.zeek>
@@ -186,12 +190,15 @@
    base/bif/plugins/Zeek_Gnutella.events.bif.zeek </scripts/base/bif/plugins/Zeek_Gnutella.events.bif.zeek>
    base/bif/plugins/Zeek_Gnutella.consts.bif.zeek </scripts/base/bif/plugins/Zeek_Gnutella.consts.bif.zeek>
    base/bif/plugins/Zeek_GSSAPI.events.bif.zeek </scripts/base/bif/plugins/Zeek_GSSAPI.events.bif.zeek>
+   base/bif/plugins/Zeek_HTTP.consts.bif.zeek </scripts/base/bif/plugins/Zeek_HTTP.consts.bif.zeek>
    base/bif/plugins/Zeek_HTTP.events.bif.zeek </scripts/base/bif/plugins/Zeek_HTTP.events.bif.zeek>
    base/bif/plugins/Zeek_HTTP.functions.bif.zeek </scripts/base/bif/plugins/Zeek_HTTP.functions.bif.zeek>
    base/bif/plugins/Zeek_Ident.events.bif.zeek </scripts/base/bif/plugins/Zeek_Ident.events.bif.zeek>
+   base/bif/plugins/Zeek_IMAP.consts.bif.zeek </scripts/base/bif/plugins/Zeek_IMAP.consts.bif.zeek>
    base/bif/plugins/Zeek_IMAP.events.bif.zeek </scripts/base/bif/plugins/Zeek_IMAP.events.bif.zeek>
    base/bif/plugins/Zeek_IRC.events.bif.zeek </scripts/base/bif/plugins/Zeek_IRC.events.bif.zeek>
    base/bif/plugins/Zeek_KRB.events.bif.zeek </scripts/base/bif/plugins/Zeek_KRB.events.bif.zeek>
+   base/bif/plugins/Zeek_KRB.consts.bif.zeek </scripts/base/bif/plugins/Zeek_KRB.consts.bif.zeek>
    base/bif/plugins/Zeek_Login.events.bif.zeek </scripts/base/bif/plugins/Zeek_Login.events.bif.zeek>
    base/bif/plugins/Zeek_Login.functions.bif.zeek </scripts/base/bif/plugins/Zeek_Login.functions.bif.zeek>
    base/bif/plugins/Zeek_MIME.consts.bif.zeek </scripts/base/bif/plugins/Zeek_MIME.consts.bif.zeek>
@@ -199,6 +206,8 @@
    base/bif/plugins/Zeek_Modbus.events.bif.zeek </scripts/base/bif/plugins/Zeek_Modbus.events.bif.zeek>
    base/bif/plugins/Zeek_MQTT.types.bif.zeek </scripts/base/bif/plugins/Zeek_MQTT.types.bif.zeek>
    base/bif/plugins/Zeek_MQTT.events.bif.zeek </scripts/base/bif/plugins/Zeek_MQTT.events.bif.zeek>
+   base/bif/plugins/Zeek_MQTT.consts.bif.zeek </scripts/base/bif/plugins/Zeek_MQTT.consts.bif.zeek>
+   base/bif/plugins/Zeek_MySQL.consts.bif.zeek </scripts/base/bif/plugins/Zeek_MySQL.consts.bif.zeek>
    base/bif/plugins/Zeek_MySQL.events.bif.zeek </scripts/base/bif/plugins/Zeek_MySQL.events.bif.zeek>
    base/bif/plugins/Zeek_NCP.events.bif.zeek </scripts/base/bif/plugins/Zeek_NCP.events.bif.zeek>
    base/bif/plugins/Zeek_NCP.consts.bif.zeek </scripts/base/bif/plugins/Zeek_NCP.consts.bif.zeek>
@@ -256,7 +265,6 @@
    base/bif/plugins/Zeek_SNMP.events.bif.zeek </scripts/base/bif/plugins/Zeek_SNMP.events.bif.zeek>
    base/bif/plugins/Zeek_SOCKS.events.bif.zeek </scripts/base/bif/plugins/Zeek_SOCKS.events.bif.zeek>
    base/bif/plugins/Zeek_SSH.consts.bif.zeek </scripts/base/bif/plugins/Zeek_SSH.consts.bif.zeek>
-   base/bif/plugins/Zeek_SSH.types.bif.zeek </scripts/base/bif/plugins/Zeek_SSH.types.bif.zeek>
    base/bif/plugins/Zeek_SSH.events.bif.zeek </scripts/base/bif/plugins/Zeek_SSH.events.bif.zeek>
    base/bif/plugins/Zeek_SSL.types.bif.zeek </scripts/base/bif/plugins/Zeek_SSL.types.bif.zeek>
    base/bif/plugins/Zeek_SSL.events.bif.zeek </scripts/base/bif/plugins/Zeek_SSL.events.bif.zeek>
@@ -271,6 +279,7 @@
    base/bif/plugins/Zeek_WebSocket.functions.bif.zeek </scripts/base/bif/plugins/Zeek_WebSocket.functions.bif.zeek>
    base/bif/plugins/Zeek_WebSocket.types.bif.zeek </scripts/base/bif/plugins/Zeek_WebSocket.types.bif.zeek>
    base/bif/plugins/Zeek_XMPP.events.bif.zeek </scripts/base/bif/plugins/Zeek_XMPP.events.bif.zeek>
+   base/bif/plugins/Zeek_ZIP.events.bif.zeek </scripts/base/bif/plugins/Zeek_ZIP.events.bif.zeek>
    base/bif/plugins/Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek </scripts/base/bif/plugins/Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek>
    base/bif/plugins/Zeek_PPPoE.functions.bif.zeek </scripts/base/bif/plugins/Zeek_PPPoE.functions.bif.zeek>
    base/bif/plugins/Zeek_ARP.events.bif.zeek </scripts/base/bif/plugins/Zeek_ARP.events.bif.zeek>
@@ -288,6 +297,7 @@
    base/bif/plugins/Zeek_X509.types.bif.zeek </scripts/base/bif/plugins/Zeek_X509.types.bif.zeek>
    base/bif/plugins/Zeek_X509.functions.bif.zeek </scripts/base/bif/plugins/Zeek_X509.functions.bif.zeek>
    base/bif/plugins/Zeek_X509.ocsp_events.bif.zeek </scripts/base/bif/plugins/Zeek_X509.ocsp_events.bif.zeek>
+   base/bif/plugins/Zeek_X509.consts.bif.zeek </scripts/base/bif/plugins/Zeek_X509.consts.bif.zeek>
    base/bif/plugins/Zeek_AsciiReader.ascii.bif.zeek </scripts/base/bif/plugins/Zeek_AsciiReader.ascii.bif.zeek>
    base/bif/plugins/Zeek_BenchmarkReader.benchmark.bif.zeek </scripts/base/bif/plugins/Zeek_BenchmarkReader.benchmark.bif.zeek>
    base/bif/plugins/Zeek_BinaryReader.binary.bif.zeek </scripts/base/bif/plugins/Zeek_BinaryReader.binary.bif.zeek>
@@ -528,6 +538,7 @@
    base/misc/find-checksum-offloading.zeek </scripts/base/misc/find-checksum-offloading.zeek>
    base/misc/find-filtered-trace.zeek </scripts/base/misc/find-filtered-trace.zeek>
    base/misc/installation.zeek </scripts/base/misc/installation.zeek>
+   base/misc/zip-analyzer-limit.zeek </scripts/base/misc/zip-analyzer-limit.zeek>
    builtin-plugins/__load__.zeek </scripts/builtin-plugins/__load__.zeek>
    builtin-plugins/Zeek_JavaScript/__load__.zeek </scripts/builtin-plugins/Zeek_JavaScript/__load__.zeek>
    builtin-plugins/Zeek_PacketSourceUDP/__load__.zeek </scripts/builtin-plugins/Zeek_PacketSourceUDP/__load__.zeek>

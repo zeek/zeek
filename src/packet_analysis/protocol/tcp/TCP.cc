@@ -170,7 +170,7 @@ bool TCPAnalyzer::ValidateChecksum(const IP_Hdr* ip, const struct tcphdr* tp, an
          ! endpoint->ValidChecksum(tp, len, ip->IP4_Hdr()) ) {
         adapter->Weird("bad_TCP_checksum");
         endpoint->ChecksumError();
-        return false;
+        return ! zeek::detail::drop_bad_checksums;
     }
     else
         return true;

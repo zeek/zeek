@@ -9,22 +9,22 @@ base/protocols/mysql/consts.zeek
 
 Summary
 ~~~~~~~
-Constants
-#########
-============================================================================================ =
-:zeek:id:`MySQL::commands`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-============================================================================================ =
+Redefinable Options
+###################
+================================================================================================================ =
+:zeek:id:`MySQL::commands`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+================================================================================================================ =
 
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
-Constants
-#########
+Redefinable Options
+###################
 .. zeek:id:: MySQL::commands
    :source-code: base/protocols/mysql/consts.zeek 4 4
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

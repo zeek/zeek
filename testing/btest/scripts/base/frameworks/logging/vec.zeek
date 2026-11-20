@@ -23,5 +23,3 @@ event zeek_init()
 
 	Log::write(SSH::LOG, [$vec=v]);
 }
-
-

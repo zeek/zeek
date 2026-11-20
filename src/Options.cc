@@ -349,6 +349,10 @@ Options parse_cmdline(int argc, char** argv) {
                     ++i;
 
                 // The first argument after the double hyphens in implicitly a script name.
+                if ( i == argc ) {
+                    fprintf(stderr, "ERROR: '--' requires a script argument\n");
+                    exit(1);
+                }
                 rval.scripts_to_load.emplace_back(argv[i++]);
 
                 // If there are more argument, grab them for script arguments

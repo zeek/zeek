@@ -30,7 +30,7 @@ Detailed Interface
 Types
 #####
 .. zeek:type:: DHCPv6::MessageInfo
-   :source-code: base/protocols/dhcpv6/spicy-events.zeek 11 44
+   :source-code: base/protocols/dhcpv6/spicy-events.zeek 11 48
 
    :Type: :zeek:type:`record`
 
@@ -90,6 +90,16 @@ Types
       Address of the first IA Address option nested in an IA_NA.
 
 
+   .. zeek:field:: assigned_prefix_addr :zeek:type:`addr` :zeek:attr:`&optional`
+
+      Prefix IPv6 address from the first IA_PREFIX option nested in an IA_PD.
+
+
+   .. zeek:field:: assigned_prefix_len :zeek:type:`count` :zeek:attr:`&optional`
+
+      Prefix length from the first IA_PREFIX option nested in an IA_PD.
+
+
    .. zeek:field:: preferred_lifetime :zeek:type:`count` :zeek:attr:`&optional`
 
       Preferred lifetime of the assigned address, in seconds.
@@ -122,7 +132,7 @@ Types
 Events
 ######
 .. zeek:id:: dhcpv6_message
-   :source-code: base/protocols/dhcpv6/main.zeek 185 192
+   :source-code: base/protocols/dhcpv6/main.zeek 189 196
 
    :Type: :zeek:type:`event` (c: :zeek:type:`connection`, is_orig: :zeek:type:`bool`, msg: :zeek:type:`DHCPv6::MessageInfo`)
 

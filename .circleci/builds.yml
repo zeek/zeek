@@ -94,7 +94,7 @@ commands:
           steps:
             - run:
                 name: Update submodules
-                command: git submodule update --recursive --init --recommend-shallow -j ${ZEEK_CI_CPUS}
+                command: git submodule update --recursive --init --depth 1 -j ${ZEEK_CI_CPUS}
       - when:
           condition: << parameters.include_external_tests >>
           steps:
@@ -625,7 +625,7 @@ jobs:
               mkdir -p /tmp/zeek_images/${IMAGE_ARCH}
               docker save -o /tmp/zeek_images/${IMAGE_ARCH}/final.image ${IMAGE_TAG}
             else
-              ZEEK_VERSION=$(cat VERSION)
+              ZEEK_VERSION=$(python3 tools/get-version.py --source .)
 
               docker build \
                   --build-arg ZEEK_CONFIGURE_FLAGS="${ZEEK_CONFIGURE_FLAGS}" \
@@ -696,7 +696,7 @@ jobs:
       - run:
           name: Set image tag
           command: |
-            # If we have a CIRCLE_TAG, use the value in VERSION to push the multiarch
+            # If we have a CIRCLE_TAG, use its version to push the multiarch
             # images, otherwise use latest. Basically we push the arch images as
             #    zeek/zeek:1.2.3-<amd64|arm64> or
             #    zeek/zeek-dev:latest-<amd64|arm64>
@@ -705,11 +705,7 @@ jobs:
             set -x
             if [ -n "${CIRCLE_TAG}" ]; then
               echo "IMAGE_NAME=zeek"  >> $BASH_ENV
-              echo "IMAGE_TAG=$(cat VERSION)" >> $BASH_ENV
-              if [ "${CIRCLE_TAG}" != "v$(cat VERSION)" ]; then
-                echo "CIRCLE_TAG '${CIRCLE_TAG}' and VERSION '$(cat VERSION)' inconsistent!" >&2
-                exit 1
-              fi
+              echo "IMAGE_TAG=${CIRCLE_TAG#v}" >> $BASH_ENV
             elif [ "${CIRCLE_BRANCH}" = "master" ]; then
               echo "IMAGE_NAME=zeek-dev"  >> $BASH_ENV
               echo "IMAGE_TAG=latest" >> $BASH_ENV
@@ -982,6 +978,7 @@ _configure_tsan: &CONFIGURE_TSAN
 
 workflows:
   zeek_builds:
+    when: pipeline.schedule.name != "weekly"
     jobs:
       - fetch-test-traces
 
@@ -1039,13 +1036,13 @@ workflows:
           << : *FILTER_IF_PR_NOT_FULL_CI
 
       - macos-build:
-          name: macOS-xcode-26.5
-          xcode_version: "26.5"
+          name: macOS-xcode-27.2
+          xcode_version: "27.2"
           requires: [fetch-test-traces]
           << : *FILTER_IF_SKIP_ALL
       - macos-build:
-          name: macOS-xcode-16.4
-          xcode_version: "16.4"
+          name: macOS-xcode-26.6
+          xcode_version: "26.6"
           requires: [fetch-test-traces]
           << : *FILTER_IF_PR_NOT_FULL_CI
       - linux-build:
@@ -1260,18 +1257,19 @@ workflows:
             ZEEK_CI_BTEST_EXTRA_ARGS="-a zam"
             ZEEK_CI_BTEST_JOBS=3
           << : *FILTER_IF_PR_NOT_FULL_OR_ZAM
-      # - linux-build:
-      #     name: tsan-sanitizer
-      #     docker_image: zeek/zeek-ci:ubuntu-24.04
-      #     ci_image_date: "20260813"
-      #     requires: [fetch-test-traces, build-image-ubuntu-24.04]
-      #     << : *CONFIGURE_TSAN
-      #     extra_env: |
-      #       CC=clang-22
-      #       CXX=clang++-22
-      #       ZEEK_CI_DISABLE_SCRIPT_PROFILING=1
-      #       ZEEK_TSAN_OPTIONS=suppressions=${ZEEK_CI_WORKING_DIR}/ci/tsan_suppressions.txt
-      #     << : *FILTER_IF_PR_NOT_FULL_CI
+      - linux-build:
+          name: tsan-sanitizer
+          docker_image: zeek/zeek-ci:ubuntu-24.04
+          docker_image_version: << pipeline.parameters.ubuntu_24_04_image_version >>
+          requires: [fetch-test-traces, build-image-ubuntu-24.04]
+          << : *CONFIGURE_TSAN
+          extra_env: |
+            CC=clang-22
+            CXX=clang++-22
+            ZEEK_CI_DISABLE_SCRIPT_PROFILING=1
+            ZEEK_TSAN_OPTIONS=suppressions=${ZEEK_CI_WORKING_DIR}/ci/tsan_suppressions.txt
+            ZEEK_CI_SKIP_EXTERNAL_BTESTS=1
+          << : *FILTER_IF_PR_NOT_FULL_CI
 
       - windows-build:
           << : *FILTER_IF_PR_NOT_FULL_OR_WINDOWS

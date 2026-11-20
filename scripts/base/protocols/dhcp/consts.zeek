@@ -25,7 +25,7 @@ export {
 		[16] = "ACTIVELEASEQUERY", # RFC7724
 		[17] = "LEASEQUERYSTATUS", # RFC7724
 		[18] = "TLS",              # RFC7724
-	} &default = function(n: count): string { return fmt("unknown-message-type-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("unknown-message-type-%d", n); };
 
 	## Option types mapped to their names.
 	const option_types = {
@@ -185,5 +185,5 @@ export {
 		[221] = "Virtual Subnet Selection (VSS) Option",
 		[252] = "auto-proxy-config",
 		[255] = "End",
-	} &default = function(n: count): string { return fmt("unknown-option-type-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("unknown-option-type-%d", n); };
 }

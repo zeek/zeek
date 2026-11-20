@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "zeek/Conn.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
 #include "zeek/Func.h"
@@ -11,6 +12,7 @@
 #include "zeek/Stats.h"
 #include "zeek/Val.h"
 #include "zeek/analyzer/Analyzer.h"
+#include "zeek/const.bif.netvar_h"
 #include "zeek/session/Manager.h"
 
 namespace zeek::session {
@@ -54,7 +56,7 @@ Session::Session(double t, EventHandlerPtr timeout_event, EventHandlerPtr status
       session_timeout_event(timeout_event),
       session_status_update_event(status_update_event),
       session_status_update_interval(status_update_interval) {
-    in_session_table = true;
+    in_session_table = false;
     record_contents = record_packets = 1;
     record_current_packet = record_current_content = 0;
     is_active = 1;
@@ -142,12 +144,6 @@ void Session::DeleteTimer(double /* t */) {
 
 void Session::AddTimer(timer_func timer, double t, bool do_expire, zeek::detail::TimerType type) {
     if ( timers_canceled )
-        return;
-
-    // If the key is cleared, the session isn't stored in the session table
-    // anymore and will soon be deleted. We're not installed new timers
-    // anymore then.
-    if ( ! IsInSessionTable() )
         return;
 
     zeek::detail::Timer* conn_timer = new detail::Timer(this, timer, t, do_expire, type);
@@ -238,6 +234,32 @@ void Session::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig, uint32_t th
         return;
 
     EnqueueEvent(e, nullptr, GetVal(), val_mgr->Bool(is_orig), val_mgr->Count(threshold));
+}
+
+void Session::AddHistory(char code) {
+    if ( BifConst::max_connection_history_size > 0 && history.size() >= BifConst::max_connection_history_size )
+        return;
+
+    history += code;
+
+    if ( BifConst::max_connection_history_size > 0 && history.size() == BifConst::max_connection_history_size ) {
+        // The maximum history size was reached: Has there been an X yet
+        // in the history? If not, update the hist_seen bits and replace
+        // the last code in the history with an X.
+        if ( (hist_seen & zeek::session::detail::HIST_ANALYZER_LIMIT_REACHED) == 0 ) {
+            hist_seen |= zeek::session::detail::HIST_ANALYZER_LIMIT_REACHED;
+            history[history.size() - 1] = 'X';
+        }
+
+        // There's just one Session subclass today (Connection) so cast to it
+        // and use the specialized Reporter::Weird() helper that populates the
+        // entry with connection information.
+        if ( auto* conn = dynamic_cast<Connection*>(this); conn ) {
+            reporter->Weird(conn, "max_connection_history_size_reached", util::fmt("%zu", history.size()));
+        }
+        else
+            reporter->Weird("max_connection_history_size_reached", util::fmt("%zu", history.size()));
+    }
 }
 
 } // namespace zeek::session

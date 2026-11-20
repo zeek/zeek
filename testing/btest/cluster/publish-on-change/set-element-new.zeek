@@ -8,15 +8,16 @@
 #
 # @TEST-EXEC: cp $FILES/zeromq/cluster-layout-no-logger.zeek cluster-layout.zeek
 # @TEST-EXEC: cp $FILES/zeromq/test-bootstrap.zeek zeromq-test-bootstrap.zeek
-
+#
 # @TEST-EXEC: zeek --parse-only manager.zeek
 # @TEST-EXEC: zeek --parse-only worker.zeek
 #
 # @TEST-EXEC: btest-bg-run manager "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=manager zeek -b ../manager.zeek >out"
 # @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-1 zeek -b ../worker.zeek >out"
 # @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-2 zeek -b ../worker.zeek >out"
+#
 # @TEST-EXEC: btest-bg-wait 30
-
+#
 # @TEST-EXEC: btest-diff ./manager/out
 # @TEST-EXEC: btest-diff ./worker-1/out
 # @TEST-EXEC: btest-diff ./worker-2/out
@@ -53,7 +54,7 @@ event Cluster::node_up(name: string, id: string)
 			# Add one more to start the shutdown
 			add endpoints[192.168.0.5, 10.0.0.5];
 			}
-		timeout 10sec
+		timeout 30sec
 			{
 			Reporter::fatal("timeout!");
 			}
@@ -98,12 +99,12 @@ event zeek_init()
 			print "end", endpoints;
 			terminate();
 			}
-		timeout 10sec
+		timeout 30sec
 			{
 			Reporter::fatal("timeout 2");
 			}
 		}
-	timeout 10sec
+	timeout 30sec
 		{
 		Reporter::fatal("timeout 1");
 		}

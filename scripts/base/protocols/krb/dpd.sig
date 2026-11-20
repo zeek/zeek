@@ -23,4 +23,3 @@ signature dpd_krb_tcp_replies {
 	payload /.{4}(\x6b|\x6d|\x7e).{1,4}\x30.{1,4}\xa0\x03\x02\x01\x05\xa1\x03\x02\x01/
 	enable "krb_tcp"
 }
-

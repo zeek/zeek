@@ -25,4 +25,3 @@ event zeek_init()
 	Broker::peer("127.0.0.1", broker_port);
 	schedule 250usec { publish_next() };
 	}
-

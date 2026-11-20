@@ -22,4 +22,3 @@ event zeek_init()
 	Log::write(SSH::LOG, [$data="abc|\xffdef", $data2="DATA2"]);
 	Log::write(SSH::LOG, [$data="abc\xff|def", $data2="DATA2"]);
 }
-

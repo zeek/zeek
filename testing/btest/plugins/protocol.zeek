@@ -12,4 +12,3 @@ event foo_message(c: connection, data: string)
 	{
 	print "foo_message", c$id, data;
 	}
-

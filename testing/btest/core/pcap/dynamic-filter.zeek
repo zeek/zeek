@@ -33,4 +33,3 @@ event zeek_init()
 	if ( ! Pcap::precompile_pcap_filter(B, "port 53") )
 		print "error 2";
 	}
-

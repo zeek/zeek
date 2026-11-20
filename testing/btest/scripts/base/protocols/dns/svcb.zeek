@@ -1,5 +1,6 @@
 # @TEST-EXEC: zeek -C -r $TRACES/dns-svcb.pcap %INPUT > output
 # @TEST-EXEC: btest-diff output
+# @TEST-EXEC: btest-diff-cut -m dns.log
 
 @load policy/protocols/dns/auth-addl
 

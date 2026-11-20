@@ -120,4 +120,3 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 
 	log_analyzer_failure(network_time(), atype, info);
 	}
-

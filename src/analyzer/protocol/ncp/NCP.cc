@@ -2,6 +2,7 @@
 
 #include "zeek/analyzer/protocol/ncp/NCP.h"
 
+#include <algorithm>
 #include <cstdlib>
 
 #include "zeek/analyzer/protocol/ncp/consts.bif.h"
@@ -89,33 +90,34 @@ int FrameBuffer::Deliver(int& len, const u_char*& data) {
             return -1;
 
         compute_msg_length();
-
-        if ( msg_len > buf_len ) {
-            if ( msg_len > BifConst::NCP::max_frame_size )
-                return 1;
-
-            buf_len = msg_len;
-            u_char* new_buf = new u_char[buf_len];
-            memcpy(new_buf, msg_buf, buf_n);
-            delete[] msg_buf;
-            msg_buf = new_buf;
-        }
     }
 
-    while ( buf_n < msg_len && len > 0 ) {
-        msg_buf[buf_n] = *data;
-        ++buf_n;
-        ++data;
-        --len;
+    if ( msg_len > BifConst::NCP::max_frame_size || buf_n > msg_len )
+        return 1;
+
+    const auto copy_len = std::min(static_cast<size_t>(len), static_cast<size_t>(msg_len - buf_n));
+    const auto required_len = buf_n + copy_len;
+
+    if ( required_len > buf_len ) {
+        const auto doubled_len = static_cast<uint64_t>(buf_len) * 2;
+        const auto new_len =
+            static_cast<size_t>(std::min<uint64_t>(msg_len, std::max<uint64_t>(required_len, doubled_len)));
+        auto* new_buf = new u_char[new_len];
+        memcpy(new_buf, msg_buf, buf_n);
+        delete[] msg_buf;
+        msg_buf = new_buf;
+        buf_len = new_len;
     }
+
+    memcpy(msg_buf + buf_n, data, copy_len);
+    buf_n += copy_len;
+    data += copy_len;
+    len -= static_cast<int>(copy_len);
 
     if ( buf_n < msg_len )
         return -1;
 
-    if ( buf_n == msg_len )
-        return 0;
-
-    return 1;
+    return 0;
 }
 
 void NCP_FrameBuffer::compute_msg_length() {

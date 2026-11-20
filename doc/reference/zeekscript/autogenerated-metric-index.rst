@@ -147,12 +147,37 @@
 
    Total number of successful requests through DNS_Mgr
 
+.. zeek:metric:: zeek_event_queue_overflow_drains_total
+
+   :Type: counter
+
+   Number of event queue overflows resulting in a drain.
+
+.. zeek:metric:: zeek_events_dispatched_total
+
+   :Type: counter
+
+   Total number of events dispatched
+
+.. zeek:metric:: zeek_events_queued_total
+
+   :Type: counter
+
+   Total number of events queued
+
 .. zeek:metric:: zeek_log_stream_writes_total
 
    :Type: counter
    :Labels: module stream
 
    Total number of log writes for the given stream.
+
+.. zeek:metric:: zeek_log_writer_backend_thread_queue_drops_total
+
+   :Type: counter
+   :Labels: writer module stream filter-name path
+
+   Total number of log writes discarded due to the backend thread queue reaching its high water mark
 
 .. zeek:metric:: zeek_log_writer_discarded_writes_total
 

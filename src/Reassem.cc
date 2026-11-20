@@ -19,8 +19,31 @@ uint64_t Reassembler::sizes[REASSEM_NUM];
 DataBlock::DataBlock(const u_char* data, uint64_t size, uint64_t arg_seq) {
     seq = arg_seq;
     upper = seq + size;
+    capacity = size;
     block = new u_char[size];
     memcpy(block, data, size);
+}
+
+void DataBlock::AppendContiguous(const u_char* data, uint64_t size) {
+    uint64_t old_size = Size();
+    uint64_t needed = old_size + size;
+
+    if ( needed > capacity ) {
+        // Grow geometrically so a run of small appends amortizes to O(1)
+        // per byte rather than recopying the whole block every time.
+        uint64_t new_capacity = capacity ? capacity : 1;
+        while ( new_capacity < needed )
+            new_capacity *= 2;
+
+        u_char* grown = new u_char[new_capacity];
+        memcpy(grown, block, old_size);
+        delete[] block;
+        block = grown;
+        capacity = new_capacity;
+    }
+
+    memcpy(block + old_size, data, size);
+    upper += size;
 }
 
 void DataBlockList::DataSize(uint64_t seq_cutoff, uint64_t* below, uint64_t* above) const {
@@ -94,6 +117,26 @@ DataBlockMap::const_iterator DataBlockList::FirstBlockAtOrBefore(uint64_t seq) c
 
 DataBlockMap::const_iterator DataBlockList::Insert(uint64_t seq, uint64_t upper, const u_char* data,
                                                    DataBlockMap::const_iterator hint) {
+    // Before emplacing a new node, try to coalesce into the block immediately
+    // preceding the insertion point (the caller passes it as, or just after,
+    // "hint").  When the new data is contiguous with that predecessor and the
+    // predecessor is buffered entirely above the reassembly point (part of a
+    // backlog above a sequence hole), extend it in place instead of adding a
+    // node.  Restricting this to blocks above last_reassem_seq keeps it
+    // transparent to delivery (BlockInserted bails on blocks above the hole)
+    // and to gap accounting, while bounding the real heap of a hole backlog to
+    // roughly the payload bytes already capped by callers rather than ~110
+    // bytes per segment.  All block insertions reach this function, so handling
+    // coalescing here covers the plain append, overlap resolution, and the
+    // leftover tail of a partially-overlapping block alike.
+    if ( ! block_map.empty() && hint != block_map.begin() ) {
+        auto pred = std::prev(hint);
+
+        if ( pred->second.upper == seq && pred->second.seq > reassembler->LastReassemSeq() )
+            // Look up a mutable iterator since the block has to be modified.
+            return CoalesceInto(block_map.find(pred->first), upper, data);
+    }
+
     auto size = upper - seq;
     auto rval = block_map.emplace_hint(hint, seq, DataBlock(data, size, seq));
 
@@ -102,6 +145,23 @@ DataBlockMap::const_iterator DataBlockList::Insert(uint64_t seq, uint64_t upper,
     Reassembler::total_size += size + sizeof(DataBlock);
 
     return rval;
+}
+
+DataBlockMap::iterator DataBlockList::CoalesceInto(DataBlockMap::iterator it, uint64_t upper, const u_char* data) {
+    auto& b = it->second;
+    // The appended data is contiguous with the block (seq == b.upper), so its
+    // full length is the span from the old upper to the new upper.
+    uint64_t added = upper - b.upper;
+
+    b.AppendContiguous(data, added);
+
+    // Only payload bytes are added; no new DataBlock/map node is allocated,
+    // which is the whole point of coalescing.
+    total_data_size += added;
+    Reassembler::sizes[reassembler->rtype] += added;
+    Reassembler::total_size += added;
+
+    return it;
 }
 
 DataBlockMap::const_iterator DataBlockList::Insert(uint64_t seq, uint64_t upper, const u_char* data,
@@ -128,52 +188,50 @@ DataBlockMap::const_iterator DataBlockList::Insert(uint64_t seq, uint64_t upper,
             it = block_map.begin();
     }
 
-    while ( std::next(it) != block_map.end() && it->second.upper <= seq )
-        ++it;
+    // Keeps an inserted prefix as the return value, or end() if no prefix was inserted.
+    DataBlockMap::const_iterator rval = block_map.end();
 
-    const auto& b = it->second;
+    while ( true ) {
+        while ( std::next(it) != block_map.end() && it->second.upper <= seq )
+            ++it;
 
-    if ( b.upper <= seq )
-        // b is the last block, and it comes completely before the new block.
-        return Insert(seq, upper, data, block_map.end());
+        const auto& b = it->second;
 
-    if ( upper <= b.seq )
-        // The new block comes completely before b.
-        return Insert(seq, upper, data, it);
+        if ( b.upper <= seq ) {
+            // b is the last block, and it comes completely before the new block.
+            auto inserted = Insert(seq, upper, data, block_map.end());
+            return rval == block_map.end() ? inserted : rval;
+        }
 
-    DataBlockMap::const_iterator rval;
+        if ( upper <= b.seq ) {
+            // The new block comes completely before b.
+            auto inserted = Insert(seq, upper, data, it);
+            return rval == block_map.end() ? inserted : rval;
+        }
 
-    // The blocks overlap.
-    if ( seq < b.seq ) {
-        // The new block has a prefix that comes before b.
-        uint64_t prefix_len = b.seq - seq;
+        // The blocks overlap.
+        if ( seq < b.seq ) {
+            // The new block has a prefix that comes before b.
+            uint64_t prefix_len = b.seq - seq;
+            auto inserted = Insert(seq, seq + prefix_len, data, it);
 
-        rval = Insert(seq, seq + prefix_len, data, it);
+            if ( rval == block_map.end() )
+                rval = inserted;
 
-        data += prefix_len;
-        seq += prefix_len;
-    }
-    else
-        rval = it;
+            data += prefix_len;
+            seq += prefix_len;
+        }
 
-    uint64_t overlap_start = seq;
-    uint64_t overlap_offset = overlap_start - b.seq;
-    uint64_t new_b_len = upper - seq;
-    uint64_t b_len = b.upper - overlap_start;
-    uint64_t overlap_len = min(new_b_len, b_len);
+        uint64_t new_b_len = upper - seq;
+        uint64_t b_len = b.upper - seq;
+        uint64_t overlap_len = min(new_b_len, b_len);
 
-    if ( overlap_len < new_b_len ) {
-        // Recurse to resolve remainder of the new data.
+        if ( overlap_len == new_b_len )
+            return rval == block_map.end() ? it : rval;
+
         data += overlap_len;
         seq += overlap_len;
-
-        auto r = Insert(seq, upper, data, &it);
-
-        if ( rval == it )
-            rval = r;
     }
-
-    return rval;
 }
 
 uint64_t DataBlockList::Trim(uint64_t seq, uint64_t max_old, DataBlockList* old_list) {
@@ -322,7 +380,6 @@ void Reassembler::NewBlock(double t, uint64_t seq, uint64_t len, const u_char* d
     }
 
     auto it = block_list.Insert(seq, upper_seq, data);
-    ;
     BlockInserted(it);
 }
 
@@ -333,6 +390,8 @@ void Reassembler::ClearBlocks() { block_list.Clear(); }
 void Reassembler::ClearOldBlocks() { old_block_list.Clear(); }
 
 uint64_t Reassembler::TotalSize() const { return block_list.DataSize() + old_block_list.DataSize(); }
+
+size_t Reassembler::NumBlocks() const { return block_list.NumBlocks(); }
 
 void Reassembler::Describe(ODesc* d) const { d->Add("reassembler"); }
 

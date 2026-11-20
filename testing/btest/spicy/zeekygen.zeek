@@ -49,4 +49,3 @@ on SSH::Banner -> event ssh::banner((1, self.software));
 
 # @TEST-START-FILE zeekygen.conf
 proto_analyzer	*	protocol.rst
-

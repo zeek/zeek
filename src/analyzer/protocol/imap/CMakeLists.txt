@@ -1,5 +1,5 @@
 zeek_add_plugin(
     Zeek IMAP
     SOURCES Plugin.cc IMAP.cc
-    BIFS events.bif
+    BIFS consts.bif events.bif
     PAC imap.pac imap-analyzer.pac imap-protocol.pac)

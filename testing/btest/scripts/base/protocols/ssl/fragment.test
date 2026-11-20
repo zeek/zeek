@@ -14,4 +14,3 @@ event x509_ext_subject_alternative_name(f: fa_file, ext: X509::SubjectAlternativ
 	{
 	print |ext$dns|;
 	}
-

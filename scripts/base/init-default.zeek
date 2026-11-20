@@ -97,3 +97,4 @@
 @load base/misc/find-filtered-trace
 @load base/misc/installation
 @load base/misc/version
+@load base/misc/zip-analyzer-limit

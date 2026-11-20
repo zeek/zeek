@@ -13,7 +13,7 @@ export {
 		[9] = "DECLINE",
 		[10] = "RECONFIGURE",
 		[11] = "INFORMATION_REQUEST",
-	} &default = function(n: count): string { return fmt("unk-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("unk-%d", n); };
 
 	## DUID types
 	const duid_types = {
@@ -21,7 +21,7 @@ export {
 		[2] = "EN",
 		[3] = "LL",
 		[4] = "UUID",
-	} &default = function(n: count): string { return fmt("unk-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("unk-%d", n); };
 
 	## Status codes
 	# Full list  https://www.iana.org/assignments/dhcpv6-parameters/dhcpv6-parameters.xhtml#dhcpv6-parameters-5
@@ -49,7 +49,7 @@ export {
 		[20] = "ServerShuttingDown",
 		[21] = "DNSUpdateNotSupported",
 		[22] = "ExcessiveTimeSkew",
-	} &default = function(n: count): string { return fmt("unk-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("unk-%d", n); };
 
 
 	## Option types mapped to their names.
@@ -203,5 +203,5 @@ export {
 		[146] = "FORWARD_DIST_MANAGER",
 		[147] = "REVERSE_DIST_MANAGER",
 		[148] = "ADDR_REG_ENABLE",
-	} &default = function(n: count): string { return fmt("unk-%d", n); };
+	} &redef &default = function(n: count): string { return fmt("unk-%d", n); };
 }

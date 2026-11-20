@@ -1,3 +1,7 @@
+%extern{
+#include "zeek/const.bif.netvar_h"
+%}
+
 # Do not try parsing if the DOS stub program seems larger than 4mb.
 # DOS stub programs are not expected to be much more than on the order of
 # hundreds of bytes even though the format allows a full 32-bit range.
@@ -60,7 +64,7 @@ type NT_Headers = record {
 # The file header is mainly self-describing
 type File_Header = record {
 	Machine               : uint16;
-	NumberOfSections      : uint16;
+	NumberOfSections      : uint16 &enforce(NumberOfSections <= $context.connection.get_max_number_of_sections());
 	TimeDateStamp         : uint32;
 	PointerToSymbolTable  : uint32;
 	NumberOfSymbols       : uint32;
@@ -142,7 +146,7 @@ refine connection MockConnection += {
 
 	%init{
 		max_file_location_ = 0;
-		pe32_format_ = UNKNOWN_VERSION;;
+		pe32_format_ = UNKNOWN_VERSION;
 	%}
 
 	function add_section(h: Section_Header): bool
@@ -172,5 +176,13 @@ refine connection MockConnection += {
 	function get_pe32_format(): uint8
 		%{
 		return pe32_format_;
+		%}
+
+	function get_max_number_of_sections(): uint64
+		%{
+		if ( zeek::BifConst::PE::max_number_of_sections == 0 )
+			return 65535;
+
+		return zeek::BifConst::PE::max_number_of_sections;
 		%}
 };

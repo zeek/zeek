@@ -39,7 +39,7 @@ type Capability = record {
 };
 
 type ServerCapability(rec: ImapToken) = record {
-	capabilities: Capability[] &until($context.connection.strlen($element.nl) > 0);
+	capabilities: Capability[] &until($context.connection.capabilities_line_done()) &transient;
 };
 
 type UnknownCommand(rec: ImapToken) = record {
@@ -60,10 +60,4 @@ refine connection IMAP_Conn += {
 
 		return CMD_UNKNOWN;
 		%}
-
-	function strlen(str: bytestring): int
-		%{
-		return str.length();
-		%}
-
 };

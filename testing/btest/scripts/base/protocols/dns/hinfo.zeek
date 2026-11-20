@@ -1,5 +1,6 @@
 # @TEST-EXEC: zeek -b -r $TRACES/dns/hinfo.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
+# @TEST-EXEC: btest-diff-cut -m dns.log
 
 @load base/protocols/dns
 

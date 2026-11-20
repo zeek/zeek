@@ -26,4 +26,3 @@ event zeek_init()
 	test_case( "type inference", type_name(b5) == "bool" );
 
 }
-

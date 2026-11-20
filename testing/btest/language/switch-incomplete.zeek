@@ -9,4 +9,3 @@ event zeek_init()
 		# error: neither break/fallthrough/return here.
 	}
 	}
-

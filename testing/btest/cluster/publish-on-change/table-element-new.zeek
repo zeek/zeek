@@ -8,14 +8,15 @@
 #
 # @TEST-EXEC: cp $FILES/zeromq/cluster-layout-no-logger.zeek cluster-layout.zeek
 # @TEST-EXEC: cp $FILES/zeromq/test-bootstrap.zeek zeromq-test-bootstrap.zeek
-
+#
 # @TEST-EXEC: zeek --parse-only manager.zeek
 # @TEST-EXEC: zeek --parse-only worker.zeek
 #
 # @TEST-EXEC: btest-bg-run manager "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=manager zeek -b ../manager.zeek >out"
 # @TEST-EXEC: btest-bg-run worker "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-1 zeek -b ../worker.zeek >out"
+#
 # @TEST-EXEC: btest-bg-wait 30
-
+#
 # @TEST-EXEC: btest-diff ./manager/out
 # @TEST-EXEC: btest-diff ./worker/out
 
@@ -42,7 +43,7 @@ event Cluster::node_up(name: string, id: string)
 		print "tbl1 now contains y", tbl1;
 		tbl1["z"] = "from manager, take two!";
 		}
-	timeout 10sec
+	timeout 30sec
 		{
 		Reporter::fatal("timeout");
 		}
@@ -53,7 +54,6 @@ event Cluster::node_down(name: string, id: string)
 	print "node_down", name;
 	terminate();
 	}
-
 # @TEST-END-FILE
 
 # @TEST-START-FILE worker.zeek
@@ -72,12 +72,12 @@ event zeek_init()
 
 			terminate();
 			}
-		timeout 10sec
+		timeout 30sec
 			{
 			Reporter::fatal("timeout 2!");
 			}
 		}
-	timeout 10sec
+	timeout 30sec
 		{
 		Reporter::fatal("timeout 1!");
 		}

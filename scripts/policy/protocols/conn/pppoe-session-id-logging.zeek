@@ -21,4 +21,3 @@ event new_connection(c: connection)
 
 	c$conn$pppoe_session_id = session_id;
 	}
-

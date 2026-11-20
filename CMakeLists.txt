@@ -753,6 +753,8 @@ if (MSVC)
     # paths are stored in the output file.
     configure_file(cmake_templates/zeek-path-dev.bat.in
                    ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.bat)
+    configure_file(cmake_templates/launch.vs.json.in
+                   ${CMAKE_CURRENT_SOURCE_DIR}/.vs/launch.vs.json.template)
 
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_binary_dir "${cmake_binary_dir}")
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_current_binary_dir
@@ -822,7 +824,20 @@ if (CMAKE_CXX_COMPILER_LAUNCHER)
          "setenv HILTI_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}\n")
 endif ()
 
-file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" ZEEK_VERSION_FULL LIMIT_COUNT 1)
+set(ZEEK_PYTHON_MIN 3.9.0)
+set(Python_FIND_UNVERSIONED_NAMES FIRST)
+find_package(Python ${ZEEK_PYTHON_MIN} REQUIRED COMPONENTS Interpreter)
+
+execute_process(
+    COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tools/get-version.py" --source
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+    OUTPUT_VARIABLE ZEEK_VERSION_FULL
+    ERROR_VARIABLE _zeek_version_error
+    RESULT_VARIABLE _zeek_version_result
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+if (NOT _zeek_version_result EQUAL 0 OR ZEEK_VERSION_FULL STREQUAL "")
+    message(FATAL_ERROR "Could not determine Zeek version: ${_zeek_version_error}")
+endif ()
 
 file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin/Plugin.h _plugin_api_lines
      REGEX "^constexpr int PLUGIN_API_VERSION")
@@ -904,9 +919,6 @@ if (NOT SED_EXE)
     endif ()
 endif ()
 
-set(ZEEK_PYTHON_MIN 3.9.0)
-set(Python_FIND_UNVERSIONED_NAMES FIRST)
-find_package(Python ${ZEEK_PYTHON_MIN} REQUIRED COMPONENTS Interpreter)
 find_package(FLEX REQUIRED)
 find_package(BISON 2.5 REQUIRED)
 find_package(PCAP REQUIRED)
@@ -1024,9 +1036,14 @@ if (Broker_ROOT)
     set(ZEEK_HAS_EXTERNAL_BROKER ON)
     set(ZEEK_HAS_STATIC_BROKER OFF)
 else ()
-    if (ZEEK_SANITIZERS)
-        set(BROKER_SANITIZERS ${ZEEK_SANITIZERS})
-    endif ()
+    # Define broker_internal so that Broker picks up Zeek's build configuration.
+    add_library(broker_internal INTERFACE)
+    target_link_libraries(broker_internal INTERFACE $<BUILD_INTERFACE:zeek_internal>)
+    string(REPLACE " " ";" _broker_sanitizer_options "${_sanitizer_flags}")
+    foreach (flag ${_broker_sanitizer_options})
+        target_compile_options(broker_internal INTERFACE $<BUILD_INTERFACE:${flag}>)
+        target_link_options(broker_internal INTERFACE $<BUILD_INTERFACE:${flag}>)
+    endforeach ()
 
     set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
     if (MSVC)
@@ -1037,16 +1054,8 @@ else ()
         set(ENABLE_STATIC_ONLY true)
     endif ()
 
-    # Set linker flags so broker executables/shared libs get the ASan runtime.
-    if (_sanitizer_flags)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${_sanitizer_flags}")
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${_sanitizer_flags}")
-    endif ()
-
     add_subdirectory(auxil/broker)
     set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
-
-    zeek_target_enable_sanitizers(broker)
 
     if (BUILD_STATIC_BROKER)
         list(APPEND zeekdeps broker_static)
@@ -1067,6 +1076,12 @@ else ()
     # Tell plugins where to find the Broker CMake package in the source tree. This
     # variable is picked up in ZeekPluginConfig.cmake.in.
     set(ZEEK_PLUGIN_BROKER_PATH "${CMAKE_CURRENT_BINARY_DIR}/auxil/broker")
+endif ()
+
+# Set linker flags so later executables/shared libs get the ASan runtime.
+if (_sanitizer_flags)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${_sanitizer_flags}")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${_sanitizer_flags}")
 endif ()
 
 if (NOT DISABLE_SPICY)
@@ -1210,11 +1225,15 @@ execute_process(
 # Optional Dependencies
 
 set(USE_GEOIP false)
-find_package(LibMMDB)
-if (LIBMMDB_FOUND)
-    set(USE_GEOIP true)
-    include_directories(BEFORE SYSTEM ${LibMMDB_INCLUDE_DIR})
-    list(APPEND OPTLIBS ${LibMMDB_LIBRARY})
+if (NOT DISABLE_GEOIP)
+    find_package(LibMMDB)
+    if (LIBMMDB_FOUND)
+        set(USE_GEOIP true)
+        include_directories(BEFORE SYSTEM ${LibMMDB_INCLUDE_DIR})
+        list(APPEND OPTLIBS ${LibMMDB_LIBRARY})
+    else ()
+        message(STATUS "GeoIP disabled due to missing libmmdb")
+    endif ()
 endif ()
 
 set(USE_KRB5 false)
@@ -1255,6 +1274,11 @@ endif ()
 # system OpenSSL headers to still be picked up even if one specifies
 # --with-openssl (which may be common).
 include_directories(BEFORE SYSTEM ${OPENSSL_INCLUDE_DIR})
+
+# We suppress deprecation warnings from OpenSSL since with openssl-4.1
+# ASN1_STRING_length became deprecated, but we require only >=openssl-3.0 which
+# does not have the intended replacement.
+add_compile_definitions(OPENSSL_SUPPRESS_DEPRECATED)
 
 # Determine if libfts is external to libc, i.e. musl
 find_package(FTS)
@@ -1416,7 +1440,7 @@ if (INSTALL_ZKG)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/zkg-config.in
                    ${CMAKE_CURRENT_BINARY_DIR}/zkg-config @ONLY)
 
-    install(DIRECTORY DESTINATION var/lib/zkg)
+    install(DIRECTORY DESTINATION ${ZEEK_ZKG_STATE_DIR})
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zkg-config DESTINATION ${ZEEK_ZKG_CONFIG_DIR}
             RENAME config)
 endif ()

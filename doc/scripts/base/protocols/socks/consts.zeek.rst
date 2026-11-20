@@ -9,13 +9,13 @@ base/protocols/socks/consts.zeek
 
 Summary
 ~~~~~~~
-Constants
-#########
-============================================================================================================= =
-:zeek:id:`SOCKS::v4_status`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`SOCKS::v5_authentication_methods`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`SOCKS::v5_status`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-============================================================================================================= =
+Redefinable Options
+###################
+================================================================================================================================= =
+:zeek:id:`SOCKS::v4_status`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`SOCKS::v5_authentication_methods`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`SOCKS::v5_status`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+================================================================================================================================= =
 
 Types
 #####
@@ -26,13 +26,13 @@ Types
 
 Detailed Interface
 ~~~~~~~~~~~~~~~~~~
-Constants
-#########
+Redefinable Options
+###################
 .. zeek:id:: SOCKS::v4_status
    :source-code: base/protocols/socks/consts.zeek 22 22
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -50,7 +50,7 @@ Constants
    :source-code: base/protocols/socks/consts.zeek 10 10
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::
@@ -73,7 +73,7 @@ Constants
    :source-code: base/protocols/socks/consts.zeek 29 29
 
    :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
    :Default:
 
       ::

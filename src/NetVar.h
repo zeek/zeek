@@ -16,6 +16,7 @@ ZEEK_EXTERN_DATA double watchdog_interval;
 ZEEK_EXTERN_DATA int max_timer_expires;
 
 ZEEK_EXTERN_DATA int ignore_checksums;
+ZEEK_EXTERN_DATA int drop_bad_checksums;
 ZEEK_EXTERN_DATA int partial_connection_ok;
 ZEEK_EXTERN_DATA int tcp_SYN_ack_ok;
 ZEEK_EXTERN_DATA int tcp_match_undelivered;
@@ -34,6 +35,7 @@ ZEEK_EXTERN_DATA int tcp_max_initial_window;
 ZEEK_EXTERN_DATA int tcp_max_above_hole_without_any_acks;
 ZEEK_EXTERN_DATA int tcp_excessive_data_without_further_acks;
 ZEEK_EXTERN_DATA int tcp_max_old_segments;
+ZEEK_EXTERN_DATA int tcp_max_reassembler_blocks;
 
 ZEEK_EXTERN_DATA double non_analyzed_lifetime;
 ZEEK_EXTERN_DATA double tcp_inactivity_timeout;
@@ -63,6 +65,10 @@ ZEEK_EXTERN_DATA int dns_skip_all_auth;
 ZEEK_EXTERN_DATA int dns_skip_all_addl;
 ZEEK_EXTERN_DATA int dns_max_queries;
 ZEEK_EXTERN_DATA int dns_max_compression_chain_depth;
+ZEEK_EXTERN_DATA int dns_max_txt_character_strings;
+ZEEK_EXTERN_DATA int dns_max_spf_character_strings;
+ZEEK_EXTERN_DATA int dns_max_nsec_type_bitmaps;
+ZEEK_EXTERN_DATA int dns_max_nsec3_type_bitmaps;
 
 ZEEK_EXTERN_DATA double table_expire_interval;
 ZEEK_EXTERN_DATA double table_expire_delay;

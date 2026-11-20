@@ -11,6 +11,7 @@
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"
 #include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/http/consts.bif.h"
 #include "zeek/analyzer/protocol/http/events.bif.h"
 #include "zeek/analyzer/protocol/mime/MIME.h"
 #include "zeek/file_analysis/Manager.h"
@@ -61,13 +62,6 @@ void HTTP_Entity::EndOfData() {
     if ( DEBUG_http )
         DEBUG_MSG("%.6f HTTP_Entity::EndOfData[%p, %" PRId64 "] is_orig=%d\n", run_state::network_time, this, Depth(),
                   http_message->IsOrig());
-
-    if ( zip ) {
-        zip->Done();
-        delete zip;
-        zip = nullptr;
-        encoding = IDENTITY;
-    }
 
     zeek::detail::Rule::PatternType rule =
         http_message->IsOrig() ? zeek::detail::Rule::HTTP_REQUEST_BODY : zeek::detail::Rule::HTTP_REPLY_BODY;
@@ -209,11 +203,24 @@ void HTTP_Entity::DeliverBody(int len, const char* data, bool trailing_CRLF) {
 
         if ( ! zip ) {
             // We don't care about the direction here.
-            zip = new analyzer::zip::ZIP_Analyzer(http_message->MyHTTP_Analyzer()->Conn(), false, method);
+            zip = std::make_unique<analyzer::zip::ZIP_Analyzer>(http_message->MyHTTP_Analyzer()->Conn(),
+                                                                BifConst::HTTP::max_uncompressed_size, false, method);
             zip->SetOutputHandler(new UncompressedOutput(this));
         }
 
         zip->NextStream(len, reinterpret_cast<const u_char*>(data), false);
+
+        // zip->NextStream() may call EndOfData() for this entity. This happens when a multipart end
+        // boundary was observed in the uncompressed content, or all expected data was consumed by
+        // the entity. We can just tear down now for those cases. Otherwise, it'll just teardown at
+        // destruction time.
+        //
+        // Previously this was done in EndOfData(), but would cause a UAF since it's called from the
+        // ZIP analyzer.
+        if ( end_of_data ) {
+            zip->Done();
+            zip.reset();
+        }
     }
     else
         DeliverBodyClear(len, data, trailing_CRLF);
@@ -525,15 +532,56 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
             else // reply_ongoing
                 http_version = http_message->analyzer->GetReplyVersionNumber();
 
-            data_chunk_t vt = h->get_value_token();
-            if ( analyzer::mime::istrequal(vt, "chunked") && http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} ) {
+            auto header_value = h->get_value();
+            data_chunk_t list_value;
+
+            int parts = 0;
+            int chunked = 0;
+            [[maybe_unused]] int gzip = 0;
+            [[maybe_unused]] int deflate = 0;
+            int unknown = 0;
+
+            // Parse Transfer-Encoding value as individual tokens.
+            bool more = true; // empty would be parsed as an empty/unknown one.
+            while ( more ) {
+                int consume = mime::MIME_get_list_value(header_value.length, header_value.data, &list_value, more);
+                header_value.length -= consume;
+                header_value.data += consume;
+                ++parts;
+
+                if ( analyzer::mime::istrequal(list_value, "chunked") )
+                    chunked = parts;
+                else if ( analyzer::mime::istrequal(list_value, "gzip") )
+                    gzip = parts;
+                else if ( analyzer::mime::istrequal(list_value, "deflate") )
+                    deflate = parts;
+                else if ( analyzer::mime::istrequal(list_value, "compress") ) {
+                    http_message->MyHTTP_Analyzer()->Weird("HTTP_compress_transfer_encoding_unsupported");
+                }
+                else if ( unknown == 0 ) {
+                    // For the first unknown transfer encoding, create a weird
+                    // including the full header value.
+                    unknown = parts;
+                    auto header_value2 = h->get_value();
+                    std::string addl{header_value2.data, static_cast<size_t>(header_value2.length)};
+                    http_message->MyHTTP_Analyzer()->Weird("HTTP_unknown_transfer_encoding", addl.c_str());
+                }
+            }
+
+            if ( parts > 4 ) {
+                auto header_value2 = h->get_value();
+                std::string addl{header_value2.data, static_cast<size_t>(header_value2.length)};
+                http_message->MyHTTP_Analyzer()->Weird("HTTP_too_many_transfer_encodings", addl.c_str());
+            }
+
+            if ( chunked > 0 && http_version == HTTP_Analyzer::HTTP_VersionNumber{1, 1} ) {
                 chunked_transfer_state = BEFORE_CHUNK;
 
-                data_chunk_t rest = h->get_value_after_token();
-                if ( rest.length > 0 && rest.data != nullptr ) {
+                if ( parts > chunked ) {
                     // If something follows the chunked value in the header,
                     // that's weird and might be an attempt to smuggle something.
-                    std::string addl(rest.data, rest.length);
+                    auto header_value2 = h->get_value();
+                    std::string addl{header_value2.data, static_cast<size_t>(header_value2.length)};
                     http_message->MyHTTP_Analyzer()->Weird("HTTP_chunked_multi", addl.c_str());
                 }
 
@@ -542,6 +590,10 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
                 if ( content_length >= 0 )
                     http_message->MyHTTP_Analyzer()->Weird("HTTP_content_length_and_chunked");
             }
+
+            // XXX - technically seems we should do that, but for now skip to not introduce new behavior.
+            // if ( gzip > 0 || deflate > 0 )
+            //    encoding = GZIP;
         }
         else {
             http_message->MyHTTP_Analyzer()->Weird("HTTP_nested_transfer_encoding_header");
@@ -1014,6 +1066,25 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig) {
                     request_state = EXPECT_REQUEST_MESSAGE;
                     request_ongoing = 1;
                     unanswered_requests.push(request_method);
+
+                    // This is just the same as is done in the default HTTP
+                    // scripts. If there's more than HTTP::max_pending_requests
+                    // of unanswered requests, clear the queue to prevent memory
+                    // growth.
+                    if ( zeek::BifConst::HTTP::max_pending_requests > 0 &&
+                         unanswered_requests.size() >= zeek::BifConst::HTTP::max_pending_requests ) {
+                        LimitReachedWeird("HTTP_excessive_pipelining", unanswered_requests.size());
+                        unanswered_requests = {};
+
+                        // Disable deliveries from the server as all bets are
+                        // off for request/response correlation expectation for
+                        // body/non-body delivery depends on the request method.
+                        //
+                        // Likely the queue overflow was anyhow caused by
+                        // one-sided traffic and this has no effect.
+                        content_line_resp->SetSkipDeliveries(true);
+                    }
+
                     HTTP_Request();
                     InitHTTPMessage(content_line, request_message, is_orig, HTTP_BODY_MAYBE, len);
 
@@ -1474,7 +1545,7 @@ void HTTP_Analyzer::HTTP_Request() {
     const char* method = reinterpret_cast<const char*>(request_method->AsString()->Bytes());
     int method_len = request_method->AsString()->Len();
 
-    if ( strncasecmp(method, "CONNECT", method_len) == 0 )
+    if ( method_len == 7 && strncasecmp(method, "CONNECT", method_len) == 0 )
         connect_request = true;
 
     if ( http_request )
@@ -1710,7 +1781,8 @@ int HTTP_Analyzer::ExpectReplyMessageBody() {
 
     const String* method = UnansweredRequestMethod();
 
-    if ( method && strncasecmp(reinterpret_cast<const char*>(method->Bytes()), "HEAD", method->Len()) == 0 )
+    if ( method && method->Len() == 4 &&
+         strncasecmp(reinterpret_cast<const char*>(method->Bytes()), "HEAD", method->Len()) == 0 )
         return HTTP_BODY_NOT_EXPECTED;
 
     if ( (reply_code >= 100 && reply_code < 200) || reply_code == 204 || reply_code == 304 )

@@ -290,6 +290,11 @@ protected:
     void SetReassemblyBuffer(uint64_t max);
 
     /**
+     * Set a maximum allowed blocks used for file reassembly for this file.
+     */
+    void SetReassemblyBlocks(uint64_t max);
+
+    /**
      * Perform stream-wise delivery for analyzers that need it.
      */
     void DeliverStream(const u_char* data, uint64_t len);
@@ -319,6 +324,7 @@ protected:
     FileReassembler* file_reassembler = nullptr; /**< A reassembler for the file if it's needed. */
     uint64_t stream_offset = 0;                  /**< The offset of the file which has been forwarded. */
     uint64_t reassembly_max_buffer = 0;          /**< Maximum allowed buffer for reassembly. */
+    uint64_t reassembly_max_blocks = 0;          /**< Maximum allowed blocks for reassembly. */
     bool did_metadata_inference = false;         /**< Whether the metadata inference has already been attempted. */
     bool reassembly_enabled = false;             /**< Whether file stream reassembly is needed. */
     bool postpone_timeout = false;               /**< Whether postponing timeout is requested. */

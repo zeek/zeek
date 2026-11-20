@@ -18,4 +18,3 @@ event zeek_init() &priority=5{
 event krb_ap_request(c: connection, ticket: KRB::Ticket, opts:  KRB::AP_Options){
    print ticket$authenticationinfo;
 }
-

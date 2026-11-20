@@ -69,4 +69,3 @@ event zeek_init()
 	else if ( F ) test_case( "Error: this should not happen", F);
 	else test_case( "if F else if F else if F else", T);
 }
-

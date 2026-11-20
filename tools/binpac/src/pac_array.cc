@@ -337,7 +337,8 @@ string ArrayType::GenArrayInit(Output* out_cc, Env* env, bool known_array_length
 
     out_cc->println("%s = new %s;", lvalue(), vector_str_.c_str());
 
-    if ( known_array_length ) {
+    // Known length and not &transient? Reserve the memory.
+    if ( known_array_length && ! attr_transient_ ) {
         out_cc->println("%s->reserve(%s);", lvalue(), env->RValue(arraylength_var()));
     }
 

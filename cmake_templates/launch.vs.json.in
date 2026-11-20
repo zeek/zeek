@@ -1,0 +1,23 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "zeek.exe (src\\zeek.exe)",
+      "name": "zeek.exe (src\\zeek.exe)",
+      "currentDir": "${cmake_source_dir}",
+      "args": [
+        "-C",
+        "-r",
+        "${cmake_source_dir}/testing/btest/Traces/http/get.trace",
+        "local"
+      ],
+      "env": {
+        "ZEEKPATH": ".;${cmake_source_dir}/scripts;${cmake_source_dir}/scripts/policy;${cmake_source_dir}/scripts/site;${cmake_binary_dir}/scripts;${cmake_binary_dir}/scripts/builtin-plugins",
+        "ZEEK_PLUGIN_PATH": "${cmake_binary_dir}/src",
+      }
+    }
+  ]
+}

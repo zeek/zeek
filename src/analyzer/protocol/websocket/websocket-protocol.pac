@@ -67,13 +67,16 @@ type WebSocket_Frame(first_frame: bool, msg: WebSocket_Message) = record {
 	# If we find a close frame without payload, raise the event here
 	# as the close won't have been parsed via chunks.
 	empty_close = $context.flow.process_empty_close(hdr) &if(hdr.opcode == OPCODE_CLOSE) && hdr.payload_len == 0;
+	frame_finished = $context.flow.finish_frame(hdr.fin);
 };
 
 type WebSocket_Message = record {
 	first_frame: WebSocket_Frame(true, this);
 	optional_more_frames: case first_frame.hdr.fin of {
 		true -> no_more_frames: empty;
-		false -> more_frames: WebSocket_Frame(false, this)[] &until($element.hdr.fin);
+		false -> more_frames: WebSocket_Frame(false, this)[]
+		         &until($context.flow.last_frame_fin())
+		         &transient;
 	};
 } &let {
 	opcode = first_frame.hdr.opcode;
@@ -90,6 +93,7 @@ flow WebSocket_Flow(is_orig: bool) {
 		uint64_t chunk_emit_len_;
 		std::array<uint8_t, 4> masking_key_;
 		uint8_t effective_opcode_;
+		bool last_frame_fin_;
 	%}
 
 	%init{
@@ -99,6 +103,7 @@ flow WebSocket_Flow(is_orig: bool) {
 		frame_emit_remaining_ = 0;
 		chunk_emit_len_ = 0;
 		effective_opcode_ = OPCODE_CONTINUATION;
+		last_frame_fin_ = false;
 	%}
 
 	function new_frame_payload(hdr: WebSocket_FrameHeader): uint64
@@ -132,6 +137,17 @@ flow WebSocket_Flow(is_orig: bool) {
 			memcpy(masking_key_.data(), ${hdr.masking_key}.data(), masking_key_.size());
 		}
 		return frame_payload_len_;
+		%}
+
+	function finish_frame(fin: bool): bool
+		%{
+		last_frame_fin_ = fin;
+		return true;
+		%}
+
+	function last_frame_fin(): bool
+		%{
+		return last_frame_fin_;
 		%}
 
 	function remaining_frame_payload_len(): uint64

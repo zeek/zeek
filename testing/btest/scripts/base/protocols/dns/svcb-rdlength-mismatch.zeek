@@ -1,6 +1,6 @@
 # @TEST-DOC: Test malformed SVCB RDATA where RDLENGTH is shorter than minimum.
 #
-# @TEST-EXEC: zeek -b -C -r $TRACES/dns-svcb-rdlength-mismatch.pcap %INPUT >out
+# @TEST-EXEC: zeek -b -C -r $TRACES/dns/svcb-rdlength-mismatch.pcap %INPUT >out
 # @TEST-EXEC: test ! -s out
 # @TEST-EXEC: btest-diff-cut -m weird.log
 

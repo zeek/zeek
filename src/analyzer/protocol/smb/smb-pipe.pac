@@ -38,6 +38,15 @@ refine connection SMB_Conn += {
 
 	function set_tree_is_pipe(tree_id: uint32): bool
 		%{
+		if ( zeek::BifConst::SMB::max_tree_is_pipe_map_size > 0 && tree_is_pipe_map.size() >= zeek::BifConst::SMB::max_tree_is_pipe_map_size )
+			{
+			if ( smb_discarded_tree_is_pipe_map )
+				zeek::BifEvent::enqueue_smb_discarded_tree_is_pipe_map(zeek_analyzer(),
+				                                                       zeek_analyzer()->Conn(),
+				                                                       tree_is_pipe_map.size());
+			tree_is_pipe_map.clear();
+			}
+
 		tree_is_pipe_map[tree_id] = true;
 		return true;
 		%}

@@ -51,4 +51,3 @@ event zeek_init()
 	test_case( "IPv4-mapped-IPv6 equality to IPv4", c1 == 1.2.3.4 );
 	test_case( "IPv4-mapped-IPv6 is IPv4", is_v4_addr(c1) == T );
 }
-

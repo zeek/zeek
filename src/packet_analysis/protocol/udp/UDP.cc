@@ -128,8 +128,10 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
         if ( bad ) {
             adapter->HandleBadChecksum(is_orig);
-            adapter->TapPacket(pkt, PacketAction::Skip, SkipReason::BadChecksum);
-            return;
+            if ( zeek::detail::drop_bad_checksums ) {
+                adapter->TapPacket(pkt, PacketAction::Skip, SkipReason::BadChecksum);
+                return;
+            }
         }
     }
 

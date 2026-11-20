@@ -1,14 +1,21 @@
 %extern{
 #include <algorithm>
+
+#include "zeek/analyzer/protocol/imap/consts.bif.h"
 %}
 
 refine connection IMAP_Conn += {
 
 	%member{
 		string client_starttls_id;
+		zeek::VectorValPtr capabilities;
+		uint64_t total_capabilities;
+		bool capability_had_nl;
 	%}
 
 	%init{
+		total_capabilities = 0;
+		capability_had_nl = false;
 	%}
 
 	function proc_imap_token(is_orig: bool, tag: bytestring, command: bytestring): bool
@@ -58,20 +65,48 @@ refine connection IMAP_Conn += {
 		return true;
 		%}
 
-	function proc_server_capability(capabilities: Capability[]): bool
+	function proc_one_capability(cap: Capability): bool
 		%{
+		++total_capabilities;
+		assert(!capability_had_nl);
+
+		if ( ${cap.nl}.length() > 0 )
+			capability_had_nl = true;
+
+		// If event not implemented, short-circuit.
 		if ( ! imap_capabilities )
 			return true;
 
-		auto capv = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
+		if ( ! capabilities )
+			capabilities = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
 
-		for ( unsigned int i = 0; i< capabilities->size(); i++ )
-			{
-			const bytestring& capability = (*capabilities)[i]->cap();
-			capv->Assign(i, zeek::make_intrusive<zeek::StringVal>(capability.length(), reinterpret_cast<const char*>(capability.data())));
-			}
+		if ( zeek::BifConst::IMAP::max_capabilities > 0 && capabilities->Size() >= zeek::BifConst::IMAP::max_capabilities )
+			return true;
 
-		zeek::BifEvent::enqueue_imap_capabilities(zeek_analyzer(), zeek_analyzer()->Conn(), std::move(capv));
+		capabilities->Append(zeek::make_intrusive<zeek::StringVal>(${cap.cap}.length(), reinterpret_cast<const char*>(${cap.cap}.data())));
+		return true;
+		%}
+
+	# Returns true once a capability with a trailing \r\n has been observed
+	# during proc_one_capability().
+	function capabilities_line_done(): bool
+		%{
+		return capability_had_nl;
+		%}
+
+	function proc_server_capability(): bool
+		%{
+		// Raise a weird here if max_capabilities was reached and short-circuited above
+		// for anything that comes additionally.
+		if ( zeek::BifConst::IMAP::max_capabilities > 0 && total_capabilities > zeek::BifConst::IMAP::max_capabilities )
+			zeek_analyzer()->LimitReachedWeird("imap_max_capabilities_reached", total_capabilities, zeek::BifConst::IMAP::max_capabilities);
+
+		if ( imap_capabilities )
+			zeek::BifEvent::enqueue_imap_capabilities(zeek_analyzer(), zeek_analyzer()->Conn(), std::move(capabilities));
+
+		capability_had_nl = false;
+		total_capabilities = 0;
+		capabilities.reset();
 		return true;
 		%}
 
@@ -81,6 +116,10 @@ refine typeattr ImapToken += &let {
 	proc: bool = $context.connection.proc_imap_token(is_orig, tag, command);
 };
 
+refine typeattr Capability += &let {
+	proc: bool = $context.connection.proc_one_capability(this);
+};
+
 refine typeattr ServerCapability += &let {
-	proc: bool = $context.connection.proc_server_capability(capabilities);
+	proc: bool = $context.connection.proc_server_capability();
 };

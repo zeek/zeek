@@ -125,10 +125,15 @@ void PcapSource::OpenLive() {
         return;
     }
 
-    if ( pcap_activate(pd) ) {
+    const int activation_status = pcap_activate(pd);
+
+    if ( activation_status < 0 ) {
         PcapError("pcap_activate");
         return;
     }
+
+    if ( activation_status > 0 )
+        reporter->Warning("pcap_activate: %s", pcap_geterr(pd));
 
 #ifdef HAVE_LINUX
     if ( pcap_setnonblock(pd, 1, errbuf) < 0 ) {

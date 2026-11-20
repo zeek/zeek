@@ -1,0 +1,10 @@
+# @TEST-DOC: Test that the 65535 hard-limit is used, even if MySQL::max_com_query_attributes is set to 2^32-1
+# @TEST-EXEC: zeek -b -C -r $TRACES/mysql/mysql-com-query-attributes-overflow.pcap %INPUT
+# @TEST-EXEC: btest-diff-cut -m uid history service conn.log
+# @TEST-EXEC: btest-diff-cut -m mysql.log
+# @TEST-EXEC: btest-diff-cut -m analyzer.log
+
+@load base/protocols/conn
+@load base/protocols/mysql
+
+redef MySQL::max_com_query_attributes = 0xFFFFFFFF;

@@ -882,6 +882,17 @@ StringValPtr StringVal::Replace(RE_Matcher* re, const String& repl, bool do_all)
     return make_intrusive<StringVal>(new String(true, result, r - result));
 }
 
+StringValPtr StringVal::concatenate(std::span<StringValPtr> strings) {
+    std::vector<const zeek::String*> r;
+    r.reserve(strings.size());
+
+    for ( const auto& s : strings )
+        r.push_back(s->AsString());
+
+    String* cat = zeek::concatenate(r);
+    return zeek::make_intrusive<zeek::StringVal>(cat); // adopts String
+}
+
 unsigned int StringVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const {
     return 1 /* this object */ + static_cast<unsigned int>(Len()) / sizeof(Val);
 }
@@ -4230,6 +4241,9 @@ bool can_cast_any_to_type(const Val* v, Type* t) {
 }
 
 bool can_cast_type_to_type(const Type* s, Type* t) {
+    if ( ! s || ! t )
+        return false;
+
     // Always allow casting to same type. This also covers casting 'any'
     // to the actual type.
     if ( same_type(s, t) )
@@ -4245,7 +4259,7 @@ bool can_cast_type_to_type(const Type* s, Type* t) {
     if ( can_cast_basic_types(s, t) )
         return true;
 
-    if ( s && s->Tag() == TYPE_OPAQUE && s->AsOpaqueType()->CanCastTo(t) )
+    if ( s->Tag() == TYPE_OPAQUE && s->AsOpaqueType()->CanCastTo(t) )
         return true;
 
     if ( same_type(s, Broker::detail::DataVal::ScriptDataType()) )

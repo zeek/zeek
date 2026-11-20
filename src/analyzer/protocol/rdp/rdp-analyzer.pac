@@ -213,6 +213,11 @@ refine flow RDP_Flow += {
 
 	function proc_x509_cert_data(x509: X509_Cert_Data): bool
 		%{
+		if ( ${x509.cert_len} < 128 ) {
+		   connection()->zeek_analyzer()->Weird("rdp_small_x509_certificate");
+		   return true;
+		}
+
 		const bytestring& cert = ${x509.cert};
 
 		zeek::ODesc file_handle;

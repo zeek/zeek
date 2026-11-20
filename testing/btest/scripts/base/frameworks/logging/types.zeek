@@ -67,4 +67,3 @@ event zeek_init()
 		$f=foo
 		]);
 }
-

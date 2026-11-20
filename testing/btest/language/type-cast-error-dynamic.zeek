@@ -29,5 +29,3 @@ event zeek_init()
 	print "data is string", Broker::Data() is string;
 	cast_to_string(Broker::Data());
 	}
-
-

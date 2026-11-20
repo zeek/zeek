@@ -25,4 +25,3 @@ event zeek_init()
 	Log::write(Test::LOG, [$data=1234567890.0000001 as time]);
 	Log::write(Test::LOG, [$data=2385642157 as time]);
 }
-

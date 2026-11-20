@@ -25,6 +25,7 @@
 @load base/packet-protocols/llc
 @load base/packet-protocols/novell_802_3
 @load base/packet-protocols/snap
+@load base/packet-protocols/l2tp
 
 @load base/packet-protocols/gre
 @load base/packet-protocols/iptunnel

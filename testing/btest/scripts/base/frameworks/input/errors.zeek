@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff .stderr
-# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=sort btest-diff out
 
 # @TEST-START-FILE input.log
 #separator \x09
@@ -63,20 +63,17 @@ global val_set: set[count];
 
 event line_file(description: Input::EventDescription, tpe: Input::Event, r:FileVal)
 	{
-	print outfile, description$name;
-	print outfile, r;
+	print outfile, description$name, r;
 	}
 
 event optional_line_file(description: Input::EventDescription, tpe: Input::Event, r:OptionalFileVal)
 	{
-	print outfile, description$name;
-	print outfile, r;
+	print outfile, description$name, r;
 	}
 
 event line_record(description: Input::EventDescription, tpe: Input::Event, r: OptionalRecordVal)
 	{
-	print outfile, description$name;
-	print outfile, r;
+	print outfile, description$name, r;
 	}
 
 event event1(description: Input::EventDescription, tpe: Input::Event, r: OptionalRecordVal, r2: OptionalRecordVal)

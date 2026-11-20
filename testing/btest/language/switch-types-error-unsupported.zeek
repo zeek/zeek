@@ -14,4 +14,3 @@ function switch_one(v: string): string
 		return "Something else!";
 	}
 	}
-

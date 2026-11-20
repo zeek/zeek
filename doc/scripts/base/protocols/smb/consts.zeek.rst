@@ -13,24 +13,19 @@ Summary
 ~~~~~~~
 Redefinable Options
 ###################
-================================================================================================================== ============================================
-:zeek:id:`SMB::rpc_sub_cmds`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function` The subcommands for RPC endpoints.
-:zeek:id:`SMB::rpc_uuids`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`    The UUIDs used by the various RPC endpoints.
-:zeek:id:`SMB::srv_cmds`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`     Server service sub commands.
+========================================================================================================================== ============================================
+:zeek:id:`SMB1::commands`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`SMB1::trans2_sub_commands`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`SMB1::trans_sub_commands`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`SMB2::commands`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`SMB2::dialects`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`SMB2::share_types`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+:zeek:id:`SMB::rpc_sub_cmds`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`         The subcommands for RPC endpoints.
+:zeek:id:`SMB::rpc_uuids`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`            The UUIDs used by the various RPC endpoints.
+:zeek:id:`SMB::srv_cmds`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`             Server service sub commands.
 :zeek:id:`SMB::statuses`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`SMB::wksta_cmds`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`   Workstation service sub commands.
-================================================================================================================== ============================================
-
-Constants
-#########
-====================================================================================================== =
-:zeek:id:`SMB1::commands`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`SMB1::trans2_sub_commands`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`SMB1::trans_sub_commands`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`SMB2::commands`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`SMB2::dialects`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-:zeek:id:`SMB2::share_types`: :zeek:type:`table` :zeek:attr:`&default` = :zeek:type:`function`
-====================================================================================================== =
+:zeek:id:`SMB::wksta_cmds`: :zeek:type:`table` :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`           Workstation service sub commands.
+========================================================================================================================== ============================================
 
 Types
 #####
@@ -51,6 +46,218 @@ Detailed Interface
 ~~~~~~~~~~~~~~~~~~
 Redefinable Options
 ###################
+.. zeek:id:: SMB1::commands
+   :source-code: base/protocols/smb/consts.zeek 122 122
+
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+   :Default:
+
+      ::
+
+         {
+            [19] = "LOCK_AND_READ",
+            [20] = "WRITE_AND_UNLOCK",
+            [33] = "QUERY_SERVER",
+            [39] = "IOCTL",
+            [30] = "WRITE_MPX",
+            [46] = "READ_ANDX",
+            [15] = "CREATE_NEW",
+            [28] = "READ_MPX_SECONDARY",
+            [164] = "NT_CANCEL",
+            [9] = "SET_INFORMATION",
+            [53] = "FIND_NOTIFY_CLOSE",
+            [52] = "FIND_CLOSE2",
+            [4] = "CLOSE",
+            [12] = "LOCK_BYTE_RANGE",
+            [130] = "FIND",
+            [41] = "COPY",
+            [17] = "PROCESS_EXIT",
+            [29] = "WRITE_RAW",
+            [16] = "CHECK_DIRECTORY",
+            [115] = "SESSION_SETUP_ANDX",
+            [38] = "TRANSACTION_SECONDARY",
+            [165] = "NT_RENAME",
+            [193] = "WRITE_PRINT_FILE",
+            [42] = "MOVE",
+            [1] = "DELETE_DIRECTORY",
+            [116] = "LOGOFF_ANDX",
+            [11] = "WRITE",
+            [113] = "TREE_DISCONNECT",
+            [35] = "QUERY_INFORMATION2",
+            [216] = "READ_BULK",
+            [43] = "ECHO",
+            [114] = "NEGOTIATE",
+            [3] = "CREATE",
+            [44] = "WRITE_AND_CLOSE",
+            [129] = "SEARCH",
+            [34] = "SET_INFORMATION2",
+            [45] = "OPEN_ANDX",
+            [40] = "IOCTL_SECONDARY",
+            [194] = "CLOSE_PRINT_FILE",
+            [36] = "LOCKING_ANDX",
+            [14] = "CREATE_TEMPORARY",
+            [6] = "DELETE",
+            [31] = "WRITE_MPX_SECONDARY",
+            [8] = "QUERY_INFORMATION",
+            [192] = "OPEN_PRINT_FILE",
+            [27] = "READ_MPX",
+            [195] = "GET_PRINT_QUEUE",
+            [7] = "RENAME",
+            [10] = "READ",
+            [32] = "WRITE_COMPLETE",
+            [26] = "READ_RAW",
+            [13] = "UNLOCK_BYTE_RANGE",
+            [128] = "QUERY_INFORMATION_DISK",
+            [218] = "WRITE_BULK_DATA",
+            [217] = "WRITE_BULK",
+            [160] = "NT_TRANSACT",
+            [47] = "WRITE_ANDX",
+            [50] = "TRANSACTION2",
+            [2] = "OPEN",
+            [132] = "FIND_CLOSE",
+            [48] = "NEW_FILE_SIZE",
+            [49] = "CLOSE_AND_TREE_DISC",
+            [162] = "NT_CREATE_ANDX",
+            [5] = "FLUSH",
+            [112] = "TREE_CONNECT",
+            [161] = "NT_TRANSACT_SECONDARY",
+            [51] = "TRANSACTION2_SECONDARY",
+            [37] = "TRANSACTION",
+            [18] = "SEEK",
+            [117] = "TREE_CONNECT_ANDX",
+            [0] = "CREATE_DIRECTORY",
+            [131] = "FIND_UNIQUE"
+         }
+
+
+
+.. zeek:id:: SMB1::trans2_sub_commands
+   :source-code: base/protocols/smb/consts.zeek 197 197
+
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+   :Default:
+
+      ::
+
+         {
+            [2] = "FIND_NEXT2",
+            [6] = "SET_PATH_INFORMATION",
+            [14] = "SESSION_SETUP",
+            [16] = "GET_DFS_REFERRAL",
+            [8] = "SET_FILE_INFORMATION",
+            [9] = "FSCTL",
+            [1] = "FIND_FIRST2",
+            [11] = "FIND_NOTIFY_FIRST",
+            [7] = "QUERY_FILE_INFORMATION",
+            [5] = "QUERY_PATH_INFORMATION",
+            [10] = "IOCTL",
+            [4] = "SET_FS_INFORMATION",
+            [13] = "CREATE_DIRECTORY",
+            [12] = "FIND_NOTIFY_NEXT",
+            [3] = "QUERY_FS_INFORMATION",
+            [17] = "REPORT_DFS_INCONSISTENCY",
+            [0] = "OPEN2"
+         }
+
+
+
+.. zeek:id:: SMB1::trans_sub_commands
+   :source-code: base/protocols/smb/consts.zeek 217 217
+
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+   :Default:
+
+      ::
+
+         {
+            [55] = "WRITE_NMPIPE",
+            [38] = "TRANSACT_NMPIPE",
+            [54] = "READ_NMPIPE",
+            [33] = "QUERY_NMPIPE_STATE",
+            [17] = "RAW_READ_NMPIPE",
+            [35] = "PEEK_NMPIPE",
+            [49] = "RAW_WRITE_NMPIPE",
+            [34] = "QUERY_NMPIPE_INFO",
+            [1] = "SET_NMPIPE_STATE",
+            [83] = "WAIT_NMPIPE",
+            [84] = "CALL_NMPIPE"
+         }
+
+
+
+.. zeek:id:: SMB2::commands
+   :source-code: base/protocols/smb/consts.zeek 235 235
+
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+   :Default:
+
+      ::
+
+         {
+            [2] = "LOGOFF",
+            [14] = "QUERY_DIRECTORY",
+            [15] = "CHANGE_NOTIFY",
+            [6] = "CLOSE",
+            [16] = "QUERY_INFO",
+            [8] = "READ",
+            [9] = "WRITE",
+            [1] = "SESSION_SETUP",
+            [11] = "IOCTL",
+            [7] = "FLUSH",
+            [5] = "CREATE",
+            [10] = "LOCK",
+            [4] = "TREE_DISCONNECT",
+            [13] = "ECHO",
+            [12] = "CANCEL",
+            [18] = "OPLOCK_BREAK",
+            [3] = "TREE_CONNECT",
+            [17] = "SET_INFO",
+            [0] = "NEGOTIATE_PROTOCOL"
+         }
+
+
+
+.. zeek:id:: SMB2::dialects
+   :source-code: base/protocols/smb/consts.zeek 257 257
+
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+   :Default:
+
+      ::
+
+         {
+            [528] = "2.1",
+            [770] = "3.0.2",
+            [768] = "3.0",
+            [767] = "2.1+",
+            [514] = "2.0.2",
+            [785] = "3.1.1"
+         }
+
+
+
+.. zeek:id:: SMB2::share_types
+   :source-code: base/protocols/smb/consts.zeek 266 266
+
+   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
+   :Attributes: :zeek:attr:`&redef` :zeek:attr:`&default` = :zeek:type:`function`
+   :Default:
+
+      ::
+
+         {
+            [2] = "PIPE",
+            [1] = "DISK",
+            [3] = "PRINT"
+         }
+
+
+
 .. zeek:id:: SMB::rpc_sub_cmds
    :source-code: base/protocols/smb/consts.zeek 112 112
 
@@ -279,220 +486,6 @@ Redefinable Options
 
 
    Workstation service sub commands.
-
-Constants
-#########
-.. zeek:id:: SMB1::commands
-   :source-code: base/protocols/smb/consts.zeek 122 122
-
-   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
-   :Default:
-
-      ::
-
-         {
-            [19] = "LOCK_AND_READ",
-            [20] = "WRITE_AND_UNLOCK",
-            [33] = "QUERY_SERVER",
-            [39] = "IOCTL",
-            [30] = "WRITE_MPX",
-            [46] = "READ_ANDX",
-            [15] = "CREATE_NEW",
-            [28] = "READ_MPX_SECONDARY",
-            [164] = "NT_CANCEL",
-            [9] = "SET_INFORMATION",
-            [53] = "FIND_NOTIFY_CLOSE",
-            [52] = "FIND_CLOSE2",
-            [4] = "CLOSE",
-            [12] = "LOCK_BYTE_RANGE",
-            [130] = "FIND",
-            [41] = "COPY",
-            [17] = "PROCESS_EXIT",
-            [29] = "WRITE_RAW",
-            [16] = "CHECK_DIRECTORY",
-            [115] = "SESSION_SETUP_ANDX",
-            [38] = "TRANSACTION_SECONDARY",
-            [165] = "NT_RENAME",
-            [193] = "WRITE_PRINT_FILE",
-            [42] = "MOVE",
-            [1] = "DELETE_DIRECTORY",
-            [116] = "LOGOFF_ANDX",
-            [11] = "WRITE",
-            [113] = "TREE_DISCONNECT",
-            [35] = "QUERY_INFORMATION2",
-            [216] = "READ_BULK",
-            [43] = "ECHO",
-            [114] = "NEGOTIATE",
-            [3] = "CREATE",
-            [44] = "WRITE_AND_CLOSE",
-            [129] = "SEARCH",
-            [34] = "SET_INFORMATION2",
-            [45] = "OPEN_ANDX",
-            [40] = "IOCTL_SECONDARY",
-            [194] = "CLOSE_PRINT_FILE",
-            [36] = "LOCKING_ANDX",
-            [14] = "CREATE_TEMPORARY",
-            [6] = "DELETE",
-            [31] = "WRITE_MPX_SECONDARY",
-            [8] = "QUERY_INFORMATION",
-            [192] = "OPEN_PRINT_FILE",
-            [27] = "READ_MPX",
-            [195] = "GET_PRINT_QUEUE",
-            [7] = "RENAME",
-            [10] = "READ",
-            [32] = "WRITE_COMPLETE",
-            [26] = "READ_RAW",
-            [13] = "UNLOCK_BYTE_RANGE",
-            [128] = "QUERY_INFORMATION_DISK",
-            [218] = "WRITE_BULK_DATA",
-            [217] = "WRITE_BULK",
-            [160] = "NT_TRANSACT",
-            [47] = "WRITE_ANDX",
-            [50] = "TRANSACTION2",
-            [2] = "OPEN",
-            [132] = "FIND_CLOSE",
-            [48] = "NEW_FILE_SIZE",
-            [49] = "CLOSE_AND_TREE_DISC",
-            [162] = "NT_CREATE_ANDX",
-            [5] = "FLUSH",
-            [112] = "TREE_CONNECT",
-            [161] = "NT_TRANSACT_SECONDARY",
-            [51] = "TRANSACTION2_SECONDARY",
-            [37] = "TRANSACTION",
-            [18] = "SEEK",
-            [117] = "TREE_CONNECT_ANDX",
-            [0] = "CREATE_DIRECTORY",
-            [131] = "FIND_UNIQUE"
-         }
-
-
-
-.. zeek:id:: SMB1::trans2_sub_commands
-   :source-code: base/protocols/smb/consts.zeek 197 197
-
-   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
-   :Default:
-
-      ::
-
-         {
-            [2] = "FIND_NEXT2",
-            [6] = "SET_PATH_INFORMATION",
-            [14] = "SESSION_SETUP",
-            [16] = "GET_DFS_REFERRAL",
-            [8] = "SET_FILE_INFORMATION",
-            [9] = "FSCTL",
-            [1] = "FIND_FIRST2",
-            [11] = "FIND_NOTIFY_FIRST",
-            [7] = "QUERY_FILE_INFORMATION",
-            [5] = "QUERY_PATH_INFORMATION",
-            [10] = "IOCTL",
-            [4] = "SET_FS_INFORMATION",
-            [13] = "CREATE_DIRECTORY",
-            [12] = "FIND_NOTIFY_NEXT",
-            [3] = "QUERY_FS_INFORMATION",
-            [17] = "REPORT_DFS_INCONSISTENCY",
-            [0] = "OPEN2"
-         }
-
-
-
-.. zeek:id:: SMB1::trans_sub_commands
-   :source-code: base/protocols/smb/consts.zeek 217 217
-
-   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
-   :Default:
-
-      ::
-
-         {
-            [55] = "WRITE_NMPIPE",
-            [38] = "TRANSACT_NMPIPE",
-            [54] = "READ_NMPIPE",
-            [33] = "QUERY_NMPIPE_STATE",
-            [17] = "RAW_READ_NMPIPE",
-            [35] = "PEEK_NMPIPE",
-            [49] = "RAW_WRITE_NMPIPE",
-            [34] = "QUERY_NMPIPE_INFO",
-            [1] = "SET_NMPIPE_STATE",
-            [83] = "WAIT_NMPIPE",
-            [84] = "CALL_NMPIPE"
-         }
-
-
-
-.. zeek:id:: SMB2::commands
-   :source-code: base/protocols/smb/consts.zeek 235 235
-
-   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
-   :Default:
-
-      ::
-
-         {
-            [2] = "LOGOFF",
-            [14] = "QUERY_DIRECTORY",
-            [15] = "CHANGE_NOTIFY",
-            [6] = "CLOSE",
-            [16] = "QUERY_INFO",
-            [8] = "READ",
-            [9] = "WRITE",
-            [1] = "SESSION_SETUP",
-            [11] = "IOCTL",
-            [7] = "FLUSH",
-            [5] = "CREATE",
-            [10] = "LOCK",
-            [4] = "TREE_DISCONNECT",
-            [13] = "ECHO",
-            [12] = "CANCEL",
-            [18] = "OPLOCK_BREAK",
-            [3] = "TREE_CONNECT",
-            [17] = "SET_INFO",
-            [0] = "NEGOTIATE_PROTOCOL"
-         }
-
-
-
-.. zeek:id:: SMB2::dialects
-   :source-code: base/protocols/smb/consts.zeek 257 257
-
-   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
-   :Default:
-
-      ::
-
-         {
-            [528] = "2.1",
-            [770] = "3.0.2",
-            [768] = "3.0",
-            [767] = "2.1+",
-            [514] = "2.0.2",
-            [785] = "3.1.1"
-         }
-
-
-
-.. zeek:id:: SMB2::share_types
-   :source-code: base/protocols/smb/consts.zeek 266 266
-
-   :Type: :zeek:type:`table` [:zeek:type:`count`] of :zeek:type:`string`
-   :Attributes: :zeek:attr:`&default` = :zeek:type:`function`
-   :Default:
-
-      ::
-
-         {
-            [2] = "PIPE",
-            [1] = "DISK",
-            [3] = "PRINT"
-         }
-
-
 
 Types
 #####

@@ -81,4 +81,3 @@ event gtpv1_delete_pdp_ctx_request%(c: connection, hdr: gtpv1_hdr, elements: gtp
 ##
 ## elements: The set of Information Elements comprising the message.
 event gtpv1_delete_pdp_ctx_response%(c: connection, hdr: gtpv1_hdr, elements: gtp_delete_pdp_ctx_response_elements%);
-

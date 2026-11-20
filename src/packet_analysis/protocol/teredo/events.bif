@@ -62,4 +62,3 @@ event teredo_origin_indication%(outer: connection, inner: teredo_hdr%);
 ## .. note:: Since this event may be raised on a per-packet basis, handling
 ##    it may become particularly expensive for real-time analysis.
 event teredo_bubble%(outer: connection, inner: teredo_hdr%);
-

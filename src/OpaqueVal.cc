@@ -4,8 +4,6 @@
 // store the internal state of hashing functions. For more information, see
 // https://github.com/zeek/zeek/issues/1379 and https://github.com/openssl/openssl/issues/14222
 
-#define OPENSSL_SUPPRESS_DEPRECATED
-
 #include "zeek/OpaqueVal.h"
 
 #include <broker/data.hh>

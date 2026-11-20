@@ -1,0 +1,1 @@
+const MQTT::max_topics_per_subscription: count;

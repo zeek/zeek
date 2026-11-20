@@ -173,7 +173,7 @@ type KRB_PA_Data_Sequence(is_orig: bool, pkt_type: uint8) = record {
 #
 # Note: This is a separate type due to a BinPAC bug.
 type KRB_PA_Data_Container(is_orig: bool, pkt_type: uint8, tag: uint8, length: uint64) = case tag of {
-	ASN1_SEQUENCE_TAG	-> padata_elems	: KRB_PA_Data(is_orig, pkt_type)[];
+	ASN1_SEQUENCE_TAG	-> padata_elems	: KRB_PA_Data(is_orig, pkt_type)[] &until($input.length() == 0) &until($context.connection.check_pa_data_index($element.index));
 	default 		-> unknown	: bytestring &length=length;
 } &let {
 	has_padata: bool = (tag == ASN1_SEQUENCE_TAG);
@@ -192,6 +192,7 @@ type KRB_PA_Data(is_orig: bool, pkt_type: uint8) = record {
 	} &requires(data_type);
 } &let {
 	data_type: int64 = binary_to_int64(pa_data_type.data.content);
+    index: uint64 = $context.connection.next_pa_data_index();
 };
 
 # Each pre-auth element

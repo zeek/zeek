@@ -42,6 +42,33 @@ zeek::StringValPtr extract_char_string(zeek::analyzer::Analyzer* analyzer, const
 
     return rval;
 }
+
+// Extract at most limit character strings from data, len, rdlen. Use analyzer->LimitReachedWeird()
+// with the provided weird string when more than limit strings would have been extracted.
+zeek::VectorValPtr extract_char_strings(zeek::analyzer::Analyzer* analyzer, const u_char*& data, int& len, int& rdlen,
+                                        size_t limit, const char* weird) {
+    size_t total = 0;
+    auto char_strings = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
+    zeek::StringValPtr char_string;
+
+    while ( (char_string = extract_char_string(analyzer, data, len, rdlen)) ) {
+        ++total;
+        // If more than limit strings have been observed char_strings, discard
+        // any remaining ones to keep memory bounded.
+        if ( limit > 0 && total > limit ) {
+            char_string.reset();
+            continue;
+        }
+
+        char_strings->Assign(char_strings->Size(), std::move(char_string));
+    }
+
+    if ( limit > 0 && total > limit )
+        analyzer->LimitReachedWeird(weird, total, limit);
+
+    return char_strings;
+}
+
 } // namespace
 
 namespace zeek::analyzer::dns {
@@ -76,7 +103,6 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
     // NetBIOS registration and release messages look like regular DNS requests, so parse them as such
     if ( opcode != DNS_OP_QUERY && opcode != DNS_OP_DYNAMIC_UPDATE && ! is_netbios && opcode != DNS_OP_NOTIFY ) {
         analyzer->Weird("DNS_unknown_opcode", util::fmt("%d", opcode));
-        analyzer->Conn()->CheckHistory(zeek::session::detail::HIST_ANALYZER_LIMIT_REACHED, 'X');
         return;
     }
 
@@ -315,6 +341,11 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
         analyzer->Weird("DNS_truncated_RR_rdlength_lt_len");
         return false;
     }
+
+    // NXDOMAIN answers may contain only CNAME/DNAME records and their signatures.
+    if ( msg->answer_type == DNS_ANSWER && msg->rcode == DNS_CODE_NAME_ERR && msg->atype != TYPE_CNAME &&
+         msg->atype != TYPE_DNAME && msg->atype != TYPE_RRSIG && msg->atype != TYPE_SIG )
+        analyzer->Weird("DNS_nxdomain_with_non_cname_answer", util::fmt("%d", msg->atype));
 
     if ( msg->is_dynamic_update ) {
         if ( msg->answer_type == DNS_UPDATES ) {
@@ -1282,6 +1313,8 @@ bool DNS_Interpreter::ParseRR_NSEC(detail::DNS_MsgInfo* msg, const u_char*& data
     int typebitmaps_len = rdlength - (data - data_start);
 
     auto char_strings = make_intrusive<VectorVal>(id::string_vec);
+    const size_t bitmaps_limit = zeek::detail::dns_max_nsec_type_bitmaps;
+    size_t bitmaps_total = 0;
 
     while ( typebitmaps_len > 0 && len > 0 ) {
         auto block_bmlen = ExtractShort(data, len);
@@ -1294,9 +1327,20 @@ bool DNS_Interpreter::ParseRR_NSEC(detail::DNS_MsgInfo* msg, const u_char*& data
         }
 
         String* bitmap = ExtractStream(data, len, bmlen);
-        char_strings->Assign(char_strings->Size(), make_intrusive<StringVal>(bitmap));
+        ++bitmaps_total;
+
+        // Keep memory bounded: once the limit is reached, keep consuming the
+        // remaining type bitmaps to stay in sync, but discard them.
+        if ( bitmaps_limit > 0 && bitmaps_total > bitmaps_limit )
+            delete bitmap;
+        else
+            char_strings->Assign(char_strings->Size(), make_intrusive<StringVal>(bitmap));
+
         typebitmaps_len = typebitmaps_len - (2 + bmlen);
     }
+
+    if ( bitmaps_limit > 0 && bitmaps_total > bitmaps_limit )
+        analyzer->LimitReachedWeird("DNS_NSEC_too_many_type_bitmaps", bitmaps_total, bitmaps_limit);
 
     if ( dns_NSEC )
         analyzer->EnqueueConnEvent(dns_NSEC, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal(),
@@ -1346,6 +1390,8 @@ bool DNS_Interpreter::ParseRR_NSEC3(detail::DNS_MsgInfo* msg, const u_char*& dat
     int typebitmaps_len = rdlength - (data - data_start);
 
     auto char_strings = make_intrusive<VectorVal>(id::string_vec);
+    const size_t bitmaps_limit = zeek::detail::dns_max_nsec3_type_bitmaps;
+    size_t bitmaps_total = 0;
 
     while ( typebitmaps_len > 0 && len > 0 ) {
         auto block_bmlen = ExtractShort(data, len);
@@ -1358,9 +1404,20 @@ bool DNS_Interpreter::ParseRR_NSEC3(detail::DNS_MsgInfo* msg, const u_char*& dat
         }
 
         String* bitmap = ExtractStream(data, len, bmlen);
-        char_strings->Assign(char_strings->Size(), make_intrusive<StringVal>(bitmap));
+        ++bitmaps_total;
+
+        // Keep memory bounded: once the limit is reached, keep consuming the
+        // remaining type bitmaps to stay in sync, but discard them.
+        if ( bitmaps_limit > 0 && bitmaps_total > bitmaps_limit )
+            delete bitmap;
+        else
+            char_strings->Assign(char_strings->Size(), make_intrusive<StringVal>(bitmap));
+
         typebitmaps_len = typebitmaps_len - (2 + bmlen);
     }
+
+    if ( bitmaps_limit > 0 && bitmaps_total > bitmaps_limit )
+        analyzer->LimitReachedWeird("DNS_NSEC3_too_many_type_bitmaps", bitmaps_total, bitmaps_limit);
 
     if ( dns_NSEC3 ) {
         detail::NSEC3_DATA nsec3;
@@ -1628,14 +1685,16 @@ bool DNS_Interpreter::ParseRR_AAAA(detail::DNS_MsgInfo* msg, const u_char*& data
 }
 
 bool DNS_Interpreter::ParseRR_WKS(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength) {
-    if ( ! dns_WKS_reply || msg->skip_event ) {
-        data += rdlength;
-        len -= rdlength;
-        return true;
-    }
+    // WKS was deprecated in RFC1123 and there is a note in RFC1912 that says it should
+    // not be used. We skip over the data entirely here and ignore it. An event is still
+    // sent, but it doesn't include any data.
+    data += rdlength;
+    len -= rdlength;
 
-    // TODO: Pass the ports as parameters to the event
-    analyzer->EnqueueConnEvent(dns_WKS_reply, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal());
+    if ( dns_WKS_reply && ! msg->skip_event ) {
+        // TODO: Pass the ports as parameters to the event
+        analyzer->EnqueueConnEvent(dns_WKS_reply, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal());
+    }
 
     // TODO: Return a status which reflects if the port parameters were successfully parsed
     return true;
@@ -1665,11 +1724,8 @@ bool DNS_Interpreter::ParseRR_TXT(detail::DNS_MsgInfo* msg, const u_char*& data,
         return true;
     }
 
-    auto char_strings = make_intrusive<VectorVal>(id::string_vec);
-    StringValPtr char_string;
-
-    while ( (char_string = extract_char_string(analyzer, data, len, rdlength)) )
-        char_strings->Assign(char_strings->Size(), std::move(char_string));
+    auto char_strings = extract_char_strings(analyzer, data, len, rdlength, zeek::detail::dns_max_txt_character_strings,
+                                             "DNS_TXT_too_many_character_strings");
 
     if ( dns_TXT_reply )
         analyzer->EnqueueConnEvent(dns_TXT_reply, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal(),
@@ -1686,11 +1742,8 @@ bool DNS_Interpreter::ParseRR_SPF(detail::DNS_MsgInfo* msg, const u_char*& data,
         return true;
     }
 
-    auto char_strings = make_intrusive<VectorVal>(id::string_vec);
-    StringValPtr char_string;
-
-    while ( (char_string = extract_char_string(analyzer, data, len, rdlength)) )
-        char_strings->Assign(char_strings->Size(), std::move(char_string));
+    auto char_strings = extract_char_strings(analyzer, data, len, rdlength, zeek::detail::dns_max_spf_character_strings,
+                                             "DNS_SPF_too_many_character_strings");
 
     if ( dns_SPF_reply )
         analyzer->EnqueueConnEvent(dns_SPF_reply, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal(),
@@ -2265,17 +2318,14 @@ Contents_DNS::Contents_DNS(Connection* conn, bool orig, detail::DNS_Interpreter*
     : analyzer::tcp::TCP_SupportAnalyzer("CONTENTS_DNS", conn, orig) {
     interp = arg_interp;
 
-    msg_buf = nullptr;
-    buf_n = buf_len = msg_size = 0;
+    msg_size = 0;
     state = detail::DNS_LEN_HI;
 }
 
-Contents_DNS::~Contents_DNS() { free(msg_buf); }
-
 void Contents_DNS::Flush() {
-    if ( buf_n > 0 ) { // Deliver partial message.
+    if ( ! msg_buf.empty() ) { // Deliver partial message.
         // '2' here means whether it's a query is unknown.
-        interp->ParseMessage(msg_buf, buf_n, 2);
+        interp->ParseMessage(msg_buf.data(), static_cast<int>(msg_buf.size()), 2);
         msg_size = 0;
     }
 }
@@ -2301,21 +2351,15 @@ void Contents_DNS::ProcessChunk(int& len, const u_char*& data, bool orig) {
         msg_size += *data;
         state = detail::DNS_MESSAGE_BUFFER;
 
-        buf_n = 0;
-
-        if ( msg_buf ) {
-            if ( buf_len < msg_size ) {
-                buf_len = msg_size;
-                msg_buf = reinterpret_cast<u_char*>(util::safe_realloc(reinterpret_cast<void*>(msg_buf), buf_len));
-            }
-        }
-        else {
-            buf_len = msg_size;
-            msg_buf = reinterpret_cast<u_char*>(util::safe_malloc(buf_len));
-        }
-
         ++data;
         --len;
+
+        // Pre-allocate small messages fully and
+        // rely on quadratic vector reallocation
+        // for larger messages. This is done instead
+        // of the full allocation as these may be
+        // spoofed and never arrive.
+        msg_buf.reserve(std::min<size_t>(32, msg_size));
 
         if ( len == 0 )
             return;
@@ -2325,19 +2369,19 @@ void Contents_DNS::ProcessChunk(int& len, const u_char*& data, bool orig) {
         Conn()->Internal("state inconsistency in Contents_DNS::DeliverStream");
 
     int n;
-    for ( n = 0; buf_n < msg_size && n < len; ++n )
-        msg_buf[buf_n++] = data[n];
+    for ( n = 0; msg_buf.size() < msg_size && n < len; ++n )
+        msg_buf.push_back(data[n]);
 
     data += n;
     len -= n;
 
-    if ( buf_n < msg_size )
+    if ( msg_buf.size() < msg_size )
         // Haven't filled up the message buffer yet, no more to do.
         return;
 
-    ForwardPacket(msg_size, msg_buf, orig, -1, nullptr, 0);
+    ForwardPacket(static_cast<int>(msg_size), msg_buf.data(), orig, -1, nullptr, 0);
 
-    buf_n = 0;
+    msg_buf = {}; // Release buffer
     state = detail::DNS_LEN_HI;
 }
 

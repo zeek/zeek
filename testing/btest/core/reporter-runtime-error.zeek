@@ -10,4 +10,3 @@ event zeek_init()
 	}
 
 print a[1];
-

@@ -25,7 +25,7 @@ export {
 		[0x1a8]  = "SH5",
 		[0x1c2]  = "THUMB",
 		[0x169]  = "WCEMIPSV2"
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &redef &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	const file_characteristics: table[count] of string = {
 		[0x1]    = "RELOCS_STRIPPED",
@@ -43,7 +43,7 @@ export {
 		[0x2000] = "DLL",
 		[0x4000] = "UP_SYSTEM_ONLY",
 		[0x8000] = "BYTES_REVERSED_HI"
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &redef &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	const dll_characteristics: table[count] of string = {
 		[0x40]   = "DYNAMIC_BASE",
@@ -54,7 +54,7 @@ export {
 		[0x800]  = "NO_BIND",
 		[0x2000] = "WDM_DRIVER",
 		[0x8000] = "TERMINAL_SERVER_AWARE"
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &redef &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	const windows_subsystems: table[count] of string = {
 		[0]  = "UNKNOWN",
@@ -68,7 +68,7 @@ export {
 		[12] = "EFI_RUNTIME_DRIVER",
 		[13] = "EFI_ROM",
 		[14] = "XBOX"
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &redef &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	const directories: table[count] of string = {
 		[0]  = "Export Table",
@@ -87,7 +87,7 @@ export {
 		[13] = "Delay Import Descriptor",
 		[14] = "CLR Runtime Header",
 		[15] = "Reserved"
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &redef &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	const section_characteristics: table[count] of string = {
 		[0x8]        = "TYPE_NO_PAD",
@@ -124,7 +124,7 @@ export {
 		[0x20000000] = "MEM_EXECUTE",
 		[0x40000000] = "MEM_READ",
 		[0x80000000] = "MEM_WRITE"
-	} &default=function(i: count):string { return fmt("unknown-%d", i); };
+	} &redef &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	const os_versions: table[count, count] of string = {
 		[10,0] = "Windows 10",
@@ -152,7 +152,7 @@ export {
 		[1,3] = "Windows 1.03",
 		[1,1] = "Windows 1.01",
 		[1,0] = "Windows 1.0",
-	} &default=function(i: count, j: count):string { return fmt("unknown-%d.%d", i, j); };
+	} &redef &default=function(i: count, j: count):string { return fmt("unknown-%d.%d", i, j); };
 
 	const section_descs: table[string] of string = {
 		[".bss"]      = "Uninitialized data",
@@ -179,6 +179,6 @@ export {
 		[".tls$"]     = "Thread-local storage",
 		[".vsdata"]   = "GP-relative initialized data",
 		[".xdata"]    = "Exception information",
-	} &default=function(i: string):string { return fmt("unknown-%s", i); };
+	} &redef &default=function(i: string):string { return fmt("unknown-%s", i); };
 
 }

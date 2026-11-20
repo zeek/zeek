@@ -16,7 +16,8 @@ python3 --version
 # version of Python than we build the Broker bindings against and things break.
 if [[ "${CIRCLECI}" = "true" ]]; then
     ln -s $(brew --cellar python)/* ~/.pyenv/versions/
-    pyenv global $(/opt/homebrew/bin/python3 --version | awk '{print $2}')
+    pyenv versions
+    pyenv global $(pyenv versions --bare | sort -V | tail -1)
 fi
 
 python3 -m pip install --user --break-system-packages websockets junit2html

@@ -17,4 +17,3 @@ event zeek_init()
 	for ( idx in v )
 		print v[idx];
 	}
-

@@ -95,8 +95,8 @@ protected:
     char req_buf[BTTRACKER_BUF];
     char* req_buf_pos;
     unsigned int req_buf_len;
-    StringVal* req_val_uri;
-    TableVal* req_val_headers;
+    StringValPtr req_val_uri;
+    TableValPtr req_val_headers;
 
     // Response.
     detail::BTT_States res_state;
@@ -105,9 +105,9 @@ protected:
     char* res_buf_pos;
     unsigned int res_buf_len;
     zeek_uint_t res_status;
-    TableVal* res_val_headers;
-    TableVal* res_val_peers;
-    TableVal* res_val_benc;
+    TableValPtr res_val_headers;
+    TableValPtr res_val_peers;
+    TableValPtr res_val_benc;
 
     std::vector<char> benc_stack;
     std::vector<unsigned int> benc_count;

@@ -2,6 +2,7 @@
 .. _FAQ: https://zeek.org/faq/
 .. _Get Zeek: https://zeek.org/get-zeek/
 .. _Zeek source code: https://github.com/zeek/zeek
+.. _Zeek commit history: https://github.com/zeek/zeek/commits/master/
 .. _gzip: https://www.gzip.org/
 
 .. _quickstart:
@@ -142,12 +143,12 @@ on that network device. Entries should still appear in :file:`conn.log`,
 
 .. note::
 
-  The ``zeek`` invocation above adds a ``-C`` flag. By default, Zeek discards
-  network packets with checksum errors. This flag tells Zeek to ignore
-  checksums. Modern operating systems and network devices use checksum
-  offloading, which leaves the checksums uninitialized. Since Zeek discards
-  packets with checksum errors, checksum offloading necessitates the ``-C``
-  flag for local network monitoring via Zeek.
+  The ``zeek`` invocation above adds a ``-C`` flag, which tells Zeek to skip
+  checksum validation. Modern operating systems and network devices use
+  checksum offloading, which leaves the checksums of locally sent packets
+  uninitialized. Zeek still analyzes packets with checksum errors, but reports
+  them in :file:`weird.log` and marks the connection's ``history`` with ``C`` or
+  ``c``. The ``-C`` flag avoids that noise when monitoring locally.
 
 Scripting
 =========
@@ -402,5 +403,5 @@ considerations:
   developers.
 * Track Zeek code releases on the `Get Zeek`_ page. Find the release notes
   under each release. These release notes reference the :file:`NEWS` file found
-  in the `Zeek source code`_. The :file:`CHANGES` file gives a more granular
-  view of each change.
+  in the `Zeek source code`_. For individual changes, see the `Zeek commit
+  history`_.

@@ -108,6 +108,7 @@ double watchdog_interval;
 int max_timer_expires;
 
 int ignore_checksums;
+int drop_bad_checksums;
 int partial_connection_ok;
 int tcp_SYN_ack_ok;
 int tcp_match_undelivered;
@@ -126,6 +127,7 @@ int tcp_max_initial_window;
 int tcp_max_above_hole_without_any_acks;
 int tcp_excessive_data_without_further_acks;
 int tcp_max_old_segments;
+int tcp_max_reassembler_blocks;
 
 double non_analyzed_lifetime;
 double tcp_inactivity_timeout;
@@ -154,6 +156,10 @@ int dns_skip_all_auth;
 int dns_skip_all_addl;
 int dns_max_queries;
 int dns_max_compression_chain_depth;
+int dns_max_txt_character_strings;
+int dns_max_spf_character_strings;
+int dns_max_nsec_type_bitmaps;
+int dns_max_nsec3_type_bitmaps;
 
 double table_expire_interval;
 double table_expire_delay;
@@ -242,6 +248,7 @@ void init_net_var() {
     bif_init_net_var();
 
     ignore_checksums = id::find_val("ignore_checksums")->AsBool();
+    drop_bad_checksums = id::find_val("drop_bad_checksums")->AsBool();
     partial_connection_ok = id::find_val("partial_connection_ok")->AsBool();
     tcp_SYN_ack_ok = id::find_val("tcp_SYN_ack_ok")->AsBool();
     tcp_match_undelivered = id::find_val("tcp_match_undelivered")->AsBool();
@@ -260,6 +267,7 @@ void init_net_var() {
     tcp_max_above_hole_without_any_acks = id::find_val("tcp_max_above_hole_without_any_acks")->AsCount();
     tcp_excessive_data_without_further_acks = id::find_val("tcp_excessive_data_without_further_acks")->AsCount();
     tcp_max_old_segments = id::find_val("tcp_max_old_segments")->AsCount();
+    tcp_max_reassembler_blocks = id::find_val("tcp_max_reassembler_blocks")->AsCount();
 
     non_analyzed_lifetime = id::find_val("non_analyzed_lifetime")->AsInterval();
     tcp_inactivity_timeout = id::find_val("tcp_inactivity_timeout")->AsInterval();
@@ -294,6 +302,10 @@ void init_net_var() {
     dns_skip_all_addl = id::find_val("dns_skip_all_addl")->AsBool();
     dns_max_queries = id::find_val("dns_max_queries")->AsCount();
     dns_max_compression_chain_depth = id::find_val("dns_max_compression_chain_depth")->AsCount();
+    dns_max_txt_character_strings = id::find_val("dns_max_txt_character_strings")->AsCount();
+    dns_max_spf_character_strings = id::find_val("dns_max_spf_character_strings")->AsCount();
+    dns_max_nsec_type_bitmaps = id::find_val("dns_max_nsec_type_bitmaps")->AsCount();
+    dns_max_nsec3_type_bitmaps = id::find_val("dns_max_nsec3_type_bitmaps")->AsCount();
 
     orig_addr_anonymization = 0;
     if ( const auto& id = id::find("orig_addr_anonymization") )

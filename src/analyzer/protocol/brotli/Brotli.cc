@@ -142,7 +142,7 @@ void Brotli_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
                 // the weird is the same on all versions.
                 std::string_view err = BrotliDecoderErrorString(BrotliDecoderGetErrorCode(state));
                 for ( std::string_view prefix : {"_ERROR_FORMAT_", "_ERROR_"} ) {
-                    if ( err.substr(0, prefix.size()) == prefix ) {
+                    if ( err.starts_with(prefix) ) {
                         err.remove_prefix(prefix.size());
                         break;
                     }

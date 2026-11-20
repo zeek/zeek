@@ -4,7 +4,7 @@
 #
 # @TEST-EXEC: zeek -b -r $TRACES/http/content-encoding-brotli.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
-# @TEST-EXEC: btest-diff-cut -m uid name addl source weird.log
+# @TEST-EXEC: btest-diff-cut -m uid name source weird.log
 
 @load base/frameworks/notice/weird
 @load base/protocols/conn

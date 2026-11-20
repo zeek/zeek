@@ -50,6 +50,7 @@ New Functionality
   ``policy/misc/stats.zeek`` is loaded, the ``zeek_invalid_checksums_total``
   telemetry counter metric family (with the ``checksum_type`` label dimension)
   is synced via ``Telemetry::sync()`` to expose these metrics to Prometheus.
+
 - The HTTP analyzer now decompresses bodies with ``Content-Encoding: br``
   (Brotli) when Zeek is built with libbrotlidec. The dependency is optional and
   detected at configure time; use ``--disable-brotli`` to turn it off.

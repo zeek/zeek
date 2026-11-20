@@ -2,7 +2,7 @@ FROM opensuse/leap:16.0
 
 # A version field used by Circle to create new versions on DockerHub
 # during rebuilds.
-ENV DOCKERFILE_VERSION=20260515
+ENV DOCKERFILE_VERSION=20261117
 
 RUN zypper refresh \
  && zypper in -y \
@@ -17,6 +17,7 @@ RUN zypper refresh \
     git \
     gzip \
     jq \
+    libbrotli-devel \
     libopenssl-devel \
     libpcap-devel \
     make \

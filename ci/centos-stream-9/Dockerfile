@@ -2,7 +2,7 @@ FROM quay.io/centos/centos:stream9
 
 # A version field used by Circle to create new versions on DockerHub
 # during rebuilds.
-ENV DOCKERFILE_VERSION=20260515
+ENV DOCKERFILE_VERSION=20261117
 
 # dnf config-manager isn't available at first, and
 # we need it to install the CRB repo below.
@@ -20,6 +20,7 @@ RUN dnf -y install \
 # package versioning conflicts around OpenSSL.
 RUN dnf -y --nobest install \
     bison \
+    brotli-devel \
     ccache \
     cmake \
     cppzmq-devel \

@@ -7,6 +7,7 @@
 #include <string>
 
 #include "zeek/IPAddr.h"
+#include "zeek/analyzer/protocol/brotli/Brotli.h"
 #include "zeek/analyzer/protocol/http/events.bif.h"
 #include "zeek/analyzer/protocol/mime/MIME.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
@@ -36,6 +37,8 @@ public:
     ~HTTP_Entity() override {
         if ( zip )
             zip->Done();
+        if ( brotli )
+            brotli->Done();
     }
 
     void EndOfData() override;
@@ -58,8 +61,9 @@ protected:
     int expect_body;
     int64_t body_length;
     int64_t header_length;
-    enum : uint8_t { IDENTITY, GZIP, COMPRESS, DEFLATE } encoding;
+    enum : uint8_t { IDENTITY, GZIP, COMPRESS, DEFLATE, BROTLI } encoding;
     std::unique_ptr<analyzer::zip::ZIP_Analyzer> zip;
+    std::unique_ptr<analyzer::tcp::TCP_SupportAnalyzer> brotli; // Created by Brotli_Analyzer::Instantiate().
     bool deliver_body;
     bool is_partial_content;
     uint64_t offset;

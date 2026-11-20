@@ -753,6 +753,8 @@ if (MSVC)
     # paths are stored in the output file.
     configure_file(cmake_templates/zeek-path-dev.bat.in
                    ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.bat)
+    configure_file(cmake_templates/launch.vs.json.in
+                   ${CMAKE_CURRENT_SOURCE_DIR}/.vs/launch.vs.json.template)
 
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_binary_dir "${cmake_binary_dir}")
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_current_binary_dir
@@ -1234,6 +1236,19 @@ if (NOT DISABLE_GEOIP)
     endif ()
 endif ()
 
+set(USE_BROTLI false)
+if (NOT DISABLE_BROTLI)
+    find_path(BROTLI_INCLUDE_DIR brotli/decode.h)
+    find_library(BROTLIDEC_LIBRARY NAMES brotlidec)
+    if (BROTLI_INCLUDE_DIR AND BROTLIDEC_LIBRARY)
+        set(USE_BROTLI true)
+        include_directories(BEFORE SYSTEM ${BROTLI_INCLUDE_DIR})
+        list(APPEND OPTLIBS ${BROTLIDEC_LIBRARY})
+    else ()
+        message(STATUS "Brotli decompression disabled due to missing libbrotlidec")
+    endif ()
+endif ()
+
 set(USE_KRB5 false)
 find_package(LibKrb5)
 if (LIBKRB5_FOUND)
@@ -1438,7 +1453,7 @@ if (INSTALL_ZKG)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/zkg-config.in
                    ${CMAKE_CURRENT_BINARY_DIR}/zkg-config @ONLY)
 
-    install(DIRECTORY DESTINATION var/lib/zkg)
+    install(DIRECTORY DESTINATION ${ZEEK_ZKG_STATE_DIR})
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zkg-config DESTINATION ${ZEEK_ZKG_CONFIG_DIR}
             RENAME config)
 endif ()
@@ -1708,6 +1723,7 @@ message("")
 
 output_summary_bool("AF_PACKET" ${ZEEK_HAVE_AF_PACKET})
 output_summary_bool("Aux. Tools" ${INSTALL_AUX_TOOLS})
+output_summary_bool("Brotli" ${USE_BROTLI})
 output_summary_bool("BTest" ${INSTALL_BTEST})
 output_summary_line("BTest tooling" ${_install_btest_tools_msg})
 output_summary_bool("JavaScript" ${ZEEK_HAVE_JAVASCRIPT})

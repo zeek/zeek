@@ -50,6 +50,13 @@ New Functionality
   ``policy/misc/stats.zeek`` is loaded, the ``zeek_invalid_checksums_total``
   telemetry counter metric family (with the ``checksum_type`` label dimension)
   is synced via ``Telemetry::sync()`` to expose these metrics to Prometheus.
+- The HTTP analyzer now decompresses bodies with ``Content-Encoding: br``
+  (Brotli) when Zeek is built with libbrotlidec. The dependency is optional and
+  detected at configure time; use ``--disable-brotli`` to turn it off.
+  Decompressed output is subject to ``HTTP::max_uncompressed_size``. The new
+  ``HTTP::max_brotli_decoder_memory`` option limits the decoder's memory use.
+  Without libbrotlidec, Zeek reports ``HTTP_brotli_decompression_unsupported``
+  and passes such bodies through undecoded.
 
 - The DHCPv6 analyzer now supports prefix delegation (IA_PD) and logs
   assigned prefixes in ``dhcpv6.log`` via the ``assigned_prefix`` field.
@@ -112,6 +119,11 @@ New Functionality
 - ``MsgThread`` and ``WriterBackend`` threads can use the new ``Stopping()``
   member to determine if they are being stopped even before a ``FinishMessage``
   is processed. This can be useful to drain pending messages during shutdown.
+
+- CMake on Windows automatically creates a template version of ``launch.vs.json``. It
+  contains the environment determined by CMake to make running Zeek from inside Visual
+  Studio easier. The file is named ``launch.vs.json.template`` to avoid overwriting any
+  existing ``launch.vs.json`` file.
 
 Changed Functionality
 ---------------------

@@ -9,6 +9,8 @@
 # @TEST-PORT: XSUB_PORT
 # @TEST-PORT: LOG_PULL_PORT
 #
+# @TEST-EXEC: chmod +x ./check-test-log.sh
+#
 # @TEST-EXEC: cp $FILES/zeromq/cluster-layout-no-logger.zeek cluster-layout.zeek
 # @TEST-EXEC: cp $FILES/zeromq/test-bootstrap.zeek zeromq-test-bootstrap.zeek
 # @TEST-EXEC: cp $FILES/zeromq/metrics.zeek zeromq-metrics.zeek
@@ -24,6 +26,12 @@
 # @TEST-EXEC: btest-diff proxy/.stderr
 # @TEST-EXEC: btest-diff worker-1/.stderr
 # @TEST-EXEC: btest-diff worker-2/.stderr
+#
+# Ensure the manager saw logs from all of the nodes. Nodes only terminate
+# once this holds, see the check-test-log.sh script and finish() event.
+#
+# @TEST-EXEC: zeek-cut node < manager/test.log | sort | uniq > nodes
+# @TEST-EXEC: btest-diff nodes
 
 # @TEST-START-FILE common.zeek
 @load ./zeromq-test-bootstrap
@@ -44,9 +52,6 @@ redef Log::default_rotation_interval = 0sec;
 redef Log::write_buffer_size = 3;
 redef Cluster::Backend::ZeroMQ::log_sndhwm = 3;
 
-# Don't actually write anything to disk.
-redef Log::default_writer = Log::WRITER_NONE;
-
 # Helpers to get drop counts.
 global log_push_drops: function(): count = Cluster::Backend::ZeroMQ::log_push_drops;
 
@@ -59,6 +64,9 @@ type Info: record {
 	node: string &log &default=Cluster::node;
 };
 
+# Manager sends this once it saw log records from all nodes.
+global finish: event(name: string) &is_used;
+
 event zeek_init()
 	{
 	print "A zeek_init", Cluster::node;
@@ -69,7 +77,41 @@ event zeek_init()
 # @TEST-START-FILE manager.zeek
 @load ./common.zeek
 
+global nodes_up: set[string] = {};
 global nodes_down: set[string] = {};
+
+event send_finish()
+	{
+	print "send_finish()";
+	for ( n in nodes_up )
+		Cluster::publish(Cluster::node_topic(n), finish, Cluster::node);
+	}
+
+# Event to regularly invoke check-test-log.sh for scanning through test.log
+# until that script has placed a DONE file when log records from all nodes
+# have arrived.
+event check_test_log()
+	{
+	if ( file_size("DONE") >= 0 )
+		{
+		event send_finish();
+		return;
+		}
+
+	system("../check-test-log.sh");
+	schedule 0.025sec { check_test_log() };
+	}
+
+event zeek_init()
+	{
+	schedule 0.025sec { check_test_log() };
+	}
+
+event Cluster::node_up(name: string, id: string)
+	{
+	add nodes_up[name];
+	print "nodes_up", |nodes_up|;
+	}
 
 event Cluster::node_down(name: string, id: string)
 	{
@@ -84,8 +126,16 @@ event Cluster::node_down(name: string, id: string)
 # @TEST-START-FILE other.zeek
 @load ./common.zeek
 
+global finished = F;
+
+event finish(name: string)
+	{
+	print "got finish()";
+	finished = T;
+	}
+
 # How many writes in one tick?
-global batch = 5;
+global batch = 7;
 
 event tick()
 	{
@@ -98,14 +148,14 @@ event tick()
 		}
 
 	# Check for drops.
-	if ( log_push_drops() >= 2 )
+	if ( log_push_drops() >= 2 && finished )
 		{
 		print "had some drops!";
 		terminate();
 		return;
 		}
 
-	schedule 0.1msec { tick() };
+	schedule 0.01msec { tick() };
 	}
 
 event Cluster::Experimental::cluster_started()
@@ -113,4 +163,31 @@ event Cluster::Experimental::cluster_started()
 	# Start logging once the whole cluster is up.
 	event tick();
 	}
+# @TEST-END-FILE
+
+# @TEST-START-FILE check-test-log.sh
+#!/bin/sh
+#
+# This script checks manager/test.log until at least one log entry from
+# all other nodes has arrived.
+TEST_LOG=test.log
+
+if [ ! -f $TEST_LOG ]; then
+	echo "$TEST_LOG not found!" >&2
+	exit 1;
+fi
+
+if [ -f DONE ]; then
+	exit 0
+fi
+
+# Count the individual node names, expecting proxy, worker-1, worker-2.
+NODES=$(zeek-cut node < $TEST_LOG | sort | uniq | wc -l)
+
+if [ "$NODES" -eq 3 ]; then
+	echo "DONE!" >&2
+	echo "DONE" > DONE
+fi
+
+exit 0
 # @TEST-END-FILE

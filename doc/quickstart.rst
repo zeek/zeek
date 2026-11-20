@@ -2,7 +2,6 @@
 .. _FAQ: https://zeek.org/faq/
 .. _Get Zeek: https://zeek.org/get-zeek/
 .. _Zeek source code: https://github.com/zeek/zeek
-.. _Zeek commit history: https://github.com/zeek/zeek/commits/master/
 .. _gzip: https://www.gzip.org/
 
 .. _quickstart:
@@ -403,5 +402,5 @@ considerations:
   developers.
 * Track Zeek code releases on the `Get Zeek`_ page. Find the release notes
   under each release. These release notes reference the :file:`NEWS` file found
-  in the `Zeek source code`_. For individual changes, see the `Zeek commit
-  history`_.
+  in the `Zeek source code`_. The :file:`CHANGES` file gives a more granular
+  view of each change.

@@ -183,6 +183,12 @@ Toggling these features can be done with the ``ethtool -K`` command, for example
       ethtool -K $IFACE $offload off
     done
 
+When capturing on a VLAN interface, turn the offloads off on its parent
+interface as well. GRO on the parent merges packets before they reach the
+VLAN interface, so Zeek still sees merged packets of up to 64 KiB if only
+the VLAN interface has GRO off. ``ls -d /sys/class/net/$IFACE/lower_*`` names
+the parent.
+
 Detailed statistics about the interface can be gathered via ``ethtool -S``.
 
 For more details around the involved offloads consult the

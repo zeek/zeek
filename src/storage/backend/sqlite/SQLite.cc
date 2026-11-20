@@ -86,12 +86,6 @@ std::string SQLite::DoGetConfigMetricsLabel() const {
  * Called by the manager system to open the backend.
  */
 OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
-    // Allow connections to same DB to use single data/schema cache. Also
-    // allows simultaneous writes to one file.
-#ifndef ZEEK_TSAN
-    sqlite3_enable_shared_cache(1);
-#endif
-
     RecordValPtr backend_options = options->GetField<RecordVal>("sqlite");
     if ( ! backend_options )
         return {ReturnCode::INITIALIZATION_FAILED, "sqlite backend options not provided"};
@@ -108,9 +102,15 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     auto pragma_wait_val = backend_options->GetField<IntervalVal>("pragma_wait_on_busy");
     pragma_wait_on_busy = std::chrono::milliseconds(static_cast<int64_t>(pragma_wait_val->Get() * 1000));
 
-    if ( auto open_res =
-             CheckError(sqlite3_open_v2(full_path.c_str(), &db,
-                                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr));
+    // Both connections use a private cache, even if shared-cache mode was
+    // enabled process-wide (e.g. by the SQLite log writer or input reader).
+    // In shared-cache mode, a write on the main connection while the
+    // expiration thread holds its transaction on expire_db fails immediately
+    // with SQLITE_LOCKED_SHAREDCACHE instead of waiting for busy_timeout.
+    constexpr int open_flags =
+        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_PRIVATECACHE;
+
+    if ( auto open_res = CheckError(sqlite3_open_v2(full_path.c_str(), &db, open_flags, nullptr));
          open_res.code != ReturnCode::SUCCESS ) {
         sqlite3_close_v2(db);
         db = nullptr;
@@ -143,9 +143,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
 
     // Open a second connection to the database. This one is used for expiration and exists to prevent
     // simultaneous multi-threaded access to the same connection.
-    if ( auto open_res =
-             CheckError(sqlite3_open_v2(full_path.c_str(), &expire_db,
-                                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr));
+    if ( auto open_res = CheckError(sqlite3_open_v2(full_path.c_str(), &expire_db, open_flags, nullptr));
          open_res.code != ReturnCode::SUCCESS ) {
         Close(nullptr);
         return open_res;
@@ -663,7 +661,7 @@ void SQLite::DoExpire(double current_network_time) {
     // Get the number of changes from the delete statement. This should be identical to
     // the num_to_expire value earlier because we're under a transaction, but this should
     // be the exact number that changed.
-    int changes = sqlite3_changes(db);
+    int changes = sqlite3_changes(expire_db);
     IncExpiredEntriesMetric(changes);
 
     status = sqlite3_exec(expire_db, "commit transaction", nullptr, nullptr, &errMsg);

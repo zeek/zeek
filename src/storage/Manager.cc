@@ -22,7 +22,9 @@ void detail::ExpirationTimer::Dispatch(double t, bool is_expire) {
     // start another one running. If this causes us to skip a cycle, that's not
     // a big deal as the next cycle will catch anything that should be expired
     // in the interim.
-    if ( ! expire_running.test_and_set() && storage_mgr->BackendCount() > 0 ) {
+    // Check for backends first: test_and_set() sets the flag, and only a started
+    // expiration thread clears it again.
+    if ( storage_mgr->BackendCount() > 0 && ! expire_running.test_and_set() ) {
         DBG_LOG(DBG_STORAGE, "Starting new expiration thread");
         storage_mgr->expiration_thread = zeek::jthread([t]() { storage_mgr->Expire(t); });
     }
@@ -50,6 +52,13 @@ void Manager::InitPostScript() {
 
     detail::backend_opaque = make_intrusive<OpaqueType>("Storage::Backend");
     StartExpirationTimer();
+}
+
+void Manager::Terminate() {
+    // New expiration threads aren't started once Zeek is terminating, but one
+    // that was started earlier may still be running.
+    if ( expiration_thread.joinable() )
+        expiration_thread.join();
 }
 
 zeek::expected<BackendPtr, std::string> Manager::InstantiateBackend(const Tag& type) {

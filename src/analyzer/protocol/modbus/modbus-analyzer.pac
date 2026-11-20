@@ -85,6 +85,19 @@ refine connection ModbusTCP_Conn += {
 
 refine flow ModbusTCP_Flow += {
 
+	# After a TCP gap: drop the PDU being parsed, whose remaining fields
+	# would otherwise be taken from the data after the gap.
+	function discard_pdu(): bool
+		%{
+		delete dataunit_;
+		dataunit_ = nullptr;
+		delete context_;
+		context_ = nullptr;
+		flow_buffer_->DiscardData();
+		return true;
+		%}
+
+
 	function deliver_message(header: ModbusTCP_TransportHeader): bool
 		%{
 		if ( ::modbus_message )

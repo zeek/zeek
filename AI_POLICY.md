@@ -2,7 +2,7 @@
 
 The Zeek project has strict rules for AI usage:
 
-- **AI usage in any form must be disclosed.** You must state the tool you used (e.g. Claude Code, Cursor, Amp) along with the extent to which your work was AI-assisted.
+- **AI usage in any form must be disclosed.** You must state the model that produced the output (e.g. Claude Opus 4.7, GPT-5, Gemini 2.5) and the extent to which your work was AI-assisted.
 
 - **The human-in-the-loop must fully understand all code.** If you can't explain what your changes do and how they interact with the greater system without the aid of AI tools, do not contribute to this project.
 

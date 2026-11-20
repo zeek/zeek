@@ -2,7 +2,7 @@ FROM opensuse/tumbleweed
 
 # A version field used by Circle to create new versions on DockerHub
 # during rebuilds.
-ENV DOCKERFILE_VERSION=20260515
+ENV DOCKERFILE_VERSION=20261117
 
 # Remove the repo-openh264 repository, it caused intermittent issues
 # and we should not be needing any packages from it.
@@ -25,6 +25,7 @@ RUN zypper refresh \
     git \
     gzip \
     jq \
+    libbrotli-devel \
     libopenssl-devel \
     libpcap-devel \
     make \

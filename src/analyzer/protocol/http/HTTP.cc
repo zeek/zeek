@@ -2,6 +2,8 @@
 
 #include "zeek/analyzer/protocol/http/HTTP.h"
 
+#include "zeek/zeek-config.h"
+
 #include <algorithm>
 #include <cctype>
 #include <cinttypes>
@@ -222,6 +224,30 @@ void HTTP_Entity::DeliverBody(int len, const char* data, bool trailing_CRLF) {
             zip.reset();
         }
     }
+    else if ( encoding == BROTLI ) {
+        if ( ! brotli ) {
+            brotli = analyzer::brotli::Brotli_Analyzer::Instantiate(http_message->MyHTTP_Analyzer()->Conn(), false,
+                                                                    BifConst::HTTP::max_uncompressed_size,
+                                                                    BifConst::HTTP::max_brotli_decoder_memory);
+            if ( ! brotli ) {
+                // Zeek was built without libbrotlidec. Report it once and pass the body through as is.
+                http_message->MyHTTP_Analyzer()->Weird("HTTP_brotli_decompression_unsupported");
+                encoding = IDENTITY;
+                DeliverBodyClear(len, data, trailing_CRLF);
+                return;
+            }
+
+            brotli->SetOutputHandler(new UncompressedOutput(this));
+        }
+
+        brotli->NextStream(len, reinterpret_cast<const u_char*>(data), false);
+
+        // Same teardown as for zip above.
+        if ( end_of_data ) {
+            brotli->Done();
+            brotli.reset();
+        }
+    }
     else
         DeliverBodyClear(len, data, trailing_CRLF);
 }
@@ -313,7 +339,7 @@ void HTTP_Entity::SubmitData(int len, const char* buf) {
     if ( deliver_body )
         analyzer::mime::MIME_Entity::SubmitData(len, buf);
 
-    if ( send_size && (encoding == GZIP || encoding == DEFLATE) )
+    if ( send_size && (encoding == GZIP || encoding == DEFLATE || encoding == BROTLI) )
         // Auto-decompress in DeliverBody invalidates sizes derived from headers
         send_size = false;
 
@@ -606,6 +632,8 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
             encoding = GZIP;
         if ( analyzer::mime::istrequal(vt, "deflate") )
             encoding = DEFLATE;
+        if ( analyzer::mime::istrequal(vt, "br") )
+            encoding = BROTLI;
     }
     else if ( analyzer::mime::istrequal(h->get_name(), "expect") ) {
         data_chunk_t vt = h->get_value_token();

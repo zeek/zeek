@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
 # A version field used by Circle to create new versions on DockerHub
 # during rebuilds.
-ENV DOCKERFILE_VERSION=20260813
+ENV DOCKERFILE_VERSION=20261117
 
 RUN apt-get update && apt-get -y install \
     bc \
@@ -19,6 +19,7 @@ RUN apt-get update && apt-get -y install \
     git \
     jq \
     lcov \
+    libbrotli-dev \
     libkrb5-dev \
     libmaxminddb-dev \
     libpcap-dev \

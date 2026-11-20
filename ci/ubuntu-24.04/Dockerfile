@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
 # A version field used by Circle to create new versions on DockerHub
 # during rebuilds.
-ENV DOCKERFILE_VERSION=20260813
+ENV DOCKERFILE_VERSION=20261117
 
 # This is needed before the rest of the apt installations below so that
 # the certificate for llvm.org exists.
@@ -34,6 +34,7 @@ RUN apt-get update && apt-get -y install \
     git \
     jq \
     lcov \
+    libbrotli-dev \
     libhiredis-dev \
     libkrb5-dev \
     libmaxminddb-dev \

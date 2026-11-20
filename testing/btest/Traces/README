@@ -198,3 +198,5 @@ Trace Index/Sources:
   Lab traffic using AsyncSSH 2.24.1
 - ssh/sntrup761x25519-sha512@openssh.com.pcap
   Lab traffic using AsyncSSH 2.24.1
+- http/content-encoding-brotli-issue-5547.pcap
+  Provided by GH user franky-m in issue #5547.

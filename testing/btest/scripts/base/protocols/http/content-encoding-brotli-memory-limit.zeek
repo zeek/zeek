@@ -1,0 +1,26 @@
+# @TEST-DOC: Stop Brotli decompression when the decoder needs more memory than HTTP::max_brotli_decoder_memory.
+#
+# @TEST-REQUIRES: have-brotli
+#
+# @TEST-EXEC: zeek -b -r $TRACES/http/content-encoding-brotli.pcap %INPUT >out
+# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff-cut -m uid name source weird.log
+
+@load base/frameworks/notice/weird
+@load base/protocols/conn
+@load base/protocols/http
+
+redef HTTP::max_brotli_decoder_memory = 16384;
+
+global body_bytes: table[string] of count &default=0;
+
+event http_entity_data(c: connection, is_orig: bool, length: count, data: string)
+	{
+	if ( ! is_orig )
+		body_bytes[c$uid] += length;
+	}
+
+event connection_state_remove(c: connection)
+	{
+	print fmt("body bytes: %s %d", c$id$orig_p, body_bytes[c$uid]);
+	}

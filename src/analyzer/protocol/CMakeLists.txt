@@ -1,6 +1,7 @@
 include(ZeekPlugin)
 
 add_subdirectory(bittorrent)
+add_subdirectory(brotli)
 add_subdirectory(conn-size)
 add_subdirectory(dce-rpc)
 add_subdirectory(dhcp)

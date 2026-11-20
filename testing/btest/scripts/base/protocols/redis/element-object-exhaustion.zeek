@@ -13,5 +13,6 @@
 @load frameworks/analyzer/debug-logging
 
 # Only want violations
+redef Analyzer::DebugLogging::include_attachments = F;
 redef Analyzer::DebugLogging::include_confirmations = F;
 redef Analyzer::DebugLogging::include_disabling = F;

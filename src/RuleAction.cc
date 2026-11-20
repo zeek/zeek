@@ -12,6 +12,7 @@
 #include "zeek/ID.h"
 #include "zeek/RuleMatcher.h"
 #include "zeek/Type.h"
+#include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
 
@@ -169,7 +170,11 @@ void RuleActionEnable::DoAction(const Rule* parent, RuleEndpointState* state, co
 
         // This is ugly and works only if there exists only one
         // analyzer of each type.
-        state->PIA()->AsAnalyzer()->Conn()->FindAnalyzer(Analyzer())->AddChildAnalyzer(ChildAnalyzer());
+        state->PIA()
+            ->AsAnalyzer()
+            ->Conn()
+            ->FindAnalyzer(Analyzer())
+            ->AddChildAnalyzer(ChildAnalyzer(), {.reason = analyzer::AddReason::DPD});
     }
 }
 

@@ -36,6 +36,7 @@ redef Intel::manage_seen_event_groups = F;
 # exclude it for now from analyzer.log.
 # https://github.com/zeek/zeek/issues/2659
 redef Analyzer::DebugLogging::ignore_analyzers += { Analyzer::ANALYZER_IMAP };
+redef Analyzer::DebugLogging::include_attachments = F;
 redef Analyzer::DebugLogging::include_confirmations = F;
 redef Analyzer::DebugLogging::include_disabling = F;
 

@@ -6,6 +6,7 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/RunState.h"
 #include "zeek/Val.h"
+#include "zeek/analyzer/Analyzer.h"
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 
@@ -436,7 +437,7 @@ bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init, packet_analys
         if ( ! analyzer )
             continue;
 
-        parent->AddChildAnalyzer(analyzer, init);
+        parent->AddChildAnalyzer(analyzer, init, {.reason = analyzer::AddReason::Scheduled});
 
         if ( scheduled_analyzer_applied )
             conn->EnqueueEvent(scheduled_analyzer_applied, nullptr, conn->GetVal(), tag.AsVal());

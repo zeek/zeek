@@ -11,6 +11,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/RuleMatcher.h"
 #include "zeek/RunState.h"
+#include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
@@ -148,7 +149,7 @@ void PIA_UDP::ActivateAnalyzer(zeek::Tag tag, const zeek::detail::Rule* rule) {
     if ( Parent()->HasChildAnalyzer(tag) )
         return;
 
-    analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag);
+    analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag, {.reason = analyzer::AddReason::DPD});
 
     if ( ! a )
         return;
@@ -344,7 +345,7 @@ void PIA_TCP::ActivateAnalyzer(zeek::Tag tag, const zeek::detail::Rule* rule) {
         return;
     }
 
-    analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag);
+    analyzer::Analyzer* a = Parent()->AddChildAnalyzer(tag, {.reason = analyzer::AddReason::DPD});
 
     if ( ! a )
         return;

@@ -270,6 +270,24 @@ bool Manager::AddAnalyzer(const string& file_id, const zeek::Tag& tag, RecordVal
     if ( ! file )
         return false;
 
+    if ( analyzer_attachment_info ) {
+        // For file_analysis, analyzers are added via Files::add_analyzer()
+        // and receive as reason ATTACHMENT_REASON_SCRIPT in the info record.
+        // Could be interesting to distinguish between MIME and the static
+        // digest analyzers and maybe passed in the args record val, but
+        // keeping this one simple for now.
+        static const auto script_reason_val = zeek::id::find("Analyzer::ATTACHMENT_REASON_SCRIPT")->GetVal();
+        static const auto info_type = zeek::id::find_type<RecordType>("AnalyzerAttachmentInfo");
+        static const auto info_reason_idx = info_type->FieldOffset("reason");
+        static const auto info_f_idx = info_type->FieldOffset("f");
+
+        auto info = zeek::make_intrusive<RecordVal>(info_type);
+        info->Assign(info_reason_idx, script_reason_val);
+        info->Assign(info_f_idx, file->ToVal());
+
+        event_mgr.Enqueue(analyzer_attachment_info, tag.AsVal(), info);
+    }
+
     return file->AddAnalyzer(tag, std::move(args));
 }
 

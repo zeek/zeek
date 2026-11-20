@@ -1,0 +1,74 @@
+name: Update CHANGES
+
+on:
+  # Smoke-test changes to the updater.
+  pull_request:
+    paths:
+      - 'ci/update-changes.py'
+      - '.github/workflows/update-changes.yml'
+  schedule:
+    # Offset from generate-docs, which also pushes to master.
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    permissions:
+      contents: write  # for Git to git push
+    if: github.repository == 'zeek/zeek'
+    runs-on: ubuntu-24.04
+
+    steps:
+      # Only authenticate when we push. Full history is needed to walk merges.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event_name != 'pull_request'
+        with:
+          token: ${{ secrets.ZEEK_BOT_TOKEN }}
+          fetch-depth: 0
+          filter: blob:none
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event_name == 'pull_request'
+        with:
+          fetch-depth: 0
+          filter: blob:none
+
+      - name: Update CHANGES
+        run: |
+          head=$(git rev-parse HEAD)
+          ./ci/update-changes.py
+          git --no-pager diff -- CHANGES
+          { echo '```diff'; git --no-pager diff -- CHANGES; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+          # Don't push for PRs
+          [[ "${{ github.event_name }}" == pull_request ]] && exit 0
+          git diff --quiet && exit 0
+          git config --global user.name zeek-bot
+          git config --global user.email info@zeek.org
+          git commit -am "Update CHANGES via GitHub workflow [nomail] [skip ci]" \
+              -m "Changes-Through: $head"
+          # If something landed meanwhile, the next run picks it up.
+          git push || { git pull --rebase && git push; }
+
+      - name: Send email
+        if: failure() && github.event_name == 'schedule'
+        uses: dawidd6/action-send-mail@67ce3558d613188179559c61d3565140cf389968 # v22
+        with:
+          server_address: ${{secrets.SMTP_HOST}}
+          server_port: ${{secrets.SMTP_PORT}}
+          username: ${{secrets.SMTP_USER}}
+          password: ${{secrets.SMTP_PASS}}
+          subject: update-changes GitHub Action failed!
+          body: update-changes job of ${{github.repository}} Failed! See https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} for details.
+          to: ${{secrets.MAIL_TO}}
+          from: GitHub Actions <${{secrets.MAIL_FROM}}>

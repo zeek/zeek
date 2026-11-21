@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <queue>
 #include <string>
@@ -29,6 +30,10 @@ enum CHUNKED_TRANSFER_STATE : uint8_t {
 
 class HTTP_Entity;
 class HTTP_Message;
+
+// Creates the analyzer that decompresses a body for HTTP_BodyTap, or returns
+// nullptr if there's nothing to decompress.
+using HTTP_DecoderFactory = std::function<std::unique_ptr<analyzer::tcp::TCP_SupportAnalyzer>()>;
 class HTTP_Analyzer;
 
 class HTTP_Entity final : public analyzer::mime::MIME_Entity {
@@ -135,7 +140,7 @@ public:
 
     // Support for HTTP::enable_full_body_file_analysis.
     void FullBodyDataIn(int len, const char* data);
-    void StartFullBodyTap(int64_t length);
+    void StartFullBodyTap(int64_t length, const HTTP_DecoderFactory& make_decoder);
 
 protected:
     HTTP_Analyzer* analyzer;
@@ -172,8 +177,12 @@ public:
     HTTP_BodyTap(Connection* conn, bool orig) : analyzer::tcp::TCP_SupportAnalyzer("HTTP", conn, orig) {}
 
     // Called while the line ending the headers is delivered. A negative
-    // length means the body ends with Stop().
-    void Start(const std::string& fuid, int64_t length, analyzer::tcp::ContentLine_Analyzer* cl);
+    // length means the body ends with Stop(). With a content coding,
+    // make_decoder returns a ZIP or Brotli analyzer, which decompresses the
+    // body before it reaches the file. It's only called if the body is
+    // forwarded, so no decoder is created for nothing.
+    void Start(const std::string& fuid, int64_t length, analyzer::tcp::ContentLine_Analyzer* cl,
+               const HTTP_DecoderFactory& make_decoder);
 
     // Ends a body of unknown length after the line just delivered.
     void Stop();
@@ -185,16 +194,20 @@ protected:
     void Undelivered(uint64_t seq, int len, bool orig) override;
 
 private:
+    class DecompressedOutput;
+
     int Position() const;
     void Flush(int upto);
-    void Finish();
+    // Ends the file, after a gap of the given length if not 0.
+    void Finish(uint64_t missing = 0);
     void FileDataIn(int len, const u_char* data);
 
     analyzer::tcp::ContentLine_Analyzer* content_line = nullptr;
     std::string fuid;
     uint64_t offset = 0;
-    int64_t remaining = -1; // bytes left of the body, -1 if unknown
-    bool skip_lf = false;   // body started after a CR that ended a chunk
+    int64_t remaining = -1;                                      // bytes left of the body, -1 if unknown
+    std::unique_ptr<analyzer::tcp::TCP_SupportAnalyzer> decoder; // ZIP or Brotli, if compressed
+    bool skip_lf = false;                                        // body started after a CR that ended a chunk
 
     // The chunk currently being forwarded and how much of it was handled.
     const u_char* chunk = nullptr;

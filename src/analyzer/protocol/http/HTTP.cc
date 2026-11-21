@@ -726,9 +726,28 @@ void HTTP_Entity::SubmitAllHeaders() {
 
         // As below, a request without a length has no body. Otherwise the
         // tap would copy, e.g., a CONNECT or Upgrade request's tunneled data.
-        if ( Depth() == 0 && content_length != 0 && encoding == IDENTITY &&
-             (content_length > 0 || expect_body == HTTP_BODY_EXPECTED) )
-            http_message->StartFullBodyTap(content_length);
+        if ( Depth() == 0 && content_length != 0 && (content_length > 0 || expect_body == HTTP_BODY_EXPECTED) ) {
+            // Decompress like DeliverBody() does. Without libbrotlidec,
+            // Instantiate() returns nullptr and the body stays compressed,
+            // as it does for HTTP.
+            auto make_decoder = [this]() -> std::unique_ptr<analyzer::tcp::TCP_SupportAnalyzer> {
+                auto* conn = http_message->MyHTTP_Analyzer()->Conn();
+                bool orig = http_message->IsOrig();
+                if ( encoding == GZIP || encoding == DEFLATE )
+                    return std::make_unique<analyzer::zip::ZIP_Analyzer>(conn, BifConst::HTTP::max_uncompressed_size,
+                                                                         orig,
+                                                                         encoding == GZIP ?
+                                                                             analyzer::zip::ZIP_Analyzer::GZIP :
+                                                                             analyzer::zip::ZIP_Analyzer::DEFLATE);
+                if ( encoding == BROTLI )
+                    return analyzer::brotli::Brotli_Analyzer::Instantiate(conn, orig,
+                                                                          BifConst::HTTP::max_uncompressed_size,
+                                                                          BifConst::HTTP::max_brotli_decoder_memory);
+                return nullptr;
+            };
+
+            http_message->StartFullBodyTap(content_length, make_decoder);
+        }
     }
 
     else if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
@@ -762,7 +781,7 @@ void HTTP_Entity::SubmitAllHeaders() {
             // there is no body
             EndOfData();
         else if ( Depth() == 0 )
-            http_message->StartFullBodyTap(-1);
+            http_message->StartFullBodyTap(-1, {});
     }
 }
 
@@ -928,7 +947,7 @@ void HTTP_Message::FullBodyDataIn(int len, const char* data) {
     full_body_offset += len;
 }
 
-void HTTP_Message::StartFullBodyTap(int64_t length) {
+void HTTP_Message::StartFullBodyTap(int64_t length, const HTTP_DecoderFactory& make_decoder) {
     auto* tap = analyzer->BodyTap(is_orig);
     if ( ! tap )
         return;
@@ -938,15 +957,30 @@ void HTTP_Message::StartFullBodyTap(int64_t length) {
         return;
 
     // The tap owns the file from here on.
-    tap->Start(FullBodyFileID(), length, content_line);
+    tap->Start(FullBodyFileID(), length, content_line, make_decoder);
     full_body_fuid.clear();
 }
 
-void HTTP_BodyTap::Start(const std::string& arg_fuid, int64_t length, analyzer::tcp::ContentLine_Analyzer* cl) {
+class HTTP_BodyTap::DecompressedOutput : public analyzer::OutputHandler {
+public:
+    explicit DecompressedOutput(HTTP_BodyTap* t) : tap(t) {}
+    void DeliverStream(int len, const u_char* data, bool orig) override { tap->FileDataIn(len, data); }
+
+private:
+    HTTP_BodyTap* tap;
+};
+
+void HTTP_BodyTap::Start(const std::string& arg_fuid, int64_t length, analyzer::tcp::ContentLine_Analyzer* cl,
+                         const HTTP_DecoderFactory& make_decoder) {
     Finish();
 
     if ( arg_fuid.empty() || length == 0 )
         return;
+
+    if ( make_decoder )
+        decoder = make_decoder();
+    if ( decoder )
+        decoder->SetOutputHandler(new DecompressedOutput(this));
 
     content_line = cl;
     offset = 0;
@@ -1004,13 +1038,20 @@ void HTTP_BodyTap::Undelivered(uint64_t seq, int len, bool orig) {
     if ( ! fuid.empty() ) {
         int64_t n = remaining >= 0 ? std::min<int64_t>(len, remaining) : len;
 
-        file_mgr->Gap(offset, n, GetAnalyzerTag(), Conn(), IsOrig(), fuid);
-        offset += n;
+        if ( decoder )
+            // Compressed data can't be decompressed past a gap. How many
+            // decompressed bytes are missing is unknown, but reporting the
+            // gap shows that the file is incomplete.
+            Finish(n);
+        else {
+            file_mgr->Gap(offset, n, GetAnalyzerTag(), Conn(), IsOrig(), fuid);
+            offset += n;
 
-        if ( remaining >= 0 ) {
-            remaining -= n;
-            if ( remaining == 0 )
-                Finish();
+            if ( remaining >= 0 ) {
+                remaining -= n;
+                if ( remaining == 0 )
+                    Finish();
+            }
         }
     }
 
@@ -1033,7 +1074,10 @@ void HTTP_BodyTap::Flush(int upto) {
     const u_char* data = chunk + flushed;
     flushed = upto;
 
-    FileDataIn(static_cast<int>(n), data);
+    if ( decoder )
+        decoder->NextStream(static_cast<int>(n), data, IsOrig());
+    else
+        FileDataIn(static_cast<int>(n), data);
 
     if ( remaining >= 0 ) {
         remaining -= n;
@@ -1050,9 +1094,19 @@ void HTTP_BodyTap::FileDataIn(int len, const u_char* data) {
     offset += len;
 }
 
-void HTTP_BodyTap::Finish() {
-    if ( ! fuid.empty() )
+void HTTP_BodyTap::Finish(uint64_t missing) {
+    if ( decoder ) {
+        // Flushes what's left of the decompressed data.
+        decoder->Done();
+        decoder.reset();
+    }
+
+    if ( ! fuid.empty() ) {
+        if ( missing > 0 )
+            file_mgr->Gap(offset, missing, GetAnalyzerTag(), Conn(), IsOrig(), fuid);
+
         file_mgr->EndOfFile(fuid);
+    }
 
     fuid.clear();
     skip_lf = false;

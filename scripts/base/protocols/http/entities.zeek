@@ -117,7 +117,10 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		f$http = c$http;
 
 		# With full body file analysis, the first file of a message body
-		# is the full body. Files of its MIME entities become children.
+		# is the full body. The message's other files, including that of
+		# the top-level entity, become its children. A file that already
+		# has a parent keeps it, e.g. one shared by range requests on
+		# several connections.
 		if ( HTTP::enable_full_body_file_analysis )
 			{
 			local http = c$http;

@@ -59,8 +59,8 @@ New Functionality
 
   To enable this feature, set the ``HTTP::enable_full_body_file_analysis`` option.
   The fuid of the full body file is available as ``c$http$orig_body_fuid`` or
-  ``c$http$resp_body_fuid``, and files of nested MIME entities use it as their
-  ``parent_fuid``:
+  ``c$http$resp_body_fuid``, and the message's other files, e.g. those of its MIME
+  entities, use it as their ``parent_fuid``:
 
 	redef HTTP::enable_full_body_file_analysis = T;
 

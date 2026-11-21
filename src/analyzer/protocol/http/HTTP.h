@@ -140,7 +140,7 @@ public:
 
     // Support for HTTP::enable_full_body_file_analysis.
     void FullBodyDataIn(int len, const char* data);
-    void StartFullBodyTap(int64_t length, const HTTP_DecoderFactory& make_decoder);
+    void StartFullBodyTap(int64_t length, const HTTP_DecoderFactory& make_decoder, bool chunked = false);
 
 protected:
     HTTP_Analyzer* analyzer;
@@ -177,12 +177,13 @@ public:
     HTTP_BodyTap(Connection* conn, bool orig) : analyzer::tcp::TCP_SupportAnalyzer("HTTP", conn, orig) {}
 
     // Called while the line ending the headers is delivered. A negative
-    // length means the body ends with Stop(). With a content coding,
-    // make_decoder returns a ZIP or Brotli analyzer, which decompresses the
-    // body before it reaches the file. It's only called if the body is
-    // forwarded, so no decoder is created for nothing.
+    // length means the body ends with Stop() or, if chunked, with its last
+    // chunk. Chunked transfer coding is removed first, then a content coding
+    // is decompressed by the ZIP or Brotli analyzer that make_decoder
+    // returns, before the body reaches the file. make_decoder is only called
+    // if the body is forwarded, so no decoder is created for nothing.
     void Start(const std::string& fuid, int64_t length, analyzer::tcp::ContentLine_Analyzer* cl,
-               const HTTP_DecoderFactory& make_decoder);
+               const HTTP_DecoderFactory& make_decoder, bool chunked);
 
     // Ends a body of unknown length after the line just delivered.
     void Stop();
@@ -200,6 +201,8 @@ private:
     void Flush(int upto);
     // Ends the file, after a gap of the given length if not 0.
     void Finish(uint64_t missing = 0);
+    void Dechunk(int len, const u_char* data);
+    void Decode(int len, const u_char* data);
     void FileDataIn(int len, const u_char* data);
 
     analyzer::tcp::ContentLine_Analyzer* content_line = nullptr;
@@ -208,6 +211,14 @@ private:
     int64_t remaining = -1;                                      // bytes left of the body, -1 if unknown
     std::unique_ptr<analyzer::tcp::TCP_SupportAnalyzer> decoder; // ZIP or Brotli, if compressed
     bool skip_lf = false;                                        // body started after a CR that ended a chunk
+
+    // Where the tap is in a body with chunked transfer coding.
+    enum class Dechunking : uint8_t { Off, Size, Data, DataEnd, Trailer };
+    Dechunking dechunking = Dechunking::Off;
+    int64_t te_chunk_left = 0; // size, then bytes left, of the transfer chunk
+    int te_size_digits = 0;
+    bool te_line_done = false; // rest of the line is ignored
+    bool te_bad_size = false;  // the size line is malformed
 
     // The chunk currently being forwarded and how much of it was handled.
     const u_char* chunk = nullptr;

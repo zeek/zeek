@@ -8,6 +8,7 @@
 #include <cctype>
 #include <cinttypes>
 #include <cstdlib>
+#include <limits>
 #include <string>
 
 #include "zeek/Event.h"
@@ -726,7 +727,9 @@ void HTTP_Entity::SubmitAllHeaders() {
 
         // As below, a request without a length has no body. Otherwise the
         // tap would copy, e.g., a CONNECT or Upgrade request's tunneled data.
-        if ( Depth() == 0 && content_length != 0 && (content_length > 0 || expect_body == HTTP_BODY_EXPECTED) ) {
+        bool chunked = chunked_transfer_state != NON_CHUNKED_TRANSFER;
+        if ( Depth() == 0 && content_length != 0 &&
+             (content_length > 0 || chunked || expect_body == HTTP_BODY_EXPECTED) ) {
             // Decompress like DeliverBody() does. Without libbrotlidec,
             // Instantiate() returns nullptr and the body stays compressed,
             // as it does for HTTP.
@@ -746,7 +749,7 @@ void HTTP_Entity::SubmitAllHeaders() {
                 return nullptr;
             };
 
-            http_message->StartFullBodyTap(content_length, make_decoder);
+            http_message->StartFullBodyTap(content_length, make_decoder, chunked);
         }
     }
 
@@ -947,7 +950,7 @@ void HTTP_Message::FullBodyDataIn(int len, const char* data) {
     full_body_offset += len;
 }
 
-void HTTP_Message::StartFullBodyTap(int64_t length, const HTTP_DecoderFactory& make_decoder) {
+void HTTP_Message::StartFullBodyTap(int64_t length, const HTTP_DecoderFactory& make_decoder, bool chunked) {
     auto* tap = analyzer->BodyTap(is_orig);
     if ( ! tap )
         return;
@@ -957,7 +960,7 @@ void HTTP_Message::StartFullBodyTap(int64_t length, const HTTP_DecoderFactory& m
         return;
 
     // The tap owns the file from here on.
-    tap->Start(FullBodyFileID(), length, content_line, make_decoder);
+    tap->Start(FullBodyFileID(), length, content_line, make_decoder, chunked);
     full_body_fuid.clear();
 }
 
@@ -971,7 +974,7 @@ private:
 };
 
 void HTTP_BodyTap::Start(const std::string& arg_fuid, int64_t length, analyzer::tcp::ContentLine_Analyzer* cl,
-                         const HTTP_DecoderFactory& make_decoder) {
+                         const HTTP_DecoderFactory& make_decoder, bool chunked) {
     Finish();
 
     if ( arg_fuid.empty() || length == 0 )
@@ -985,6 +988,11 @@ void HTTP_BodyTap::Start(const std::string& arg_fuid, int64_t length, analyzer::
     content_line = cl;
     offset = 0;
     remaining = length > 0 ? length : -1;
+    dechunking = chunked ? Dechunking::Size : Dechunking::Off;
+    te_chunk_left = 0;
+    te_size_digits = 0;
+    te_line_done = false;
+    te_bad_size = false;
     flushed = Position();
 
     // ContentLine swallows an LF following a CR that ended the previous chunk.
@@ -1038,10 +1046,10 @@ void HTTP_BodyTap::Undelivered(uint64_t seq, int len, bool orig) {
     if ( ! fuid.empty() ) {
         int64_t n = remaining >= 0 ? std::min<int64_t>(len, remaining) : len;
 
-        if ( decoder )
-            // Compressed data can't be decompressed past a gap. How many
-            // decompressed bytes are missing is unknown, but reporting the
-            // gap shows that the file is incomplete.
+        if ( decoder || dechunking != Dechunking::Off )
+            // Neither decompression nor chunk framing can continue past a
+            // gap. How many decoded bytes are missing is unknown, but
+            // reporting the gap shows that the file is incomplete.
             Finish(n);
         else {
             file_mgr->Gap(offset, n, GetAnalyzerTag(), Conn(), IsOrig(), fuid);
@@ -1074,16 +1082,106 @@ void HTTP_BodyTap::Flush(int upto) {
     const u_char* data = chunk + flushed;
     flushed = upto;
 
-    if ( decoder )
-        decoder->NextStream(static_cast<int>(n), data, IsOrig());
+    if ( dechunking != Dechunking::Off )
+        Dechunk(static_cast<int>(n), data);
     else
-        FileDataIn(static_cast<int>(n), data);
+        Decode(static_cast<int>(n), data);
 
     if ( remaining >= 0 ) {
         remaining -= n;
         if ( remaining == 0 )
             Finish();
     }
+}
+
+void HTTP_BodyTap::Dechunk(int len, const u_char* data) {
+    // Mirrors HTTP_Entity's chunked delivery: a hex size line, that many
+    // bytes, the line ending them, and after the last chunk the trailer
+    // up to an empty line. An extension, whitespace or CR after the size
+    // is ignored.
+    for ( int i = 0; i < len && ! fuid.empty(); ) {
+        u_char c = data[i];
+
+        switch ( dechunking ) {
+            case Dechunking::Off:
+                // Decoding was given up after a malformed size line.
+                Decode(len - i, data + i);
+                return;
+
+            case Dechunking::Data: {
+                auto n = static_cast<int>(std::min<int64_t>(len - i, te_chunk_left));
+                Decode(n, data + i);
+                i += n;
+                te_chunk_left -= n;
+                if ( te_chunk_left == 0 )
+                    dechunking = Dechunking::DataEnd;
+                continue;
+            }
+
+            case Dechunking::Size:
+                if ( c == '\n' ) {
+                    if ( te_bad_size || te_size_digits == 0 ) {
+                        // A client may still accept the size, e.g. with leading
+                        // whitespace, so forward the rest as-is, not hide it.
+                        dechunking = Dechunking::Off;
+                        ++i;
+                        continue;
+                    }
+
+                    dechunking = te_chunk_left == 0 ? Dechunking::Trailer : Dechunking::Data;
+                    te_line_done = false;
+                }
+                else if ( te_line_done )
+                    ; // after the size
+                else if ( std::isxdigit(c) ) {
+                    // A size that doesn't fit an int64_t is bad. Leading zeros are fine.
+                    ++te_size_digits;
+                    if ( te_chunk_left > std::numeric_limits<int64_t>::max() / 16 ) {
+                        te_bad_size = true;
+                        te_line_done = true;
+                    }
+                    else
+                        te_chunk_left = te_chunk_left * 16 + util::decode_hex(static_cast<char>(c));
+                }
+                else {
+                    te_line_done = true;
+                    if ( te_size_digits == 0 || (c != ';' && c != ' ' && c != '\t' && c != '\r') )
+                        te_bad_size = true;
+                }
+                break;
+
+            case Dechunking::DataEnd:
+                if ( c == '\n' ) {
+                    dechunking = Dechunking::Size;
+                    te_chunk_left = 0;
+                    te_size_digits = 0;
+                    te_line_done = false;
+                    te_bad_size = false;
+                }
+                break;
+
+            case Dechunking::Trailer:
+                if ( c == '\n' ) {
+                    if ( ! te_line_done ) {
+                        Finish();
+                        return;
+                    }
+                    te_line_done = false;
+                }
+                else if ( c != '\r' )
+                    te_line_done = true; // a trailer field
+                break;
+        }
+
+        ++i;
+    }
+}
+
+void HTTP_BodyTap::Decode(int len, const u_char* data) {
+    if ( decoder )
+        decoder->NextStream(len, data, IsOrig());
+    else
+        FileDataIn(len, data);
 }
 
 void HTTP_BodyTap::FileDataIn(int len, const u_char* data) {

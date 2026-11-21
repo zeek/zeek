@@ -296,7 +296,7 @@ Options/Constants
 +++++++++++++++++
 
 .. zeek:id:: X509::max_bytes
-   :source-code: base/init-bare.zeek 5600 5600
+   :source-code: base/init-bare.zeek 5606 5606
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -307,7 +307,7 @@ Options/Constants
    disables the limitation.
 
 .. zeek:id:: OCSP::max_bytes
-   :source-code: base/init-bare.zeek 5609 5609
+   :source-code: base/init-bare.zeek 5615 5615
 
    :Type: :zeek:type:`count`
    :Attributes: :zeek:attr:`&redef`
@@ -321,7 +321,7 @@ Types
 +++++
 
 .. zeek:type:: X509::Certificate
-   :source-code: base/init-bare.zeek 5549 5564
+   :source-code: base/init-bare.zeek 5555 5570
 
    :Type: :zeek:type:`record`
 
@@ -398,7 +398,7 @@ Types
 
 
 .. zeek:type:: X509::Extension
-   :source-code: base/init-bare.zeek 5566 5572
+   :source-code: base/init-bare.zeek 5572 5578
 
    :Type: :zeek:type:`record`
 
@@ -430,7 +430,7 @@ Types
 
 
 .. zeek:type:: X509::BasicConstraints
-   :source-code: base/init-bare.zeek 5574 5577
+   :source-code: base/init-bare.zeek 5580 5583
 
    :Type: :zeek:type:`record`
 
@@ -448,7 +448,7 @@ Types
 
 
 .. zeek:type:: X509::SubjectAlternativeName
-   :source-code: base/init-bare.zeek 5579 5585
+   :source-code: base/init-bare.zeek 5585 5591
 
    :Type: :zeek:type:`record`
 
@@ -480,7 +480,7 @@ Types
 
 
 .. zeek:type:: X509::Result
-   :source-code: base/init-bare.zeek 5588 5595
+   :source-code: base/init-bare.zeek 5594 5601
 
    :Type: :zeek:type:`record`
 

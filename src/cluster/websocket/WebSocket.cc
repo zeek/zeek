@@ -6,8 +6,12 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstddef>
+#include <cstdint>
+#include <limits>
 #include <memory>
 #include <string_view>
+#include <utility>
 #include <variant>
 
 #include "zeek/Reporter.h"
@@ -42,19 +46,79 @@ using namespace zeek::cluster::websocket::detail;
 
 namespace {
 
+struct EventSerializers {
+    std::unique_ptr<zeek::cluster::EventSerializer> input;
+    std::unique_ptr<zeek::cluster::EventSerializer> output;
+};
+
+EventSerializers instantiate_event_serializers(std::string_view name) {
+    for ( auto* component : zeek::cluster::manager->EventSerializers().GetComponents() ) {
+        auto input = component->Factory()();
+        if ( ! input || input->Name() != name )
+            continue;
+
+        auto output = component->Factory()();
+        if ( output && output->Name() == name )
+            return {std::move(input), std::move(output)};
+    }
+
+    return {};
+}
+
+bool make_topic_frame(std::string_view topic, zeek::byte_buffer_span payload, std::string& frame) {
+    constexpr size_t topic_length_size = sizeof(uint32_t);
+    if ( topic.size() > std::numeric_limits<uint32_t>::max() )
+        return false;
+
+    if ( topic.size() > frame.max_size() - topic_length_size ||
+         payload.size() > frame.max_size() - topic_length_size - topic.size() )
+        return false;
+
+    const auto topic_size = static_cast<uint32_t>(topic.size());
+    frame.clear();
+    frame.reserve(topic_length_size + topic.size() + payload.size());
+    frame.push_back(static_cast<char>((topic_size >> 24) & 0xff));
+    frame.push_back(static_cast<char>((topic_size >> 16) & 0xff));
+    frame.push_back(static_cast<char>((topic_size >> 8) & 0xff));
+    frame.push_back(static_cast<char>(topic_size & 0xff));
+    if ( ! topic.empty() )
+        frame.append(topic.data(), topic.size());
+    if ( ! payload.empty() )
+        frame.append(reinterpret_cast<const char*>(payload.data()), payload.size());
+
+    return true;
+}
+
+bool parse_topic_frame(std::string_view frame, std::string_view& topic, zeek::byte_buffer_span& payload) {
+    constexpr size_t topic_length_size = sizeof(uint32_t);
+    if ( frame.size() < topic_length_size )
+        return false;
+
+    auto byte = [&frame](size_t i) { return static_cast<uint8_t>(frame[i]); };
+    const auto topic_size = (static_cast<uint32_t>(byte(0)) << 24) | (static_cast<uint32_t>(byte(1)) << 16) |
+                            (static_cast<uint32_t>(byte(2)) << 8) | static_cast<uint32_t>(byte(3));
+
+    if ( topic_size > frame.size() - topic_length_size )
+        return false;
+
+    const auto payload_offset = topic_length_size + topic_size;
+    topic = frame.substr(topic_length_size, topic_size);
+    payload = {reinterpret_cast<const std::byte*>(frame.data() + payload_offset), frame.size() - payload_offset};
+    return true;
+}
+
 class WebSocketEventHandlingStrategy : public zeek::cluster::detail::EventHandlingStrategy {
 public:
-    WebSocketEventHandlingStrategy(std::shared_ptr<WebSocketClient> ws, WebSocketEventDispatcher* dispatcher)
-        : wsc(std::move(ws)), dispatcher(dispatcher) {}
+    WebSocketEventHandlingStrategy(std::shared_ptr<WebSocketClient> ws, WebSocketEventDispatcher* dispatcher,
+                                   std::unique_ptr<zeek::cluster::EventSerializer> event_serializer)
+        : wsc(std::move(ws)), dispatcher(dispatcher), event_serializer(std::move(event_serializer)) {}
 
 private:
     /**
-     * Any received remote event is encoded into Broker's JSON v1 format and
-     * send over to the WebSocket client.
+     * Encode received remote events using the selected WebSocket serializer
+     * and send them over to the client.
      *
-     * We leverage low-level Broker encoding functions here directly. This
-     * will need some abstractions if client's can opt to use different encodings
-     * of events in the future.
+     * Clients using the original JSON endpoint continue to use Broker JSON v1.
      */
     bool DoProcessEvent(std::string_view topic, zeek::cluster::Event e) override {
         // If the client has left, no point in sending it any pending event.
@@ -66,6 +130,23 @@ private:
         // are discarded.
         if ( ! wsc->IsAcked() )
             return true;
+
+        if ( event_serializer ) {
+            zeek::byte_buffer payload;
+            if ( ! event_serializer->SerializeEvent(payload, e) ) {
+                fprintf(stderr, "[ERROR] Unable to serialize cluster::Event for WebSocket client\n");
+                return false;
+            }
+
+            std::string frame;
+            if ( ! make_topic_frame(topic, payload, frame) ) {
+                fprintf(stderr, "[ERROR] Unable to frame serialized event for WebSocket client\n");
+                return false;
+            }
+
+            dispatcher->QueueReply(WebSocketSendReply{wsc, std::move(frame), true});
+            return true;
+        }
 
         // XXX The serialization is somewhat slow, it would be good to offload
         // it to a thread, or try to go from Val's directly to JSON and see
@@ -101,6 +182,7 @@ private:
     std::string buffer;
     std::shared_ptr<WebSocketClient> wsc;
     WebSocketEventDispatcher* dispatcher;
+    std::unique_ptr<zeek::cluster::EventSerializer> event_serializer;
 };
 
 class ReplyInputMessage : public zeek::threading::BasicInputMessage {
@@ -116,7 +198,7 @@ private:
         if ( wsc->IsTerminated() )
             return true;
 
-        auto send_info = wsc->SendText(sr.msg);
+        auto send_info = sr.binary ? wsc->SendBinary(sr.msg) : wsc->SendText(sr.msg);
         if ( ! send_info.success && ! wsc->IsTerminated() )
             fprintf(stderr, "[ERROR] Failed to send reply to WebSocket client %s (%s:%d)\n", wsc->getId().c_str(),
                     wsc->getRemoteIp().c_str(), wsc->getRemotePort());
@@ -154,7 +236,8 @@ WebSocketClient::SendInfo WebSocketClient::SendError(std::string_view tag, std::
 }
 
 // Inspired by broker/internal/json_client.cc
-WebSocketClient::SendInfo WebSocketClient::SendAck(std::string_view endpoint, std::string_view version) {
+WebSocketClient::SendInfo WebSocketClient::SendAck(std::string_view endpoint, std::string_view version,
+                                                  std::string_view event_serializer) {
     std::string buf;
     buf.reserve(endpoint.size() + version.size() + 32);
     auto out = std::back_inserter(buf);
@@ -164,6 +247,10 @@ WebSocketClient::SendInfo WebSocketClient::SendAck(std::string_view endpoint, st
     broker::format::json::v1::append_field("endpoint", endpoint, out);
     *out++ = ',';
     broker::format::json::v1::append_field("version", version, out);
+    if ( ! event_serializer.empty() ) {
+        *out++ = ',';
+        broker::format::json::v1::append_field("serializer", event_serializer, out);
+    }
     *out++ = '}';
     auto r = SendText(buf);
     acked = true;
@@ -285,14 +372,46 @@ void WebSocketEventDispatcher::Process(const WebSocketOpen& open) {
         return;
     }
 
-    // As of now, terminate clients coming to anything other than /v1/messages/json.
-    if ( open.uri != "/v1/messages/json" ) {
-        open.wsc->SendError("invalid_uri", "Invalid URI - use /v1/messages/json");
-        open.wsc->Close(1008, "Invalid URI - use /v1/messages/json");
+    const bool legacy_json_api = open.uri == "/v1/messages/json";
+    const bool serializer_api = open.uri == "/v1/messages";
+    if ( ! legacy_json_api && ! serializer_api ) {
+        const std::string invalid_uri_message = "Invalid URI - use /v1/messages/json or /v1/messages";
+        open.wsc->SendError("invalid_uri", invalid_uri_message);
+        open.wsc->Close(1008, invalid_uri_message);
 
         // Still create an entry as we might see messages and close events coming in.
         clients[id] = WebSocketClientEntry{id, wsc, nullptr};
         return;
+    }
+
+    if ( legacy_json_api && open.event_serializer ) {
+        open.wsc->SendError("invalid_serializer", "X-Zeek-Event-Serializer is only valid for /v1/messages");
+        open.wsc->Close(1008, "Invalid serializer selection");
+
+        clients[id] = WebSocketClientEntry{id, wsc, nullptr};
+        return;
+    }
+
+    EventSerializers event_serializers;
+    std::string event_serializer_name;
+    if ( serializer_api ) {
+        if ( ! open.event_serializer || open.event_serializer->empty() ) {
+            open.wsc->SendError("missing_serializer", "X-Zeek-Event-Serializer is required for /v1/messages");
+            open.wsc->Close(1008, "Missing serializer selection");
+
+            clients[id] = WebSocketClientEntry{id, wsc, nullptr};
+            return;
+        }
+
+        event_serializer_name = *open.event_serializer;
+        event_serializers = instantiate_event_serializers(event_serializer_name);
+        if ( ! event_serializers.input || ! event_serializers.output ) {
+            open.wsc->SendError("unsupported_serializer", "Unsupported X-Zeek-Event-Serializer");
+            open.wsc->Close(1008, "Unsupported serializer selection");
+
+            clients[id] = WebSocketClientEntry{id, wsc, nullptr};
+            return;
+        }
     }
 
     std::string application_name = open.application_name.value_or("unknown");
@@ -332,7 +451,8 @@ void WebSocketEventDispatcher::Process(const WebSocketOpen& open) {
         effective_backend_val = broker_ws_shim_enum_val;
     }
 
-    auto event_handling_strategy = std::make_unique<WebSocketEventHandlingStrategy>(wsc, this);
+    auto event_handling_strategy = std::make_unique<WebSocketEventHandlingStrategy>(
+        wsc, this, std::move(event_serializers.output));
     auto backend = zeek::cluster::manager->InstantiateBackend(effective_backend_val, std::move(event_serializer),
                                                               nullptr, std::move(event_handling_strategy));
 
@@ -351,7 +471,10 @@ void WebSocketEventDispatcher::Process(const WebSocketOpen& open) {
     backend->InitPostScript();
     backend->Init(std::move(ws_id));
 
-    clients[id] = WebSocketClientEntry{id, wsc, std::move(backend), open.application_name};
+    auto entry = WebSocketClientEntry{id, wsc, std::move(backend), open.application_name};
+    entry.event_serializer = std::move(event_serializers.input);
+    entry.event_serializer_name = std::move(event_serializer_name);
+    clients[id] = std::move(entry);
 }
 
 void WebSocketEventDispatcher::Process(const WebSocketClose& close) {
@@ -538,7 +661,7 @@ void WebSocketEventDispatcher::HandleSubscriptionsActive(const WebSocketClientEn
     auto subscriptions_vec = zeek::cluster::detail::bif::make_string_vec(wsc->GetSubscriptions());
     zeek::event_mgr.Enqueue(Cluster::websocket_client_added, std::move(rec), std::move(subscriptions_vec));
 
-    entry.wsc->SendAck(entry.backend->NodeId(), zeek::zeek_version());
+    entry.wsc->SendAck(entry.backend->NodeId(), zeek::zeek_version(), entry.event_serializer_name);
 
     WS_DEBUG("Sent Ack to client %s (%s:%d) %s\n", entry.id.c_str(), wsc->getRemoteIp().c_str(), wsc->getRemotePort(),
              entry.backend->NodeId().c_str());
@@ -550,7 +673,40 @@ void WebSocketEventDispatcher::HandleSubscriptionsActive(const WebSocketClientEn
     }
 }
 
-void WebSocketEventDispatcher::HandleEvent(WebSocketClientEntry& entry, std::string_view buf) {
+void WebSocketEventDispatcher::HandleEvent(WebSocketClientEntry& entry, std::string_view buf, bool binary) {
+    if ( entry.event_serializer ) {
+        if ( ! binary ) {
+            entry.wsc->SendError(broker::enum_str(broker::ec::deserialization_failed),
+                                 "expected a binary serialized event frame");
+            return;
+        }
+
+        std::string_view topic;
+        zeek::byte_buffer_span payload;
+        if ( ! parse_topic_frame(buf, topic, payload) ) {
+            entry.wsc->SendError(broker::enum_str(broker::ec::deserialization_failed), "malformed serialized event frame");
+            return;
+        }
+
+        if ( topic == broker::topic::reserved ) {
+            entry.wsc->SendError(broker::enum_str(broker::ec::deserialization_failed),
+                                 "no topic in serialized event frame");
+            return;
+        }
+
+        auto zeek_ev = entry.event_serializer->UnserializeEvent(payload);
+        if ( ! zeek_ev ) {
+            entry.wsc->SendError(broker::enum_str(broker::ec::deserialization_failed),
+                                 "failed to decode serialized event");
+            return;
+        }
+
+        WS_DEBUG("Publishing event %s to topic '%s'", std::string(zeek_ev->HandlerName()).c_str(),
+                 std::string(topic).c_str());
+        entry.backend->PublishEvent(std::string(topic), *zeek_ev);
+        return;
+    }
+
     // Unserialize the message as an event.
     broker::variant res;
     auto err = broker::format::json::v1::decode(buf, res);
@@ -631,7 +787,11 @@ void WebSocketEventDispatcher::Process(const WebSocketMessage& msg) {
     // First message is the subscription message.
     if ( entry.msg_count == 1 ) {
         WS_DEBUG("Subscriptions from client %s: (%s:%d)", id.c_str(), wsc->getRemoteIp().c_str(), wsc->getRemotePort());
-        HandleSubscriptions(entry, msg.msg);
+        if ( entry.event_serializer && msg.binary )
+            wsc->SendError(broker::enum_str(broker::ec::deserialization_failed),
+                           "expected a text subscription message");
+        else
+            HandleSubscriptions(entry, msg.msg);
     }
     else {
         if ( ! wsc->IsAcked() ) {
@@ -640,6 +800,6 @@ void WebSocketEventDispatcher::Process(const WebSocketMessage& msg) {
             return;
         }
 
-        HandleEvent(entry, msg.msg);
+        HandleEvent(entry, msg.msg, msg.binary);
     }
 }

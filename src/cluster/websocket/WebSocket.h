@@ -22,6 +22,7 @@ class OnLoopProcess;
 namespace cluster {
 
 class Backend;
+class EventSerializer;
 
 namespace websocket::detail {
 
@@ -66,6 +67,11 @@ public:
     virtual SendInfo SendText(std::string_view sv) = 0;
 
     /**
+     * Thread safe sending of a binary WebSocket message.
+     */
+    virtual SendInfo SendBinary(std::string_view sv) = 0;
+
+    /**
      * Send an error in Broker JSON/v1 format to the client.
      */
     SendInfo SendError(std::string_view code, std::string_view ctx);
@@ -73,7 +79,7 @@ public:
     /**
      * Send an ACK message Broker JSON/v1 format to the client.
      */
-    SendInfo SendAck(std::string_view endpoint, std::string_view version);
+    SendInfo SendAck(std::string_view endpoint, std::string_view version, std::string_view event_serializer = {});
 
     /**
      * @return - has an ACK been sent to the client?
@@ -127,6 +133,7 @@ struct WebSocketOpen {
     std::string protocol;
     std::optional<std::string> application_name;
     std::shared_ptr<WebSocketClient> wsc;
+    std::optional<std::string> event_serializer;
 };
 
 // A WebSocket client disconnected.
@@ -140,6 +147,7 @@ struct WebSocketClose {
 struct WebSocketMessage {
     std::string id;
     std::string msg;
+    bool binary = false;
 };
 
 // Produced internally when a WebSocket client's
@@ -160,6 +168,7 @@ using WebSocketEvent = std::variant<WebSocketOpen, WebSocketSubscribeFinished, W
 struct WebSocketSendReply {
     std::shared_ptr<WebSocketClient> wsc;
     std::string msg;
+    bool binary = false;
 };
 
 struct WebSocketCloseReply {
@@ -234,6 +243,8 @@ private:
         std::shared_ptr<WebSocketClient> wsc;
         std::shared_ptr<zeek::cluster::Backend> backend;
         std::optional<std::string> application_name; // The value from the HTTP X-Application-Name header, if any.
+        std::unique_ptr<zeek::cluster::EventSerializer> event_serializer;
+        std::string event_serializer_name;
         bool ready_to_publish = false;
         uint64_t msg_count = 0;
         std::list<WebSocketMessage> queue;
@@ -245,7 +256,7 @@ private:
     // Raise the websocket_client_added event and send the ack to the client contained in entry.
     void HandleSubscriptionsActive(const WebSocketClientEntry& entry);
 
-    void HandleEvent(WebSocketClientEntry& entry, std::string_view buf);
+    void HandleEvent(WebSocketClientEntry& entry, std::string_view buf, bool binary);
 
     // Allow access to Process(WebSocketEvent)
     friend zeek::detail::OnLoopProcess<WebSocketEventDispatcher, WebSocketEvent>;

@@ -48,6 +48,14 @@ public:
         return SendInfo{send_info.success};
     }
 
+    SendInfo SendBinary(std::string_view sv) override {
+        if ( cs->isTerminated() )
+            return {true}; // small lie
+
+        auto send_info = ws->sendBinary(ix::IXWebSocketSendData{sv.data(), sv.size()});
+        return SendInfo{send_info.success};
+    }
+
     const std::string& getId() override { return cs->getId(); }
     const std::string& getRemoteIp() override { return cs->getRemoteIp(); }
     int getRemotePort() override { return cs->getRemotePort(); }
@@ -143,11 +151,17 @@ std::unique_ptr<WebSocketServer> StartServer(std::unique_ptr<WebSocketEventDispa
                 if ( it != msg->openInfo.headers.end() )
                     application_name = it->second;
 
+                std::optional<std::string> event_serializer;
+                it = msg->openInfo.headers.find("X-Zeek-Event-Serializer");
+                if ( it != msg->openInfo.headers.end() )
+                    event_serializer = it->second;
+
                 dispatcher->QueueForProcessing(WebSocketOpen{id, msg->openInfo.uri, msg->openInfo.protocol,
-                                                             std::move(application_name), std::move(ixws)});
+                                                             std::move(application_name), std::move(ixws),
+                                                             std::move(event_serializer)});
             }
             else if ( msg->type == ix::WebSocketMessageType::Message ) {
-                dispatcher->QueueForProcessing(WebSocketMessage{id, msg->str});
+                dispatcher->QueueForProcessing(WebSocketMessage{id, msg->str, msg->binary});
             }
             else if ( msg->type == ix::WebSocketMessageType::Close ) {
                 auto& ci = msg->closeInfo;

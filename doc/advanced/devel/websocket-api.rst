@@ -119,7 +119,7 @@ and cluster backend agnostic.
 Version 1
 =========
 
-The currently implemented protocol is accessible at ``/v1/messages/json``.
+The original JSON protocol is accessible at ``/v1/messages/json``.
 The `data representation <https://docs.zeek.org/projects/broker/en/current/web-socket.html#data-representation>`_
 is documented in detail within the Broker project. Note that this format is a
 direct translation of Broker's binary format into JSON, resulting in a fairly
@@ -132,6 +132,35 @@ of optional fields to records.
 
    We're looking into an iteration of the format. If you have feedback or
    would like to contribute, please reach out on the usual community channels.
+
+
+Selecting an Event Serializer
+-----------------------------
+
+The existing ``/v1/messages/json`` endpoint continues to use Broker JSON v1.
+To select another event serializer, connect to ``/v1/messages`` and set the
+``X-Zeek-Event-Serializer`` HTTP header to the serializer's name, such as
+``broker-bin-v1`` or ``broker-json-v1``. The server confirms the selected name
+in the JSON acknowledgement. Missing or unsupported serializer names are
+reported as errors.
+
+The first client message remains the JSON array of topic subscriptions. After
+the acknowledgement, events use binary WebSocket messages. Subscription,
+acknowledgement, and error messages remain JSON text. Each event message starts
+with a four-byte topic length, written with the most significant byte first,
+followed by that many topic bytes, then the event bytes produced by the selected
+serializer. The topic bytes are UTF-8. The selected serializer is used for
+events in both directions.
+
+For example, a client can choose the Broker binary event format with:
+
+.. code-block:: shell
+
+   $ websocat -H='X-Zeek-Event-Serializer: broker-bin-v1' ws://127.0.0.1:27759/v1/messages
+
+This changes the format used on the WebSocket connection. Zeek still decodes
+events received from the client before publishing them through the cluster
+backend.
 
 
 Handshake and Acknowledgement

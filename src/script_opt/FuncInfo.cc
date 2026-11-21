@@ -287,6 +287,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"fnv1a64", ATTR_FOLDABLE},
     {"generate_all_events", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"get_broker_stats", ATTR_NO_ZEEK_SIDE_EFFECTS},
+    {"get_checksum_stats", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"get_conn_stats", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"get_conn_transport_proto", ATTR_FOLDABLE},
     {"get_contents_file", ATTR_NO_ZEEK_SIDE_EFFECTS},

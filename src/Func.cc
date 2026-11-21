@@ -1054,6 +1054,7 @@ void init_primary_bifs() {
 
     ProcStats = id::find_type<RecordType>("ProcStats");
     NetStats = id::find_type<RecordType>("NetStats");
+    ChecksumStats = id::find_type<RecordType>("ChecksumStats");
     MatcherStats = id::find_type<RecordType>("MatcherStats");
     ConnStats = id::find_type<RecordType>("ConnStats");
     ReassemblerStats = id::find_type<RecordType>("ReassemblerStats");

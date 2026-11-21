@@ -3,6 +3,7 @@
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 
 #include <cinttypes>
+#include <cstddef>
 
 #include "zeek/Conn.h"
 #include "zeek/RunState.h"
@@ -298,4 +299,34 @@ TableValPtr IPBasedAnalyzer::GetIgnoreChecksumsNets() {
     if ( ! IPBasedAnalyzer::ignore_checksums_nets_table )
         IPBasedAnalyzer::ignore_checksums_nets_table = zeek::id::find_val<TableVal>("ignore_checksums_nets");
     return IPBasedAnalyzer::ignore_checksums_nets_table;
+}
+
+namespace {
+zeek::packet_analysis::IP::ChecksumCounters checksum_counters;
+} // namespace
+
+void zeek::packet_analysis::IP::CountInvalidChecksum(ChecksumType type) {
+    switch ( type ) {
+        case ChecksumType::IPv4:
+            ++checksum_counters.num_ipv4;
+            break;
+        case ChecksumType::TCP:
+            ++checksum_counters.num_tcp;
+            break;
+        case ChecksumType::UDP:
+            ++checksum_counters.num_udp;
+            break;
+        case ChecksumType::ICMP:
+            ++checksum_counters.num_icmp;
+            break;
+        case ChecksumType::Mobility:
+            ++checksum_counters.num_mobility;
+            break;
+        case ChecksumType::COUNT:
+            break;
+    }
+}
+
+const zeek::packet_analysis::IP::ChecksumCounters& zeek::packet_analysis::IP::GetChecksumCounters() {
+    return checksum_counters;
 }

@@ -1252,6 +1252,17 @@ type NetStats: record {
 	pkts_filtered: count &optional;  ##< Packets filtered by the packet source.
 };
 
+## Checksum validation failure statistics. All counts are cumulative.
+##
+## .. zeek:see:: get_checksum_stats
+type ChecksumStats: record {
+	num_ipv4:     count &default=0; ##< Number of IPv4 packets with invalid checksums.
+	num_tcp:      count &default=0; ##< Number of TCP packets with invalid checksums.
+	num_udp:      count &default=0; ##< Number of UDP packets with invalid checksums.
+	num_icmp:     count &default=0; ##< Number of ICMP packets with invalid checksums.
+	num_mobility: count &default=0; ##< Number of Mobility packets with invalid checksums.
+};
+
 type ConnStats: record {
 	total_conns: count;           ##<
 	current_conns: count;         ##<

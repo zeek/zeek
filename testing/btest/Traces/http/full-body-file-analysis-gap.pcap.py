@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""multipart responses that lose a TCP segment.
+"""Responses that lose a TCP segment.
 
 Each response is split into three segments and the middle one is missing
 from the capture:
@@ -9,7 +9,9 @@ from the capture:
   * port 40002: gzip-compressed multipart/mixed (the body can't be
     decompressed past the gap),
   * port 40003: multipart/mixed with chunked transfer coding instead of
-    Content-Length (the chunk framing is lost at the gap).
+    Content-Length (the chunk framing is lost at the gap),
+  * port 40004: gzip-compressed application/octet-stream, which isn't
+    line-delivered (the body can't be decompressed past the gap).
 
 The boundary never occurs in the body.
 
@@ -49,6 +51,11 @@ RESPONSES = [
     (
         b"HTTP/1.1 200 OK\r\n" + MULTIPART + b"Transfer-Encoding: chunked\r\n\r\n",
         b"%x\r\n%s\r\n0\r\n\r\n" % (len(BODY), BODY),
+    ),
+    (
+        b"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\n"
+        b"Content-Encoding: gzip\r\nContent-Length: %d\r\n\r\n" % len(GZIP_BODY),
+        GZIP_BODY,
     ),
 ]
 

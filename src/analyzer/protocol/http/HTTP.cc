@@ -807,6 +807,10 @@ HTTP_Message::HTTP_Message(HTTP_Analyzer* arg_analyzer, analyzer::tcp::ContentLi
 }
 
 HTTP_Message::~HTTP_Message() {
+    // A message replaced before it's done must not leave its file open.
+    if ( ! full_body_fuid.empty() )
+        file_mgr->EndOfFile(full_body_fuid);
+
     delete top_level;
     delete[] entity_data_buffer;
 }
@@ -865,8 +869,9 @@ bool HTTP_Message::Undelivered(int64_t len) {
         content_gap_length += len;
 
         if ( ! full_body_fuid.empty() ) {
-            file_mgr->Gap(full_body_offset, len, MyHTTP_Analyzer()->GetAnalyzerTag(), MyHTTP_Analyzer()->Conn(),
-                          is_orig, full_body_fuid);
+            auto* a = MyHTTP_Analyzer();
+            full_body_fuid =
+                file_mgr->Gap(full_body_offset, len, a->GetAnalyzerTag(), a->Conn(), is_orig, full_body_fuid);
             full_body_offset += len;
         }
 

@@ -200,10 +200,16 @@ function x509_parse%(cert: opaque of x509%): X509::Certificate
 ##              x509_ext_subject_alternative_name x509_verify
 ##              x509_get_certificate_string x509_parse
 function x509_from_der%(der: string%): opaque of x509
-    %{
-    const u_char* data = der->Bytes();
-    return zeek::make_intrusive<zeek::file_analysis::detail::X509Val>(d2i_X509(nullptr, &data, der->Len()));
-    %}
+  %{
+  const u_char* data = der->Bytes();
+  X509* cert = d2i_X509(nullptr, &data, der->Len());
+  if ( ! cert )
+    {
+    zeek::emit_builtin_error("No certificate in der-formatted string");
+    return nullptr;
+    }
+  return zeek::make_intrusive<zeek::file_analysis::detail::X509Val>(cert);
+  %}
 
 ## Returns the string form of a certificate.
 ##

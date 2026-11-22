@@ -319,12 +319,15 @@ struct ServerOptions {
     int max_connections = 100;
     bool per_message_deflate = false;
     size_t max_event_queue_size = 32;
+    // 0 means no limit. Passed to IXWebSocket before listen().
+    uint64_t max_message_size = 0;
     struct TLSOptions tls_options;
 
     bool operator==(const ServerOptions& o) const {
         return host == o.host && port == o.port && ping_interval_seconds == o.ping_interval_seconds &&
                max_connections == o.max_connections && per_message_deflate == o.per_message_deflate &&
-               max_event_queue_size == o.max_event_queue_size && tls_options == o.tls_options;
+               max_event_queue_size == o.max_event_queue_size && max_message_size == o.max_message_size &&
+               tls_options == o.tls_options;
     }
 };
 

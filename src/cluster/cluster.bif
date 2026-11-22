@@ -226,6 +226,7 @@ function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 	};
 
 	server_options.max_event_queue_size = options_rec->GetField<zeek::CountVal>("max_event_queue_size")->Get();
+	server_options.max_message_size = options_rec->GetField<zeek::CountVal>("max_message_size")->Get();
 
 	double ping_interval = options_rec->GetField<zeek::IntervalVal>("ping_interval")->Get();
 	if ( ping_interval < 0.0 )

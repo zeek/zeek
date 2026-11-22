@@ -74,6 +74,12 @@ export {
 	## The default ping interval for WebSocket clients.
 	const default_websocket_ping_interval = 5 sec &redef;
 
+	## The default maximum WebSocket message size, in bytes.
+	##
+	## A value of 0 means no limit. A client that sends a larger message
+	## is disconnected with WebSocket close code 1009.
+	const default_websocket_max_message_size = 0 &redef;
+
 	## The TLS options for a WebSocket server.
 	##
 	## If cert_file and key_file are set, TLS is enabled. If both
@@ -101,6 +107,9 @@ export {
 		listen_port: port;
 		## The maximum event queue size for this server.
 		max_event_queue_size: count &default=default_websocket_max_event_queue_size;
+		## The maximum accepted WebSocket message size, in bytes.
+		## A value of 0 means no limit.
+		max_message_size: count &default=default_websocket_max_message_size;
 		## Ping interval to use. A WebSocket client not responding to
 		## the pings will be disconnected. Set to a negative value to
 		## disable pings. Subsecond intervals are currently not supported.

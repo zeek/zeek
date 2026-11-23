@@ -460,10 +460,18 @@ bool DNP3_Base::ParseAppLayer(Endpoint* endp) {
             DiscardFragment(orig);
         }
         else {
-            fb->FinishBuffer();
-            flow->FlowEOF();
-            endp->in_fragment = false;
-            endp->fragment_len = 0;
+            // A fragment that does not parse (e.g., too short for its
+            // application header): report it and drop only this fragment,
+            // rather than stopping the analysis of the connection.
+            try {
+                fb->FinishBuffer();
+                flow->FlowEOF();
+                endp->in_fragment = false;
+                endp->fragment_len = 0;
+            } catch ( const binpac::Exception& e ) {
+                analyzer->Weird("dnp3_application_fragment_parse_error", e.what());
+                DiscardFragment(orig);
+            }
         }
     }
 

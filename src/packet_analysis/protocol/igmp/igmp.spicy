@@ -9,7 +9,8 @@ module IGMP;
 
 import zeek;
 
-global ignore_checksums: bool = zeek::get_bool("ignore_checksums");
+# The ignore_checksums check can be removed when that variable is removed.
+global ignore_checksums: bool = zeek::get_enum("PacketAnalyzer::checksum_validation") == "VALIDATION_OFF" || zeek::get_bool("ignore_checksums");
 
 # ICMP message types
 type Type = enum {

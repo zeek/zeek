@@ -1786,27 +1786,7 @@ const UDP_ACTIVE = 1;	##< Endpoint has sent something.
 ## of the IPv4 header are also accepted, and the capture-length is used instead.
 ## The total-length field is commonly set to zero when the NIC segmentation
 ## offloading feature is enabled.
-## Note that the ``-C`` command-line option overrides the setting of this
-## variable.
-##
-## .. zeek:see:: drop_bad_checksums
-const ignore_checksums = F &redef;
-
-## If true, packets that fail checksum validation are dropped. Otherwise,
-## by default, packets with bad checksums will be analyzed. Bad checksums are reported
-## through weirds and the connection history (``C`` and ``c``).
-##
-## With this set to false, packets with a value of zero in the
-## total-length field of the IPv4 header are accepted as with
-## :zeek:see:`ignore_checksums`.
-##
-## Analyzing packets with bad checksums (the default) means Zeek may process
-## packets that are discarded by the endpoint. If that matters for your deployment,
-## set this to true.
-##
-## This has no effect for packets whose checksums are not validated due to
-## :zeek:see:`ignore_checksums` or :zeek:see:`ignore_checksums_nets`.
-const drop_bad_checksums = F &redef;
+const ignore_checksums = F &redef &deprecated="Remove in v10.1: Use PacketAnalyzer::checksum_validation = PacketAnalyzer::VALIDATION_OFF to ignore checksums";
 
 ## Checksums are ignored for all packets with a src address within this set of
 ## networks. Useful for cases where a host might be seeing packets collected
@@ -7109,6 +7089,25 @@ export {
 	##
 	## .. zeek:see:: conn_generic_packet_threshold_crossed
 	const generic_packet_thresholds: set[count] = {} &redef;
+}
+
+module PacketAnalyzer;
+
+export {
+	## Sets Zeek's checksum validation behavior. There are three levels:
+	##
+	## ``VALIDATION_ACTIVE`` will drop all packets with invalid checksums, causing
+	## them to not get analyzed.
+	##
+	## ``VALIDATION_REPORT`` will still compute checksums and report if they're
+	## correct, but continue analysis. This may cause Zeek to analyze traffic that
+	## gets dropped by the endpoint.
+	##
+	## ``VALIDATION_OFF`` will skip computing checksums entirely, instead analyzing
+	## all traffic regardless.
+	##
+	## If :zeek:see:`ignore_checksums` is set to true, then this value is ignored.
+	const checksum_validation: ChecksumValidation = VALIDATION_REPORT &redef;
 }
 
 module ZAM::Prof;

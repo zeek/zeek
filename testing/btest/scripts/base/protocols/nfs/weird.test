@@ -20,7 +20,7 @@
 
 @load base/frameworks/notice/weird
 global nfs_ports: set[port] = { 2049/tcp, 2049/udp } &redef;
-redef ignore_checksums = T;
+redef PacketAnalyzer::checksum_validation = PacketAnalyzer::VALIDATION_OFF;
 
 event zeek_init()
 	{

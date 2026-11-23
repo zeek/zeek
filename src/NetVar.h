@@ -8,6 +8,7 @@
 
 #include "zeek/EventRegistry.h"
 #include "zeek/Val.h"
+#include "zeek/types.bif.netvar_h"
 
 namespace zeek::detail {
 
@@ -15,8 +16,8 @@ ZEEK_EXTERN_DATA double watchdog_interval;
 
 ZEEK_EXTERN_DATA int max_timer_expires;
 
-ZEEK_EXTERN_DATA int ignore_checksums;
-ZEEK_EXTERN_DATA int drop_bad_checksums;
+ZEEK_EXTERN_DATA zeek::BifEnum::PacketAnalyzer::ChecksumValidation checksum_validation;
+
 ZEEK_EXTERN_DATA int partial_connection_ok;
 ZEEK_EXTERN_DATA int tcp_SYN_ack_ok;
 ZEEK_EXTERN_DATA int tcp_match_undelivered;
@@ -118,4 +119,3 @@ extern void init_builtin_types();
 #include "zeek/supervisor.bif.netvar_h"
 #include "zeek/telemetry_consts.bif.netvar_h"
 #include "zeek/telemetry_types.bif.netvar_h"
-#include "zeek/types.bif.netvar_h"

@@ -91,7 +91,7 @@ worker_args = worker-eth0-1 worker-eth0-2
 
 [interface eth1]
 interface = af_packet::eth1
-worker_args = AF_Packet::fanout_id=42 ignore_checksums=T worker-eth1-1 worker-eth1-2
+worker_args = AF_Packet::fanout_id=42 PacketAnalyzer::checksum_validation=PacketAnalyzer::VALIDATION_OFF worker-eth1-1 worker-eth1-2
 workers = 2
 workers_cpu_list = 4,5
 worker_nice = -2

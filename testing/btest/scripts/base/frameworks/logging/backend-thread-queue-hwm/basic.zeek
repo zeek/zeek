@@ -24,12 +24,10 @@ export {
 	} &log;
 }
 
-global max_runtime = 3sec;
+global max_runtime = 30sec;
 global tick_batch = 20;
 global tick_interval = 0.01msec;
 global c = 0;
-
-global start_time = current_time();
 
 event tick()
 	{
@@ -40,9 +38,6 @@ event tick()
 		--i;
 		++c;
 		}
-
-	if ( current_time() - start_time > max_runtime )
-		Reporter::fatal("timeout timeout timeout");
 
 	schedule tick_interval { tick() };
 	}
@@ -63,6 +58,19 @@ event reporter_warning(t: time, msg: string, location: string)
 		print "saw 5 drop lines, terminating...";
 		terminate();
 		}
+	}
+
+event fatal_error_on_timeout()
+	{
+	if ( zeek_is_terminating() )
+		return;
+
+	Reporter::fatal(fmt("timeout timeout timeout after %s", max_runtime));
+	}
+
+event network_time_init()
+	{
+	schedule max_runtime { fatal_error_on_timeout() };
 	}
 
 event zeek_init()

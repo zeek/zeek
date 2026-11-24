@@ -89,6 +89,10 @@ std::unique_ptr<WebSocketServer> StartServer(std::unique_ptr<WebSocketEventDispa
                                                         ix::WebSocketServer::kDefaultHandShakeTimeoutSecs,
                                                         address_family, options.ping_interval_seconds);
 
+    // Must be set before listen(). IXWebSocket builds the message buffer
+    // before Zeek's message callback runs.
+    server->setMaxMessageSize(options.max_message_size);
+
     if ( ! options.per_message_deflate )
         server->disablePerMessageDeflate();
 

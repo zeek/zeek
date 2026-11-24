@@ -30,17 +30,22 @@ protected:
         bool in_hdr = false;
         int tpflags = 0;
         int pkt_length = 0;
-        int pkt_cnt = 0;
-        bool encountered_first_chunk = false;
-        bool resync = false;        // after a TCP gap: skip to the next start bytes
-        bool need_fir = false;      // after a TCP gap: drop frames until one starts a fragment (FIR)
-        bool discard_frame = false; // the frame being read continues a fragment cut by a gap
-        int resync_bytes = 0;       // octets skipped while resynchronizing
+        bool resync = false;   // after a TCP gap: skip to the next start bytes
+        bool need_fir = false; // drop segments until one starts a fragment (FIR)
+        int resync_bytes = 0;  // octets skipped while resynchronizing
+
+        // Reassembly of an application fragment from transport segments.
+        bool in_fragment = false;  // a fragment is being reassembled
+        int next_seq = 0;          // sequence number the next segment of the fragment must carry
+        int fragment_len = 0;      // application octets reassembled so far
+        uint16_t fragment_src = 0; // link addresses of the segment that started the fragment
+        uint16_t fragment_dst = 0;
     };
 
     bool ProcessData(int len, const u_char* data, bool orig);
     bool SkipResyncBytes(Endpoint* endp, int n);
     void ClearEndpointState(bool orig);
+    void DiscardFragment(bool orig);
     void DiscardFlowBuffer(bool orig);
 
     /**

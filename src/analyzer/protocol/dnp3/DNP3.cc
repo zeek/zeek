@@ -204,6 +204,26 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
                 return false;
             }
 
+            // A LENGTH below 5 cannot describe a frame: the header fields
+            // after LENGTH count 5 octets. Endpoints reject such a header;
+            // reading on would take the next frame's first octet as the
+            // transport header. Rescan from its second octet, as after a gap.
+            if ( endp->buffer[PSEUDO_LENGTH_INDEX] < 5 ) {
+                analyzer->Weird("dnp3_link_length_too_small");
+                endp->resync = true;
+                endp->resync_bytes = 0;
+                if ( ! SkipResyncBytes(endp, 1) )
+                    return false;
+
+                u_char rest[PSEUDO_APP_LAYER_INDEX];
+                int n = endp->buffer_len - 1;
+                memcpy(rest, endp->buffer + 1, n);
+                endp->buffer_len = 0;
+                if ( ! ProcessData(n, rest, orig) )
+                    return false;
+                continue;
+            }
+
             // If the checksum works out, we're pretty certainly DNP3.
             analyzer->AnalyzerConfirmation();
 
@@ -232,21 +252,10 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
             endp->tpflags = endp->buffer[PSEUDO_TRANSPORT_INDEX];
             endp->in_hdr = false; // Now parsing application layer.
 
-            // After a gap, the next frames may continue an application
-            // fragment whose first frame (FIR) was lost or cut. Skip them
-            // until a frame starts a new fragment, instead of failing on
-            // the missing first chunk.
-            if ( endp->need_fir ) {
-                if ( endp->tpflags & 0x40 )
-                    endp->need_fir = false;
-                else
-                    endp->discard_frame = true;
-            }
-
-            // For the first packet, we submit the header to
-            // BinPAC.
-            if ( ! endp->discard_frame && ++endp->pkt_cnt == 1 )
-                interp->NewData(orig, endp->buffer, endp->buffer + PSEUDO_LINK_LAYER_LEN);
+            // The transport rules are applied once the whole frame has been
+            // read and its CRCs checked (ParseAppLayer): an endpoint's link
+            // layer drops a frame with a bad CRC before its transport
+            // function sees it.
         }
 
         if ( ! endp->in_hdr ) {
@@ -271,13 +280,6 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig) {
 
             if ( res < 0 )
                 return false;
-
-            if ( endp->discard_frame ) {
-                endp->discard_frame = false;
-                endp->buffer_len = 0;
-                endp->in_hdr = true;
-                continue;
-            }
 
             // Parse the application layer data.
             if ( ! ParseAppLayer(endp) )
@@ -342,73 +344,127 @@ bool DNP3_Base::ParseAppLayer(Endpoint* endp) {
     bool orig = (endp == &orig_state);
     binpac::DNP3::DNP3_Flow* flow = orig ? interp->upflow() : interp->downflow();
 
-    u_char* data = endp->buffer + PSEUDO_TRANSPORT_INDEX; // The transport layer byte counts as app-layer it seems.
-    int len = endp->pkt_length - 5;
+    // The frame's user data: the transport octet and the application octets,
+    // in blocks of up to 16 octets, each followed by its CRC.
+    const u_char* data = endp->buffer + PSEUDO_TRANSPORT_INDEX;
+    const int len = endp->pkt_length - 5;
+    const u_char* end = endp->buffer + endp->buffer_len;
 
-    // DNP3 Packet :  DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3 Pseudo Application
-    // Layer DNP3 Serial Transport Layer data is always 1 byte. Get FIN FIR seq field in transport
-    // header. FIR indicate whether the following DNP3 Serial Application Layer is first chunk of
-    // bytes or not. FIN indicate whether the following DNP3 Serial Application Layer is last chunk
-    // of bytes or not.
+    // Check every block first. An endpoint's link layer drops a frame with a
+    // bad CRC, so such a frame must neither change the fragment being
+    // reassembled nor stop the analysis: only this frame is lost.
+    for ( int off = 0, i = 0; off < len; off += 16, i += 18 ) {
+        int n = min(len - off, 16);
 
-    int is_first = (endp->tpflags & 0x40) >> 6; // Initial chunk of data in this packet.
-    int is_last = (endp->tpflags & 0x80) >> 7;  // Last chunk of data in this packet.
-
-    int transport = PSEUDO_TRANSPORT_LEN;
-
-    int i = 0;
-    while ( len > 0 ) {
-        int n = min(len, 16);
-
-        // Make sure chunk has a correct checksum.
-        if ( ! CheckCRC(n, data, data + n, "app_chunk") )
-            return false;
-
-        if ( data + n >= endp->buffer + endp->buffer_len ) {
+        if ( data + i + n + 2 > end ) {
             reporter->AnalyzerError(analyzer, "dnp3 app layer parsing overflow %d - %d", endp->buffer_len, n);
             return false;
         }
 
-        auto* fb = flow->flow_buffer();
+        if ( ! CheckCRC(n, data + i, data + i + n, "app_chunk") )
+            return true;
+    }
 
-        // We're reassembling a DNP3 Application Layer Fragment here. When
-        // the accumulated buffer becomes larger than the configured limit,
-        // raise a limit reached weird and stop analysis. It appears Application
-        // Layer Fragments should range between 2k and 4k in size. Zeek's
-        // default of 100k should be more than sufficient to cover normal uses
-        // and capping here prevents resource exhaustion in face of abnormal
-        // traffic.
-        //
-        // If you see this triggering on benign DNP3 traffic in the wild,
-        // please report to upstream!
-        if ( BifConst::DNP3::max_application_layer_fragment_size > 0 &&
-             static_cast<size_t>(fb->data_length()) > BifConst::DNP3::max_application_layer_fragment_size ) {
-            analyzer->LimitReachedWeird("dnp3_max_application_layer_fragment_size_exceeded",
-                                        BifConst::DNP3::max_application_layer_fragment_size);
-            return false;
+    // Apply the transport function's rules (IEEE 1815, clause 8), the way
+    // endpoints do. Where they differ, prefer the reading that keeps a
+    // request a lenient endpoint would accept: logging a request a stricter
+    // endpoint drops is better than missing one an endpoint executes.
+    const bool fir = endp->tpflags & 0x40;
+    const bool fin = endp->tpflags & 0x80;
+    const int seq = endp->tpflags & 0x3f;
+    const int app_len = len - static_cast<int>(PSEUDO_TRANSPORT_LEN);
+    const uint16_t dst = endp->buffer[4] | (endp->buffer[5] << 8);
+    const uint16_t src = endp->buffer[6] | (endp->buffer[7] << 8);
+
+    if ( fir ) {
+        // A FIR segment starts a new fragment, dropping a partial one.
+        if ( endp->in_fragment ) {
+            analyzer->Weird("dnp3_transport_fragment_restarted");
+            DiscardFragment(orig);
         }
 
-        // Pass on to BinPAC.
-        fb->BufferData(data + transport, data + n);
-        transport = 0;
+        endp->need_fir = false;
+        endp->in_fragment = true;
+        endp->fragment_len = 0;
+        endp->fragment_src = src;
+        endp->fragment_dst = dst;
 
-        data += n + 2;
-        len -= n;
+        // The fragment's PDU starts with the link header of its first frame.
+        interp->NewData(orig, endp->buffer, endp->buffer + PSEUDO_LINK_LAYER_LEN);
     }
 
-    if ( is_first )
-        endp->encountered_first_chunk = true;
+    else if ( endp->need_fir )
+        // It continues a fragment cut by a gap or dropped as oversized.
+        return true;
 
-    if ( ! is_first && ! endp->encountered_first_chunk ) {
-        // We lost the first chunk.
+    else if ( ! endp->in_fragment ) {
         analyzer->Weird("dnp3_first_application_layer_chunk_missing");
-        return false;
+        return true;
     }
 
-    if ( is_last ) {
-        flow->flow_buffer()->FinishBuffer();
-        flow->FlowEOF();
-        ClearEndpointState(orig);
+    else if ( seq != endp->next_seq ) {
+        // Not the next segment (a repeat or a stray one): ignore it and keep
+        // the fragment and the expected sequence number, as opendnp3 does.
+        analyzer->Weird("dnp3_transport_sequence_mismatch");
+        return true;
+    }
+
+    else if ( src != endp->fragment_src || dst != endp->fragment_dst ) {
+        // Ignore a continuation from or to other link addresses, as opendnp3
+        // does.
+        analyzer->Weird("dnp3_transport_address_mismatch");
+        return true;
+    }
+
+    endp->next_seq = (seq + 1) & 0x3f;
+
+    // It appears Application Layer Fragments should range between 2k and 4k
+    // in size. Zeek's default limit of 100k should be more than sufficient to
+    // cover normal uses, and capping prevents resource exhaustion in face of
+    // abnormal traffic. Like an endpoint whose buffer is full, drop the
+    // fragment and wait for the next one, rather than stopping the analysis.
+    //
+    // If you see this triggering on benign DNP3 traffic in the wild,
+    // please report to upstream!
+    if ( BifConst::DNP3::max_application_layer_fragment_size > 0 &&
+         static_cast<size_t>(endp->fragment_len) + static_cast<size_t>(app_len) >
+             BifConst::DNP3::max_application_layer_fragment_size ) {
+        analyzer->LimitReachedWeird("dnp3_max_application_layer_fragment_size_exceeded",
+                                    BifConst::DNP3::max_application_layer_fragment_size);
+        DiscardFragment(orig);
+        endp->need_fir = true;
+        return true;
+    }
+
+    // Pass on to BinPAC, without the transport octet and the CRCs. A segment
+    // may carry no application octets: it still advances the sequence number
+    // and, with FIN, completes the fragment.
+    auto* fb = flow->flow_buffer();
+    int skip = PSEUDO_TRANSPORT_LEN;
+
+    for ( int off = 0, i = 0; off < len; off += 16, i += 18 ) {
+        int n = min(len - off, 16);
+
+        if ( n > skip )
+            fb->BufferData(data + i + skip, data + i + n);
+
+        skip = 0;
+    }
+
+    endp->fragment_len += app_len;
+
+    if ( fin ) {
+        if ( endp->fragment_len == 0 ) {
+            // Only segments without application octets: nothing to parse.
+            analyzer->Weird("dnp3_empty_application_fragment");
+            DiscardFragment(orig);
+        }
+        else {
+            fb->FinishBuffer();
+            flow->FlowEOF();
+            endp->in_fragment = false;
+            endp->fragment_len = 0;
+        }
     }
 
     return true;
@@ -419,12 +475,20 @@ void DNP3_Base::ClearEndpointState(bool orig) {
     binpac::DNP3::DNP3_Flow* flow = orig ? interp->upflow() : interp->downflow();
 
     endp->in_hdr = true;
-    endp->encountered_first_chunk = false;
     endp->buffer_len = 0;
     endp->pkt_length = 0;
     endp->tpflags = 0;
-    endp->pkt_cnt = 0;
-    endp->discard_frame = false;
+    endp->in_fragment = false;
+    endp->fragment_len = 0;
+}
+
+void DNP3_Base::DiscardFragment(bool orig) {
+    auto* flow = orig ? interp->upflow() : interp->downflow();
+    flow->discard_pdu();
+
+    Endpoint* endp = orig ? &orig_state : &resp_state;
+    endp->in_fragment = false;
+    endp->fragment_len = 0;
 }
 
 void DNP3_Base::DiscardFlowBuffer(bool orig) {
@@ -504,11 +568,12 @@ void DNP3_TCP_Analyzer::Undelivered(uint64_t seq, int len, bool orig) {
     // is missing), and the analyzer is skipped for the rest of the
     // connection: a long-lived SCADA connection then goes unanalyzed after a
     // single lost segment.
-    // (NewGap above already resets binpac's buffer; discarding it again here
-    // breaks the flow's state.)
+    // NewGap above resets binpac's buffer, but not the PDU it was parsing:
+    // drop that too, or the next fragment would be parsed as the rest of it.
     Endpoint& endp = orig ? orig_state : resp_state;
     const bool already_resyncing = endp.resync;
     ClearEndpointState(orig);
+    DiscardFragment(orig);
     endp.resync = true;
     endp.need_fir = true;
 

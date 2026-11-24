@@ -80,6 +80,11 @@ Checks: [-*,
          # access to yet.
          -modernize-use-std-format,
          -modernize-use-std-print,
+
+         # This checker is broken for clang-tidy 23 and crashes on some header
+         # from broker. Remove this once either clang-tidy gets fixed or we
+         # remove broker.
+         -performance-unnecessary-value-param
 ]
 
 HeaderFilterRegex: '.h'

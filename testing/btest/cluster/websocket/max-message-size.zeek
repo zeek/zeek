@@ -12,6 +12,7 @@
 #
 # @TEST-EXEC: cp $FILES/zeromq/cluster-layout-simple.zeek cluster-layout.zeek
 # @TEST-EXEC: cp $FILES/zeromq/test-bootstrap.zeek zeromq-test-bootstrap.zeek
+# @TEST-EXEC: cp $FILES/ws/wstest.py .
 #
 # @TEST-EXEC: zeek -b --parse-only manager.zeek
 # @TEST-EXEC: python3 -m py_compile client.py
@@ -51,40 +52,23 @@ event Cluster::websocket_client_lost(info: Cluster::EndpointInfo, code: count, r
 
 
 # @TEST-START-FILE client.py
-import json, os, time
 import websockets.exceptions
-from websockets.sync.client import connect
+import wstest
 
-ws_port = os.environ["WEBSOCKET_PORT"].split("/")[0]
-ws_url = f"ws://127.0.0.1:{ws_port}/v1/messages/json"
-topic = "/zeek/event/my_topic"
 limit = 64
 
 def run(ws_url):
-    with connect(ws_url, max_size=None) as ws:
-        small = json.dumps([topic])
-        assert len(small.encode()) <= limit
-        ws.send(small)
-        ack = json.loads(ws.recv())
-        assert ack["type"] == "ack"
+    with wstest.connect("client", ws_url) as tc:
+        tc.hello_v1([])
         print("small message accepted")
 
-        ws.send("x" * (limit + 1))
         try:
-            ws.recv()
+            tc.send_json("x" * (limit + 1))
+            tc.recv_json()
         except websockets.exceptions.ConnectionClosed as e:
             print(f"large message closed {e.code}")
             assert e.code == 1009
 
-def main():
-    for _ in range(100):
-        try:
-            run(ws_url)
-            return
-        except ConnectionRefusedError:
-            time.sleep(0.1)
-    raise RuntimeError("manager did not accept a connection")
-
 if __name__ == "__main__":
-    main()
+    wstest.main(run, wstest.WS4_URL_V1)
 # @TEST-END-FILE

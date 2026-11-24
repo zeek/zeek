@@ -430,7 +430,7 @@ jobs:
         push: false
 
     - name: Setup ccache
-      uses: hendrikmuhs/ccache-action@dbeefd73e8e2ffc1bbc412570072735eb4db3607 # v1.2.25
+      uses: hendrikmuhs/ccache-action@e91f31892a1d1b8c44424b1a94c0b7f52d337168 # v1.2.26
       with:
         key: ${{ matrix.id }}-${{ github.workflow }}-${{ github.job }}
 
@@ -519,7 +519,7 @@ jobs:
         echo "VCPKG_BINARY_SOURCES=clear;files,$VCPKG_CACHE_DIR,readwrite" >> $env:GITHUB_ENV
 
     - name: Setup ccache
-      uses: hendrikmuhs/ccache-action@dbeefd73e8e2ffc1bbc412570072735eb4db3607 # v1.2.25
+      uses: hendrikmuhs/ccache-action@e91f31892a1d1b8c44424b1a94c0b7f52d337168 # v1.2.26
       with:
         key: ${{ github.workflow }}-${{ github.job }}
 
@@ -567,7 +567,7 @@ jobs:
       run: git submodule update --init --recursive --depth=1
 
     - name: Setup ccache
-      uses: hendrikmuhs/ccache-action@dbeefd73e8e2ffc1bbc412570072735eb4db3607 # v1.2.25
+      uses: hendrikmuhs/ccache-action@e91f31892a1d1b8c44424b1a94c0b7f52d337168 # v1.2.26
       with:
         key: ${{ github.workflow }}-${{ github.job }}-${{ matrix.release }}
 

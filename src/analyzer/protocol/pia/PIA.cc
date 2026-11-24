@@ -200,7 +200,7 @@ void PIA::FirstPacket(bool is_orig, const std::optional<TransportProto>& proto, 
                     ip4_tcp = reinterpret_cast<struct ip*>(dummy_packet);
                     tcp4 = reinterpret_cast<tcphdr*>(dummy_packet + sizeof(struct ip));
                     ip4_tcp->ip_len = sizeof(struct ip) + sizeof(struct tcphdr);
-                    ip4_tcp->ip_hl = sizeof(struct ip) >> 2;
+                    ip4_tcp->ip_hl = sizeof(struct ip) >> 2u;
 
                     // Cast to const so that it doesn't delete it.
                     ip4_tcp_hdr = new IP_Hdr(ip4_tcp, false);
@@ -239,7 +239,7 @@ void PIA::FirstPacket(bool is_orig, const std::optional<TransportProto>& proto, 
                     ip4_udp = reinterpret_cast<struct ip*>(dummy_packet);
                     udp4 = reinterpret_cast<struct udphdr*>(dummy_packet + sizeof(struct ip));
                     ip4_udp->ip_len = sizeof(struct ip) + sizeof(struct udphdr);
-                    ip4_udp->ip_hl = sizeof(struct ip) >> 2;
+                    ip4_udp->ip_hl = sizeof(struct ip) >> 2u;
 
                     // Cast to const so that it doesn't delete it.
                     ip4_udp_hdr = new IP_Hdr(ip4_udp, false);

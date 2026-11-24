@@ -21,12 +21,13 @@ namespace zeek::detail {
 AnonymizeIPAddr* ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS] = {nullptr};
 
 static uint32_t rand32() {
-    return ((util::detail::random_number() & 0xffff) << 16) | (util::detail::random_number() & 0xffff);
+    return ((static_cast<uint32_t>(util::detail::random_number()) & 0xffffu) << 16) |
+           (static_cast<uint32_t>(util::detail::random_number()) & 0xffff);
 }
 
-// From tcpdpriv.
-static int bi_ffs(uint32_t value) {
-    int add = 0;
+// From tcpdpriv, adapted to return uint32_t
+static uint32_t bi_ffs(uint32_t value) {
+    uint32_t add = 0;
     static uint8_t bvals[] = {0, 4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1};
 
     if ( (value & 0xFFFF0000) == 0 ) {
@@ -53,7 +54,7 @@ static int bi_ffs(uint32_t value) {
     return add + bvals[value & 0xf];
 }
 
-static inline uint64_t first_n_bit_mask(int n) { return ~(0xFFFFFFFFU >> n); }
+static inline uint64_t first_n_bit_mask(uint8_t n) { return ~(0xFFFFFFFFU >> n); }
 
 ipaddr32_t AnonymizeIPAddr::Anonymize(ipaddr32_t addr) {
     std::map<ipaddr32_t, ipaddr32_t>::iterator p = mapping.find(addr);
@@ -68,7 +69,7 @@ ipaddr32_t AnonymizeIPAddr::Anonymize(ipaddr32_t addr) {
 }
 
 // Keep the specified prefix unchanged.
-bool AnonymizeIPAddr::PreservePrefix(ipaddr32_t /* input */, int /* num_bits */) {
+bool AnonymizeIPAddr::PreservePrefix(ipaddr32_t /* input */, uint8_t /* num_bits */) {
     reporter->InternalError("prefix preserving is not supported for the anonymizer");
     return false;
 }
@@ -104,7 +105,7 @@ void AnonymizeIPAddr_A50::init() {
     new_mapping = false;
 }
 
-bool AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits) {
+bool AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, uint8_t num_bits) {
     if ( ! before_anonymization ) {
         reporter->Error("prefix preservation specified after anonymization begun");
         return false;
@@ -120,8 +121,7 @@ bool AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits) {
     // Preserve the first num_bits bits of addr.
     if ( num_bits == 32 )
         n->output = input;
-
-    else if ( num_bits > 0 ) {
+    else {
         assert((0xFFFFFFFFU >> 1) == 0x7FFFFFFFU);
         uint32_t suffix_mask = (0xFFFFFFFFU >> num_bits);
         uint32_t prefix_mask = ~suffix_mask;
@@ -179,13 +179,17 @@ inline void AnonymizeIPAddr_A50::free_node(Node* n) {
     next_free_node = n;
 }
 
-ipaddr32_t AnonymizeIPAddr_A50::make_output(ipaddr32_t old_output, int swivel) const {
+ipaddr32_t AnonymizeIPAddr_A50::make_output(ipaddr32_t old_output, uint8_t swivel) const {
+    // Prevent negative shifts below.
+    assert(swivel <= 32);
+
     // -A50 anonymization
     if ( swivel == 32 )
         return old_output ^ 1;
     else {
         // Bits up to swivel are unchanged; bit swivel is flipped.
-        ipaddr32_t known_part = ((old_output >> (32 - swivel)) ^ 1) << (32 - swivel);
+        uint32_t shift = 32 - swivel;
+        ipaddr32_t known_part = ((old_output >> shift) ^ 1) << shift;
 
         // Remainder of bits are random.
         return known_part | ((rand32() & 0x7FFFFFFF) >> swivel);
@@ -212,14 +216,14 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::make_peer(ipaddr32_t a, Node* n)
     }
 
     // swivel is first bit 'a' and 'old->input' differ.
-    int swivel = bi_ffs(a ^ n->input);
+    uint32_t swivel = bi_ffs(a ^ n->input);
 
     // Shifting by more than 31 bits below results in undefined behavior.
     // This shouldn't be possible, but check anyways.
-    ASSERT(swivel > 0);
+    ASSERT(swivel > 0 && swivel < 32);
 
     // bitvalue is the value of that bit of 'a'.
-    int bitvalue = (a >> (32 - swivel)) & 1;
+    int bitvalue = (a >> static_cast<uint32_t>(32 - swivel)) & 1;
 
     down[bitvalue]->input = a;
     down[bitvalue]->output = make_output(n->output, swivel);
@@ -260,9 +264,8 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a) {
             n = make_peer(a, n);
 
         else {
-            // swivel is the first bit in which the two children
-            // differ.
-            int swivel = bi_ffs(n->child[0]->input ^ n->child[1]->input);
+            // swivel is the first bit in which the two children differ.
+            uint32_t swivel = bi_ffs(n->child[0]->input ^ n->child[1]->input);
 
             // Shifting by more than 31 bits below results in undefined behavior.
             // This shouldn't be possible, but check anyways.
@@ -272,7 +275,7 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a) {
                 // Input differs earlier.
                 n = make_peer(a, n);
 
-            else if ( a & (1 << (32 - swivel)) )
+            else if ( a & (1u << static_cast<uint32_t>(32 - swivel)) )
                 n = n->child[1];
 
             else
@@ -310,13 +313,14 @@ ipaddr32_t AnonymizeIPAddr_PrefixSHA256::anonymize(ipaddr32_t input) {
     for ( int i = 0; i < 32; ++i ) {
         // PAD(x_0 ... x_{i-1}) = x_0 ... x_{i-1} 1 0 ... 0 .
         prefix.len = htonl(i + 1);
-        prefix.prefix = htonl((input & ~(prefix_mask >> i)) | (1 << (31 - i)));
+        prefix.prefix = htonl((input & ~(prefix_mask >> static_cast<uint32_t>(i))) |
+                              static_cast<uint32_t>(1 << static_cast<uint32_t>(31 - i)));
 
         // HK(PAD(x_0 ... x_{i-1})).
         util::detail::hmac_sha256(sizeof(prefix), reinterpret_cast<u_char*>(&prefix), digest);
 
         // f_{i-1} = LSB(HK(PAD(x_0 ... x_{i-1}))).
-        ipaddr32_t bit_mask = (digest[0] & 1) << (31 - i);
+        ipaddr32_t bit_mask = (digest[0] & 1u) << static_cast<uint32_t>(31 - i);
 
         // x_i' = x_i ^ f_{i-1}.
         output ^= bit_mask;

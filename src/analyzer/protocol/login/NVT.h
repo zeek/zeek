@@ -27,15 +27,15 @@ public:
 
     bool IsActive() const { return active; }
 
-    bool SaidWill() const { return flags & OPT_SAID_WILL; }
-    bool SaidWont() const { return flags & OPT_SAID_WONT; }
-    bool SaidDo() const { return flags & OPT_SAID_DO; }
-    bool SaidDont() const { return flags & OPT_SAID_DONT; }
+    bool SaidWill() const { return flags & static_cast<uint32_t>(OPT_SAID_WILL); }
+    bool SaidWont() const { return flags & static_cast<uint32_t>(OPT_SAID_WONT); }
+    bool SaidDo() const { return flags & static_cast<uint32_t>(OPT_SAID_DO); }
+    bool SaidDont() const { return flags & static_cast<uint32_t>(OPT_SAID_DONT); }
 
-    void SetWill() { flags |= OPT_SAID_WILL; }
-    void SetWont() { flags |= OPT_SAID_WONT; }
-    void SetDo() { flags |= OPT_SAID_DO; }
-    void SetDont() { flags |= OPT_SAID_DONT; }
+    void SetWill() { flags |= static_cast<uint32_t>(OPT_SAID_WILL); }
+    void SetWont() { flags |= static_cast<uint32_t>(OPT_SAID_WONT); }
+    void SetDo() { flags |= static_cast<uint32_t>(OPT_SAID_DO); }
+    void SetDont() { flags |= static_cast<uint32_t>(OPT_SAID_DONT); }
 
     void RecvOption(unsigned int type);
     virtual void RecvSubOption(u_char* data, int len);
@@ -51,7 +51,7 @@ protected:
 
     NVT_Analyzer* endp = nullptr;
     unsigned int code;
-    int flags = 0;
+    unsigned int flags = 0;
     bool active = false;
 };
 

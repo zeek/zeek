@@ -47,7 +47,7 @@ public:
 
     ipaddr32_t Anonymize(ipaddr32_t addr);
 
-    virtual bool PreservePrefix(ipaddr32_t input, int num_bits);
+    virtual bool PreservePrefix(ipaddr32_t input, uint8_t num_bits);
 
     virtual ipaddr32_t anonymize(ipaddr32_t addr) = 0;
 
@@ -88,7 +88,7 @@ public:
     ~AnonymizeIPAddr_A50() override;
 
     ipaddr32_t anonymize(ipaddr32_t addr) override;
-    bool PreservePrefix(ipaddr32_t input, int num_bits) override;
+    bool PreservePrefix(ipaddr32_t input, uint8_t num_bits) override;
 
 protected:
     struct Node {
@@ -116,7 +116,7 @@ protected:
     Node* new_node_block();
     void free_node(Node*);
 
-    ipaddr32_t make_output(ipaddr32_t, int) const;
+    ipaddr32_t make_output(ipaddr32_t old_output, uint8_t swivel) const;
     Node* make_peer(ipaddr32_t, Node*);
     Node* find_node(ipaddr32_t);
 };

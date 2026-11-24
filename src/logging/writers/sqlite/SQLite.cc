@@ -122,7 +122,10 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
         tablename = it->second;
 
     if ( checkError(sqlite3_open_v2(fullpath.string().c_str(), &db,
-                                    SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr)) )
+                                    static_cast<int>(static_cast<unsigned int>(SQLITE_OPEN_READWRITE) |
+                                                     static_cast<unsigned int>(SQLITE_OPEN_CREATE) |
+                                                     static_cast<unsigned int>(SQLITE_OPEN_NOMUTEX)),
+                                    nullptr)) )
         return false;
 
     char* errorMsg = nullptr;

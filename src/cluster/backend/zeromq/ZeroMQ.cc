@@ -990,6 +990,9 @@ void ZeroMQBackend::Run() {
 
             for ( size_t i = 0; i < poll_items.size(); i++ ) {
                 const auto& item = poll_items[i];
+
+                // Avoid clang-tidy warnings with the ZMQ constants below
+                // NOLINTBEGIN(bugprone-signed-bitwise)
                 ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::POLL, "poll: items[%zu]=%s %s %s\n", i, sockets[i].name.c_str(),
                                            item.revents & ZMQ_POLLIN ? "pollin " : "",
                                            item.revents & ZMQ_POLLERR ? "err" : "");
@@ -1003,6 +1006,7 @@ void ZeroMQBackend::Run() {
                 // Nothing to do?
                 if ( (item.revents & ZMQ_POLLIN) == 0 )
                     continue;
+                // NOLINTEND(bugprone-signed-bitwise)
 
                 bool consumed_one = false;
 

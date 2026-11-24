@@ -17,7 +17,6 @@ Checks: [-*,
          # Skipping these temporarily because they are very noisy
          -bugprone-forward-declaration-namespace,
          -bugprone-narrowing-conversions,
-         -bugprone-signed-bitwise,
          -bugprone-unchecked-optional-access,
          -bugprone-unchecked-string-to-number-conversion,
          -modernize-use-integer-sign-comparison,
@@ -80,6 +79,11 @@ Checks: [-*,
          # access to yet.
          -modernize-use-std-format,
          -modernize-use-std-print,
+
+         # This checker is broken for clang-tidy 23 and crashes on some header
+         # from broker. Remove this once either clang-tidy gets fixed or we
+         # remove broker.
+         -performance-unnecessary-value-param
 ]
 
 HeaderFilterRegex: '.h'
@@ -90,4 +94,6 @@ CheckOptions:
       value: 'true'
     - key: performance-unnecessary-value-param.AllowedTypes
       value: zeek::.*Ptr;zeek::plugin::HookArgument
+    - key: bugprone-signed-bitwise.IgnorePositiveIntegerLiterals
+      value: 'true'
 WarningsAsErrors: '*'

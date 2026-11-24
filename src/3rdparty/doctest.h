@@ -6119,7 +6119,7 @@ int Context::run() {
         QueryData qdata;
         qdata.run_stats = g_cs;
         qdata.data = queryResults.data();
-        qdata.num_data = static_cast<unsigned>(queryResults.size());
+        qdata.num_data = static_cast<unsigned int>(queryResults.size());
         DOCTEST_ITERATE_THROUGH_REPORTERS(report_query, qdata);
     }
 
@@ -7130,17 +7130,17 @@ void ConsoleReporter::test_run_end(const TestRunStats &p) {
     s << std::dec;
 
     auto totwidth = static_cast<int>(std::ceil(
-        log10(static_cast<double>(std::max(p.numTestCasesPassingFilters, static_cast<unsigned>(p.numAsserts))) + 1)
+        log10(static_cast<double>(std::max(p.numTestCasesPassingFilters, static_cast<unsigned int>(p.numAsserts))) + 1)
     ));
     auto passwidth = static_cast<int>(std::ceil(log10(
         static_cast<double>(std::max(
             p.numTestCasesPassingFilters - p.numTestCasesFailed,
-            static_cast<unsigned>(p.numAsserts - p.numAssertsFailed)
+            static_cast<unsigned int>(p.numAsserts - p.numAssertsFailed)
         )) +
         1
     )));
     auto failwidth = static_cast<int>(std::ceil(
-        log10(static_cast<double>(std::max(p.numTestCasesFailed, static_cast<unsigned>(p.numAssertsFailed))) + 1)
+        log10(static_cast<double>(std::max(p.numTestCasesFailed, static_cast<unsigned int>(p.numAssertsFailed))) + 1)
     ));
     const bool anythingFailed = p.numTestCasesFailed > 0 || p.numAssertsFailed > 0;
     s << Color::Cyan << "[doctest] " << Color::None << "test cases: " << std::setw(totwidth)
@@ -8070,7 +8070,7 @@ public:
 
         const std::streampos pos = stack.back();
         stack.pop_back();
-        const unsigned sz = static_cast<unsigned>(ss.tellp() - pos);
+        const unsigned sz = static_cast<unsigned int>(ss.tellp() - pos);
         ss.rdbuf()->pubseekpos(pos, std::ios::in | std::ios::out);
         return String(ss, sz);
     }
@@ -8415,7 +8415,7 @@ String toString(char signed in) {
     return detail::toStreamLit(static_cast<signed>(in));
 }
 String toString(char unsigned in) {
-    return detail::toStreamLit(static_cast<unsigned>(in));
+    return detail::toStreamLit(static_cast<unsigned int>(in));
 }
 String toString(short in) {
     return detail::toStreamLit(in);

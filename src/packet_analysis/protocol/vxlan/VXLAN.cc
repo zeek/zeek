@@ -2,6 +2,8 @@
 
 #include "zeek/packet_analysis/protocol/vxlan/VXLAN.h"
 
+#include <pcap/dlt.h> // DLT_EN10MB
+
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 #include "zeek/packet_analysis/protocol/vxlan/events.bif.h"
 
@@ -53,8 +55,9 @@ bool VXLAN_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
     }
 
     int encap_index = 0;
-    auto inner_packet = packet_analysis::IPTunnel::build_inner_packet(packet, &encap_index, nullptr, len, data, DLT_RAW,
-                                                                      BifEnum::Tunnel::VXLAN, GetAnalyzerTag());
+    auto inner_packet =
+        packet_analysis::IPTunnel::build_inner_packet(packet, &encap_index, nullptr, len, data, DLT_EN10MB,
+                                                      BifEnum::Tunnel::VXLAN, GetAnalyzerTag());
 
     bool analysis_succeeded = ForwardPacket(len, data, inner_packet.get());
 

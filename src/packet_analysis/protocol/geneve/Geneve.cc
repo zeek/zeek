@@ -2,6 +2,7 @@
 
 #include "zeek/packet_analysis/protocol/geneve/Geneve.h"
 
+#include <pcap/dlt.h> // DLT_EN10MB
 #include <span>
 
 #include "zeek/packet_analysis/protocol/geneve/events.bif.h"
@@ -112,9 +113,24 @@ bool GeneveAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         return false;
     }
 
+    // Zeek creates an inner packet for the encapsulated payload. Select
+    // DLT_RAW as default link type, but use DLT_EN10MB in case the
+    // next_header (Protocol Type) indicates Transparent Ethernet
+    // Bridging (ETH_P_TEB) as some methods on the Packet instance, notably
+    // ToRawPktHdrVal() rely on the link_type member to be set properly.
+    //
+    // Would be nice if this was configurable from script land or
+    // generalized among tunnel analyzers (maybe after #5847).
+    constexpr int ETH_P_TEB = 0x6558;
+
+    int link_type = DLT_RAW;
+    if ( next_header == ETH_P_TEB )
+        link_type = DLT_EN10MB;
+
     int encap_index = 0;
-    auto inner_packet = packet_analysis::IPTunnel::build_inner_packet(packet, &encap_index, nullptr, len, data, DLT_RAW,
-                                                                      BifEnum::Tunnel::GENEVE, GetAnalyzerTag());
+    auto inner_packet =
+        packet_analysis::IPTunnel::build_inner_packet(packet, &encap_index, nullptr, len, data, link_type,
+                                                      BifEnum::Tunnel::GENEVE, GetAnalyzerTag());
 
     bool analysis_succeeded = ForwardPacket(len, data, inner_packet.get(), next_header);
 

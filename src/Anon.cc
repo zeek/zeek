@@ -310,7 +310,7 @@ ipaddr32_t AnonymizeIPAddr_PrefixSHA256::anonymize(ipaddr32_t input) {
     input = ntohl(input);
     ipaddr32_t output = input;
 
-    for ( int i = 0; i < 32; ++i ) {
+    for ( unsigned int i = 0; i < 32; ++i ) {
         // PAD(x_0 ... x_{i-1}) = x_0 ... x_{i-1} 1 0 ... 0 .
         prefix.len = htonl(i + 1);
         prefix.prefix = htonl((input & ~(prefix_mask >> static_cast<uint32_t>(i))) |

@@ -30,17 +30,17 @@ bool SNAPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
     data += llc_header_len;
     len -= llc_header_len;
 
-    int oui = (static_cast<uint32_t>(data[0]) << 16u) | (static_cast<uint32_t>(data[1]) << 8u) | data[2];
-    int protocol = (static_cast<uint32_t>(data[3]) << 8u) | data[4];
+    unsigned int oui = (static_cast<uint32_t>(data[0]) << 16u) | (static_cast<uint32_t>(data[1]) << 8u) | data[2];
+    unsigned int protocol = (static_cast<uint32_t>(data[3]) << 8u) | data[4];
 
     data += 5;
     len -= 5;
 
     // Protocol values for SNAP can differ based what OUI publishes them, so use a
     // combination of them for the identifier used to forward.
-    int64_t identifier = oui;
-    identifier = static_cast<int64_t>(static_cast<uint64_t>(identifier) << 16u);
-    identifier = static_cast<int64_t>(static_cast<uint64_t>(identifier) | static_cast<uint64_t>(protocol));
+    uint64_t identifier = oui;
+    identifier <<= 16;
+    identifier |= protocol;
 
     return ForwardPacket(len, data, packet, identifier);
 }

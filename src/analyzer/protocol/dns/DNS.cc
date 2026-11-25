@@ -924,7 +924,7 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                     int bits_left = opt.ecs_src_pfx_len;
 
                     while ( bits_left > 0 ) {
-                        addr |= option_data[0] << (shift_factor * 8);
+                        addr |= static_cast<uint32_t>(option_data[0]) << (shift_factor * 8);
                         option_data++;
                         shift_factor--;
                         option_remaining--;
@@ -955,7 +955,7 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                     int i = 0;
 
                     while ( bits_left > 0 ) {
-                        addr[i / 4] |= option_data[0] << ((shift_factor % 4) * 8);
+                        addr[i / 4] |= static_cast<uint32_t>(option_data[0]) << ((shift_factor % 4) * 8);
                         option_data++;
                         i++;
                         shift_factor--;

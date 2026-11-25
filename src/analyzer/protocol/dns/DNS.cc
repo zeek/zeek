@@ -1,7 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-// NOLINTBEGIN(bugprone-signed-bitwise)
-
 #include "zeek/analyzer/protocol/dns/DNS.h"
 
 #include <arpa/inet.h>
@@ -100,7 +98,7 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
     // even though it will probably be reparsed later.
     auto* hdr = reinterpret_cast<const detail::DNS_RawMsgHdr*>(data);
     auto flags = ntohs(hdr->flags);
-    auto opcode = static_cast<uint16_t>((flags & 0x7800) >> 11);
+    auto opcode = static_cast<uint16_t>((flags & 0x7800u) >> 11);
 
     // NetBIOS registration and release messages look like regular DNS requests, so parse them as such
     if ( opcode != DNS_OP_QUERY && opcode != DNS_OP_DYNAMIC_UPDATE && ! is_netbios && opcode != DNS_OP_NOTIFY ) {
@@ -562,7 +560,7 @@ DNS_Interpreter::LabelParseState DNS_Interpreter::ExtractLabel(const u_char*& da
             return LabelParseState::ParseError;
         }
 
-        auto offset = (label_len & ~0xc0) << 8;
+        auto offset = (label_len & ~0xc0u) << 8u;
 
         offset |= *data;
 
@@ -896,9 +894,9 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
 
                 detail::EDNS_ECS opt{};
                 auto ecs_family = ExtractShort(option_data, option_remaining);
-                auto source_scope = ExtractShort(option_data, option_remaining);
-                opt.ecs_src_pfx_len = (source_scope >> 8) & 0xff;
-                opt.ecs_scp_pfx_len = source_scope & 0xff;
+                unsigned int source_scope = ExtractShort(option_data, option_remaining);
+                opt.ecs_src_pfx_len = (source_scope >> 8) & 0xffu;
+                opt.ecs_scp_pfx_len = source_scope & 0xffu;
 
                 // ADDRESS, variable number of octets, contains either an IPv4 or
                 // IPv6 address, depending on FAMILY, which MUST be truncated to the
@@ -924,7 +922,7 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                     int bits_left = opt.ecs_src_pfx_len;
 
                     while ( bits_left > 0 ) {
-                        addr |= static_cast<uint32_t>(option_data[0]) << (shift_factor * 8);
+                        addr |= static_cast<uint32_t>(option_data[0]) << (shift_factor * 8u);
                         option_data++;
                         shift_factor--;
                         option_remaining--;
@@ -955,7 +953,7 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                     int i = 0;
 
                     while ( bits_left > 0 ) {
-                        addr[i / 4] |= static_cast<uint32_t>(option_data[0]) << ((shift_factor % 4) * 8);
+                        addr[i / 4] |= static_cast<uint32_t>(option_data[0]) << ((shift_factor % 4) * 8u);
                         option_data++;
                         i++;
                         shift_factor--;
@@ -1158,8 +1156,8 @@ bool DNS_Interpreter::ParseRR_RRSIG(detail::DNS_MsgInfo* msg, const u_char*& dat
 
     auto type_covered = ExtractShort(data, len);
     // split the two bytes for algo and labels extraction
-    auto algo_lab = ExtractShort(data, len);
-    auto algo = (algo_lab >> 8) & 0xff;
+    unsigned int algo_lab = ExtractShort(data, len);
+    auto algo = (algo_lab >> 8) & 0xffu;
     auto lab = algo_lab & 0xff;
 
     auto orig_ttl = ExtractLong(data, len);
@@ -1233,8 +1231,8 @@ bool DNS_Interpreter::ParseRR_DNSKEY(detail::DNS_MsgInfo* msg, const u_char*& da
 
     auto dflags = ExtractShort(data, len);
     // split the two bytes for protocol and algorithm extraction
-    auto proto_algo = ExtractShort(data, len);
-    auto dprotocol = (proto_algo >> 8) & 0xff;
+    unsigned int proto_algo = ExtractShort(data, len);
+    auto dprotocol = (proto_algo >> 8) & 0xffu;
     auto dalgorithm = proto_algo & 0xff;
     auto dsa = static_cast<detail::DNSSEC_Algo>(dalgorithm);
     // Evaluating the size of remaining bytes for Public Key
@@ -1319,8 +1317,8 @@ bool DNS_Interpreter::ParseRR_NSEC(detail::DNS_MsgInfo* msg, const u_char*& data
     size_t bitmaps_total = 0;
 
     while ( typebitmaps_len > 0 && len > 0 ) {
-        auto block_bmlen = ExtractShort(data, len);
-        auto win_blck = (block_bmlen >> 8) & 0xff;
+        unsigned int block_bmlen = ExtractShort(data, len);
+        auto win_blck = (block_bmlen >> 8) & 0xffu;
         auto bmlen = block_bmlen & 0xff;
 
         if ( bmlen == 0 ) {
@@ -1364,8 +1362,8 @@ bool DNS_Interpreter::ParseRR_NSEC3(detail::DNS_MsgInfo* msg, const u_char*& dat
         return false;
 
     const u_char* data_start = data;
-    auto halgo_flags = ExtractShort(data, len);
-    auto hash_algo = (halgo_flags >> 8) & 0xff;
+    unsigned int halgo_flags = ExtractShort(data, len);
+    auto hash_algo = (halgo_flags >> 8) & 0xffu;
     auto nsec_flags = halgo_flags & 0xff;
     auto iter = ExtractShort(data, len);
 
@@ -1396,8 +1394,8 @@ bool DNS_Interpreter::ParseRR_NSEC3(detail::DNS_MsgInfo* msg, const u_char*& dat
     size_t bitmaps_total = 0;
 
     while ( typebitmaps_len > 0 && len > 0 ) {
-        auto block_bmlen = ExtractShort(data, len);
-        auto win_blck = (block_bmlen >> 8) & 0xff;
+        unsigned int block_bmlen = ExtractShort(data, len);
+        auto win_blck = (block_bmlen >> 8) & 0xffu;
         auto bmlen = block_bmlen & 0xff;
 
         if ( bmlen == 0 ) {
@@ -1450,8 +1448,8 @@ bool DNS_Interpreter::ParseRR_NSEC3PARAM(detail::DNS_MsgInfo* msg, const u_char*
     if ( len < 5 )
         return false;
 
-    auto halgo_flags = ExtractShort(data, len);
-    auto hash_algo = (halgo_flags >> 8) & 0xff;
+    unsigned int halgo_flags = ExtractShort(data, len);
+    auto hash_algo = (halgo_flags >> 8) & 0xffu;
     auto nsec_flags = halgo_flags & 0xff;
     auto iter = ExtractShort(data, len);
 
@@ -1493,8 +1491,8 @@ bool DNS_Interpreter::ParseRR_DS(detail::DNS_MsgInfo* msg, const u_char*& data, 
 
     auto ds_key_tag = ExtractShort(data, len);
     // split the two bytes for algorithm and digest type extraction
-    auto ds_algo_dtype = ExtractShort(data, len);
-    auto ds_algo = (ds_algo_dtype >> 8) & 0xff;
+    unsigned int ds_algo_dtype = ExtractShort(data, len);
+    auto ds_algo = (ds_algo_dtype >> 8) & 0xffu;
     auto ds_dtype = ds_algo_dtype & 0xff;
     auto ds_digest_type = static_cast<detail::DNSSEC_Digest>(ds_dtype);
     String* ds_digest = ExtractStream(data, len, rdlength - 4);
@@ -1537,7 +1535,7 @@ bool DNS_Interpreter::ParseRR_BINDS(detail::DNS_MsgInfo* msg, const u_char*& dat
 
     auto algo = (algo_keyid_rflag >> 24) & 0xff;
     auto keyid1 = (algo_keyid_rflag >> 16) & 0xff;
-    auto keyid2 = (algo_keyid_rflag >> 8) & 0xff;
+    auto keyid2 = (algo_keyid_rflag >> 8) & 0xffu;
     auto rmflag = algo_keyid_rflag & 0xff;
 
     auto keyid = (keyid1 << 8) | keyid2;
@@ -1569,8 +1567,8 @@ bool DNS_Interpreter::ParseRR_SSHFP(detail::DNS_MsgInfo* msg, const u_char*& dat
     if ( len < 2 )
         return false;
 
-    auto algo_fptype = ExtractShort(data, len);
-    auto algo = (algo_fptype >> 8) & 0xff;
+    unsigned int algo_fptype = ExtractShort(data, len);
+    auto algo = (algo_fptype >> 8) & 0xffu;
     auto fptype = algo_fptype & 0xff;
 
     String* fingerprint = ExtractStream(data, len, rdlength - 2);
@@ -1601,13 +1599,13 @@ bool DNS_Interpreter::ParseRR_LOC(detail::DNS_MsgInfo* msg, const u_char*& data,
     int remaining = rdlength;
 
     // split the two bytes for version and size extraction
-    auto ver_size = ExtractShort(rr_data, remaining);
-    auto version = (ver_size >> 8) & 0xff;
+    unsigned int ver_size = ExtractShort(rr_data, remaining);
+    auto version = (ver_size >> 8) & 0xffu;
     auto size = ver_size & 0xff;
 
     // split the two bytes for horizontal and vertical precision extraction
-    auto horiz_vert = ExtractShort(rr_data, remaining);
-    auto horiz_pre = (horiz_vert >> 8) & 0xff;
+    unsigned int horiz_vert = ExtractShort(rr_data, remaining);
+    auto horiz_pre = (horiz_vert >> 8) & 0xffu;
     auto vert_pre = horiz_vert & 0xff;
 
     auto latitude = ExtractLong(rr_data, remaining);
@@ -2022,16 +2020,16 @@ DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, bool arg_is_query, bool arg_is_netb
     // ### Need to fix alignment if hdr is misaligned (not on a short boundary).
     uint16_t flags = ntohs(hdr->flags);
 
-    QR = (flags & 0x8000) != 0;
-    opcode = (flags & 0x7800) >> 11;
-    AA = (flags & 0x0400) != 0;
-    TC = (flags & 0x0200) != 0;
-    RD = (flags & 0x0100) != 0;
-    RA = (flags & 0x0080) != 0;
-    Z = (flags & 0x0070) >> 4;
-    AD = (flags & 0x0020) >> 5;
-    CD = (flags & 0x0010) >> 4;
-    rcode = (flags & 0x000f);
+    QR = (flags & 0x8000u) != 0;
+    opcode = (flags & 0x7800u) >> 11;
+    AA = (flags & 0x0400u) != 0;
+    TC = (flags & 0x0200u) != 0;
+    RD = (flags & 0x0100u) != 0;
+    RA = (flags & 0x0080u) != 0;
+    Z = (flags & 0x0070u) >> 4;
+    AD = (flags & 0x0020u) >> 5;
+    CD = (flags & 0x0010u) >> 4;
+    rcode = (flags & 0x000fu);
 
     qd_zo_count = ntohs(hdr->qd_zo_count);
     an_pr_count = ntohs(hdr->an_pr_count);
@@ -2442,5 +2440,3 @@ void DNS_Analyzer::ExpireTimer(double t) {
 }
 
 } // namespace zeek::analyzer::dns
-
-// NOLINTEND(bugprone-signed-bitwise)

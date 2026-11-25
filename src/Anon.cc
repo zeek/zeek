@@ -313,14 +313,13 @@ ipaddr32_t AnonymizeIPAddr_PrefixSHA256::anonymize(ipaddr32_t input) {
     for ( unsigned int i = 0; i < 32; ++i ) {
         // PAD(x_0 ... x_{i-1}) = x_0 ... x_{i-1} 1 0 ... 0 .
         prefix.len = htonl(i + 1);
-        prefix.prefix = htonl((input & ~(prefix_mask >> static_cast<uint32_t>(i))) |
-                              static_cast<uint32_t>(1 << static_cast<uint32_t>(31 - i)));
+        prefix.prefix = htonl((input & ~(prefix_mask >> i)) | (1u << (31 - i)));
 
         // HK(PAD(x_0 ... x_{i-1})).
         util::detail::hmac_sha256(sizeof(prefix), reinterpret_cast<u_char*>(&prefix), digest);
 
         // f_{i-1} = LSB(HK(PAD(x_0 ... x_{i-1}))).
-        ipaddr32_t bit_mask = (digest[0] & 1u) << static_cast<uint32_t>(31 - i);
+        ipaddr32_t bit_mask = (digest[0] & 1u) << (31 - i);
 
         // x_i' = x_i ^ f_{i-1}.
         output ^= bit_mask;

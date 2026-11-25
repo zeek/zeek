@@ -108,8 +108,8 @@ RecordValPtr TeredoEncapsulation::BuildVal(const std::shared_ptr<IP_Hdr>& inner)
 
     if ( origin_indication ) {
         auto teredo_origin = make_intrusive<RecordVal>(teredo_origin_type);
-        uint16_t port = static_cast<uint16_t>(
-            static_cast<uint32_t>(ntohs(*reinterpret_cast<const uint16_t*>(origin_indication + 2))) ^ 0xFFFFu);
+        uint16_t port =
+            static_cast<uint16_t>(ntohs(*reinterpret_cast<const uint16_t*>(origin_indication + 2)) ^ 0xFFFFu);
         uint32_t addr = ntohl(*reinterpret_cast<const uint32_t*>(origin_indication + 4)) ^ 0xFFFFFFFF;
         teredo_origin->Assign(0, val_mgr->Port(port, TRANSPORT_UDP));
         teredo_origin->Assign(1, make_intrusive<AddrVal>(htonl(addr)));

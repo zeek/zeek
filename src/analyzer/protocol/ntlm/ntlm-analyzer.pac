@@ -29,14 +29,36 @@
 		return result;
 		}
 
+	// Check if a string looks like UTF-16LE. OEM text has no NUL, whereas
+	// UTF-16LE text that starts with a character from U+0001 to U+00FF has
+	// a NUL as its second byte.
+	bool looks_like_utf16le(const bytestring& s)
+		{
+		return s.length() >= 2 && s.length() % 2 == 0 &&
+		       s[0] != 0 && s[1] == 0;
+		}
+
 	zeek::StringValPtr ntlm_string_val(zeek::Connection* conn, NTLM_String* val)
 		{
+		const bytestring& data = val->string()->data();
+
 		if ( val->unicode() )
-			return utf16_to_utf8_val(conn, val->string()->data());
+			return utf16_to_utf8_val(conn, data);
+
+		// Some senders write a string in UTF-16LE although the message says
+		// OEM: always for the NEGOTIATE's strings (MS-NLMP 2.2.1.1), or without
+		// NTLMSSP_NEGOTIATE_UNICODE otherwise.
+		if ( looks_like_utf16le(data) )
+			{
+			auto raw = zeek::util::get_escaped_string(reinterpret_cast<const char*>(data.begin()),
+			                                          data.length(), false);
+			zeek::reporter->Weird(conn, "ntlm_unicode_in_oem_string", raw.c_str());
+			return utf16_to_utf8_val(conn, data);
+			}
 
 		// OEM strings are in the sender's code page, which the message
 		// doesn't name: keep their bytes as they are.
-		return to_stringval(val->string()->data());
+		return to_stringval(data);
 		}
 
 	zeek::RecordValPtr build_negotiate_flag_record(NTLM_Negotiate_Flags* val)

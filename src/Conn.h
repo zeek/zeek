@@ -153,10 +153,9 @@ public:
 
     inline bool FlagEvent(ConnEventToFlag e) {
         if ( e >= 0 && e < NUM_EVENTS_TO_FLAG ) {
-            if ( static_cast<uint32_t>(suppress_event) & (1u << static_cast<unsigned int>(e)) )
+            if ( suppress_event & (1u << e) )
                 return false;
-            suppress_event =
-                static_cast<int>(static_cast<uint32_t>(suppress_event) | (1u << static_cast<unsigned int>(e)));
+            suppress_event |= 1u << e;
         }
 
         return true;
@@ -207,7 +206,7 @@ private:
     std::optional<uint16_t> vlan, inner_vlan;  // VLAN this connection traverses, if available
     u_char orig_l2_addr[Packet::L2_ADDR_LEN];  // Link-layer originator address, if available
     u_char resp_l2_addr[Packet::L2_ADDR_LEN];  // Link-layer responder address, if available
-    int suppress_event;                        // suppress certain events to once per conn.
+    uint32_t suppress_event;                   // suppress certain events to once per conn.
     RecordValPtr conn_val;
     std::shared_ptr<EncapsulationStack> encapsulation; // tunnels
 

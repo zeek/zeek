@@ -33,7 +33,7 @@ string orig_label(bool is_orig)
 	public:
 		int operator()(uint24 * num) const
 		{
-		return (static_cast<int>(num->byte1()) << 16) | (static_cast<int>(num->byte2()) << 8) | num->byte3();
+		return (static_cast<unsigned int>(num->byte1()) << 16) | (static_cast<unsigned int>(num->byte2()) << 8) | num->byte3();
 		}
 
 		uint64 operator()(uint48 * num) const

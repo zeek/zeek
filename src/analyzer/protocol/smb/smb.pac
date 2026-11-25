@@ -104,7 +104,7 @@ type uint24 = record {
 
 function to_int(num: uint24): uint32
 	%{
-	return (num->byte1() << 16) | (num->byte2() << 8) | num->byte3();
+	return (static_cast<unsigned int>(num->byte1()) << 16) | (static_cast<unsigned int>(num->byte2()) << 8) | num->byte3();
 	%}
 
 type SMB_TCP(is_orig: bool) = record {

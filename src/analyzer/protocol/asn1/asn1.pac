@@ -109,7 +109,7 @@ function binary_to_int64(bs: bytestring): int64
 	for ( int i = 0; i < bs.length(); ++i )
 		{
 		uint64 byte = bs[i];
-		rval |= byte << (8 * (bs.length() - (i + 1)));
+		rval |= byte << (8u * (bs.length() - (i + 1)));
 		}
 
 	return rval;

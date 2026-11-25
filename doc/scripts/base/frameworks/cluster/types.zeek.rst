@@ -13,6 +13,7 @@ Redefinable Options
 ###################
 ================================================================================================== ========================================================================
 :zeek:id:`Cluster::default_websocket_max_event_queue_size`: :zeek:type:`count` :zeek:attr:`&redef` The default maximum queue size for WebSocket event dispatcher instances.
+:zeek:id:`Cluster::default_websocket_max_message_size`: :zeek:type:`count` :zeek:attr:`&redef`     The default maximum WebSocket message size, in bytes.
 :zeek:id:`Cluster::default_websocket_ping_interval`: :zeek:type:`interval` :zeek:attr:`&redef`     The default ping interval for WebSocket clients.
 ================================================================================================== ========================================================================
 
@@ -51,6 +52,18 @@ Redefinable Options
    labeled with a ``WebSocketEventDispatcher:<host>:<port>`` tag
    is incremented when the maximum queue size is reached.
 
+.. zeek:id:: Cluster::default_websocket_max_message_size
+   :source-code: base/frameworks/cluster/types.zeek 81 81
+
+   :Type: :zeek:type:`count`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``0``
+
+   The default maximum WebSocket message size, in bytes.
+
+   A value of 0 means no limit. A client that sends a larger message
+   is disconnected with WebSocket close code 1009.
+
 .. zeek:id:: Cluster::default_websocket_ping_interval
    :source-code: base/frameworks/cluster/types.zeek 75 75
 
@@ -63,7 +76,7 @@ Redefinable Options
 Types
 #####
 .. zeek:type:: Cluster::EndpointInfo
-   :source-code: base/frameworks/cluster/types.zeek 122 127
+   :source-code: base/frameworks/cluster/types.zeek 131 136
 
    :Type: :zeek:type:`record`
 
@@ -116,7 +129,7 @@ Types
    Record to represent a cluster node including its name.
 
 .. zeek:type:: Cluster::NetworkInfo
-   :source-code: base/frameworks/cluster/types.zeek 114 119
+   :source-code: base/frameworks/cluster/types.zeek 123 128
 
    :Type: :zeek:type:`record`
 
@@ -217,7 +230,7 @@ Types
    configuration.
 
 .. zeek:type:: Cluster::WebSocketServerOptions
-   :source-code: base/frameworks/cluster/types.zeek 97 111
+   :source-code: base/frameworks/cluster/types.zeek 103 120
 
    :Type: :zeek:type:`record`
 
@@ -237,6 +250,12 @@ Types
       The maximum event queue size for this server.
 
 
+   .. zeek:field:: max_message_size :zeek:type:`count` :zeek:attr:`&default` = :zeek:see:`Cluster::default_websocket_max_message_size` :zeek:attr:`&optional`
+
+      The maximum accepted WebSocket message size, in bytes.
+      A value of 0 means no limit.
+
+
    .. zeek:field:: ping_interval :zeek:type:`interval` :zeek:attr:`&default` = :zeek:see:`Cluster::default_websocket_ping_interval` :zeek:attr:`&optional`
 
       Ping interval to use. A WebSocket client not responding to
@@ -253,7 +272,7 @@ Types
    WebSocket server options to pass to :zeek:see:`Cluster::listen_websocket`.
 
 .. zeek:type:: Cluster::WebSocketTLSOptions
-   :source-code: base/frameworks/cluster/types.zeek 81 94
+   :source-code: base/frameworks/cluster/types.zeek 87 100
 
    :Type: :zeek:type:`record`
 

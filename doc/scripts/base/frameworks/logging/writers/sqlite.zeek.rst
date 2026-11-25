@@ -14,6 +14,9 @@ The SQL writer currently supports one writer-specific filter option via
 ``config``: setting ``tablename`` sets the name of the table that is used
 or created in the SQLite database. An example for this is given in the
 introduction mentioned above.
+The table name is quoted as an SQL identifier, so it is used literally
+and not interpreted as SQL. If ``tablename`` is not set, the log path
+is used as the table name.
 
 :Namespace: LogSQLite
 
@@ -45,7 +48,7 @@ Detailed Interface
 Redefinable Options
 ###################
 .. zeek:id:: LogSQLite::empty_field
-   :source-code: base/frameworks/logging/writers/sqlite.zeek 23 23
+   :source-code: base/frameworks/logging/writers/sqlite.zeek 26 26
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -55,7 +58,7 @@ Redefinable Options
    *unset_field* to make the output unambiguous.
 
 .. zeek:id:: LogSQLite::journal_mode
-   :source-code: base/frameworks/logging/writers/sqlite.zeek 57 57
+   :source-code: base/frameworks/logging/writers/sqlite.zeek 60 60
 
    :Type: :zeek:type:`LogSQLite::SQLiteJournalMode`
    :Attributes: :zeek:attr:`&redef`
@@ -69,7 +72,7 @@ Redefinable Options
    and interaction with the PRAGMA synchronous statement.
 
 .. zeek:id:: LogSQLite::set_separator
-   :source-code: base/frameworks/logging/writers/sqlite.zeek 16 16
+   :source-code: base/frameworks/logging/writers/sqlite.zeek 19 19
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -78,7 +81,7 @@ Redefinable Options
    Separator between set elements.
 
 .. zeek:id:: LogSQLite::synchronous
-   :source-code: base/frameworks/logging/writers/sqlite.zeek 49 49
+   :source-code: base/frameworks/logging/writers/sqlite.zeek 52 52
 
    :Type: :zeek:type:`LogSQLite::SQLiteSynchronous`
    :Attributes: :zeek:attr:`&redef`
@@ -90,7 +93,7 @@ Redefinable Options
    for more details around performance and data safety trade offs.
 
 .. zeek:id:: LogSQLite::unset_field
-   :source-code: base/frameworks/logging/writers/sqlite.zeek 19 19
+   :source-code: base/frameworks/logging/writers/sqlite.zeek 22 22
 
    :Type: :zeek:type:`string`
    :Attributes: :zeek:attr:`&redef`
@@ -101,7 +104,7 @@ Redefinable Options
 Types
 #####
 .. zeek:type:: LogSQLite::SQLiteJournalMode
-   :source-code: base/frameworks/logging/writers/sqlite.zeek 35 35
+   :source-code: base/frameworks/logging/writers/sqlite.zeek 38 38
 
    :Type: :zeek:type:`enum`
 
@@ -122,7 +125,7 @@ Types
    Values supported for SQLite's PRAGMA journal_mode statement.
 
 .. zeek:type:: LogSQLite::SQLiteSynchronous
-   :source-code: base/frameworks/logging/writers/sqlite.zeek 26 26
+   :source-code: base/frameworks/logging/writers/sqlite.zeek 29 29
 
    :Type: :zeek:type:`enum`
 

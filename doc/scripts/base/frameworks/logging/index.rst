@@ -80,6 +80,9 @@ The logging framework provides a flexible key-value based logging interface.
    ``config``: setting ``tablename`` sets the name of the table that is used
    or created in the SQLite database. An example for this is given in the
    introduction mentioned above.
+   The table name is quoted as an SQL identifier, so it is used literally
+   and not interpreted as SQL. If ``tablename`` is not set, the log path
+   is used as the table name.
 
 :doc:`/scripts/base/frameworks/logging/writers/none.zeek`
 

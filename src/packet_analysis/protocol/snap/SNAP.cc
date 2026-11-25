@@ -18,7 +18,7 @@ bool SNAPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
     // bytes long. Whether this is unnumbered is denoted by the last two bits being
     // set.
     size_t llc_header_len = 3;
-    if ( (static_cast<uint32_t>(data[2]) & 0x03u) != 0x03u )
+    if ( (data[2] & 0x03u) != 0x03u )
         llc_header_len++;
 
     // Check the full length of the SNAP header, which is the LLC header plus 5 bytes.

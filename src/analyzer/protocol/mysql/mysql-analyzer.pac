@@ -21,7 +21,7 @@ refine flow MySQL_Flow += {
 
 		if ( mysql_auth_plugin )
 			{
-			if ( ${msg.version} == 10 && (${msg.handshake10.capability_flags_2} << 16) & CLIENT_PLUGIN_AUTH )
+			if ( ${msg.version} == 10 && (static_cast<unsigned int>(${msg.handshake10.capability_flags_2}) << 16) & CLIENT_PLUGIN_AUTH )
 				{
 				auto auth_plugin = zeek::make_intrusive<zeek::StringVal>(c_str(${msg.handshake10.auth_plugin}));
 				auto data_part_1 = ${msg.handshake10.auth_plugin_data_part_1};

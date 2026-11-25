@@ -107,10 +107,10 @@ DecryptionInformation remove_header_protection(const std::vector<uint8_t>& clien
     uint8_t first_byte = data_as_uint8(data)[0];
 
     if ( first_byte & 0x80 ) {
-        first_byte ^= mask[0] & 0x0F;
+        first_byte ^= mask[0] & 0x0Fu;
     }
     else {
-        first_byte ^= first_byte & 0x1F;
+        first_byte ^= first_byte & 0x1Fu;
     }
 
     // And now we can fully recover the correct packet number length...
@@ -140,8 +140,8 @@ Calculate the nonce for the AEAD by XOR'ing the CLIENT_IV and the
 decoded packet number, and returns the nonce
 */
 std::vector<uint8_t> calculate_nonce(std::vector<uint8_t> client_iv, uint64_t packet_number) {
-    for ( int i = 0; i < 8; ++i )
-        client_iv[AEAD_IV_LEN - 1 - i] ^= (uint8_t)(packet_number >> 8 * i);
+    for ( unsigned int i = 0; i < 8; ++i )
+        client_iv[AEAD_IV_LEN - 1 - i] ^= packet_number >> 8 * i;
 
     return client_iv;
 }

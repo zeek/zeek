@@ -11,6 +11,7 @@ public:
     Number(int arg_n) : s(strfmt("%d", arg_n)), n(arg_n) {}
     Number(unsigned int arg_u) : s(strfmt("%uu", arg_u)), is_unsigned(true), u(arg_u) {}
     Number(const char* arg_s, int arg_n) : s(arg_s), n(arg_n) {}
+    Number(const char* arg_s, unsigned int arg_u) : s(arg_s), is_unsigned(true), u(arg_u) {}
     const char* Str() const { return s.c_str(); }
     int Num() const {
         if ( is_unsigned )

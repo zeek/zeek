@@ -525,7 +525,7 @@ string Expr::SetFunc(Output* out, Env* env) {
 
 bool Expr::ConstFold(Env* env, int* pn) const {
     switch ( expr_type_ ) {
-        case EXPR_NUM: *pn = num_->Num(); return true;
+        case EXPR_NUM: *pn = num_->IsUnsigned() ? static_cast<int>(num_->Unsigned()) : num_->Num(); return true;
         case EXPR_ID: return env->GetConstant(id_, pn);
         default:
             // ### FIXME: folding consts

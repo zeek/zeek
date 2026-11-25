@@ -66,8 +66,8 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const {
             static auto ip6_hdr_type = id::find_type<RecordType>("ip6_hdr");
             rv = make_intrusive<RecordVal>(ip6_hdr_type);
             const struct ip6_hdr* ip6 = reinterpret_cast<const ip6_hdr*>(data);
-            rv->Assign(0, (ntohl(ip6->ip6_flow) & 0x0ff00000u) >> 20);
-            rv->Assign(1, ntohl(ip6->ip6_flow) & 0x000fffffu);
+            rv->Assign(0, (static_cast<uint32_t>(ntohl(ip6->ip6_flow)) & 0x0ff00000u) >> 20);
+            rv->Assign(1, static_cast<uint32_t>(ntohl(ip6->ip6_flow)) & 0x000fffffu);
             rv->Assign(2, ntohs(ip6->ip6_plen));
             rv->Assign(3, ip6->ip6_nxt);
             rv->Assign(4, ip6->ip6_hlim);

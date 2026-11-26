@@ -1,3 +1,9 @@
+9.1.0-dev.696 | 2026-11-25 11:11:49 +0100
+
+  * NTLM: decode an OEM string that is UTF-16LE text as UTF-16 (Gido822)
+
+  * NTLM: test an OEM string that a client wrote in UTF-16 (Gido822)
+
 9.1.0-dev.691 | 2026-11-24 17:34:51 -0500
 
   * Ignore `__pycache__` (Evan Typanski, Corelight)

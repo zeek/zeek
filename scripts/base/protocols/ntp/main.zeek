@@ -224,6 +224,16 @@ event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=5
 		}
 	}
 
+# Higher priority clear the record types not in use
+event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=100 {
+	if ( ! msg?$std_msg )
+		delete c$ntp;
+	if ( ! msg?$control_msg )
+		delete c$ntp_control;
+	if ( ! msg?$mode7_msg )
+		delete c$ntp_private;
+}
+
 event ntp_message(c: connection, is_orig: bool, msg: NTP::Message) &priority=-5
 	{
 	if ( c?$ntp )

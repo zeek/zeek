@@ -40,11 +40,11 @@ bool PacketAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         hilti::rt::context::CookieSetter _(_state.cookie());
         _state.packet().next_analyzer.reset();
         _state.packet().packet = packet;
+        _state.packet().packet_val = nullptr;
         _state.process(len, reinterpret_cast<const char*>(data));
         auto offset = _state.finish();
         assert(offset);
         _state.packet().packet = nullptr;
-        _state.packet().packet_val = nullptr;
         _state.reset();
         auto num_processed = offset->Ref();
         const auto& next_analyzer = _state.packet().next_analyzer;

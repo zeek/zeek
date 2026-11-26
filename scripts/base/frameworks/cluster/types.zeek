@@ -80,6 +80,9 @@ export {
 	## is disconnected with WebSocket close code 1009.
 	const default_websocket_max_message_size = 0 &redef;
 
+	## The default maximum number of concurrently accepted WebSocket connections.
+	const default_websocket_max_connections = 100 &redef;
+
 	## The TLS options for a WebSocket server.
 	##
 	## If cert_file and key_file are set, TLS is enabled. If both
@@ -110,6 +113,8 @@ export {
 		## The maximum accepted WebSocket message size, in bytes.
 		## A value of 0 means no limit.
 		max_message_size: count &default=default_websocket_max_message_size;
+		## The maximum number of concurrent WebSocket connections to accept.
+		max_connections: count &default=default_websocket_max_connections;
 		## Ping interval to use. A WebSocket client not responding to
 		## the pings will be disconnected. Set to a negative value to
 		## disable pings. Subsecond intervals are currently not supported.

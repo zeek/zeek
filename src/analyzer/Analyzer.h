@@ -54,6 +54,36 @@ using ID = uint32_t;
 using analyzer_timer_func = void (Analyzer::*)(double t);
 
 /**
+ * An enum for the reason why a child analyzer has been added to the analyzer tree.
+ *
+ * Possible future additions:
+ *
+ *   ProtocolSwitch (like StartTLS, HTTP upgrade?)
+ */
+enum class AddReason : uint8_t {
+    Internal,              // This is the default. Any bare AddChildAnalyzer() instance will default to "Internal".
+    PIA,                   // Just for PIA_TCP and PIA_UDP
+    Extra,                 // Added via SessionAdapter::AddExtraAnalyzers() hook.
+    Scheduled,             // Due to schedule_analyzer(), FTP data, IRC data
+    Port,                  // Well-known ports via Analyzer::register_port()
+    DPD,                   // RuleActionEnable, signature, DPD
+    HookSetupAnalyzerTree, // For use by plugins in HookSetupAnalyzerTree()
+};
+
+/**
+ * Extensible struct type to pass context information
+ * into the AddChildAnalyzer() calls.
+ *
+ * Doing a struct with default values so it's easier
+ * to extend down the road for passing more information
+ * information, like the actual DPD rule or well-known
+ * port information.
+ */
+struct AddInfo {
+    AddReason reason = AddReason::Internal;
+};
+
+/**
  * Class to receive processed output from an analyzer.
  */
 class OutputHandler {
@@ -388,9 +418,12 @@ public:
      * silently discarded.
      *
      * @param analyzer The analyzer to add. Takes ownership.
+     * @param info Contextual information
      * @return false if analyzer type was already a child or prevented, else true.
      */
-    bool AddChildAnalyzer(Analyzer* analyzer) { return AddChildAnalyzer(analyzer, true); }
+    bool AddChildAnalyzer(Analyzer* analyzer, const AddInfo& info = {}) {
+        return AddChildAnalyzer(analyzer, /*init=*/true, info);
+    }
 
     /**
      * Adds a new child analyzer to the analyzer tree. If an analyzer of
@@ -398,9 +431,10 @@ public:
      * silently discarded.
      *
      * @param tag The type of analyzer to add.
+     * @param info Contextual information
      * @return the new analyzer instance that was added.
      */
-    Analyzer* AddChildAnalyzer(const zeek::Tag& tag);
+    Analyzer* AddChildAnalyzer(const zeek::Tag& tag, const AddInfo& info = {});
 
     /**
      * Removes a child analyzer. It's ok for the analyzer to not to be a
@@ -659,6 +693,25 @@ public:
      */
     void LimitReachedWeird(const char* name, size_t limit, size_t limit_max = 0);
 
+    /**
+     * Internal helper to overwrite the add_info member that's set during
+     * AddChildAnalyzer(). This is only public due to TCPSessionAdapter's
+     * own packet_children list and will possibly be hidden without deprecation
+     * in the future (see also https://github.com/zeek/zeek/pull/5803).
+     */
+    void SetAddInfo(AddInfo info) { add_info = info; }
+
+    /**
+     * Access the AddInfo structure.
+     */
+    const AddInfo& GetAddInfo() const { return add_info; }
+
+    /**
+     * Enqueue an \c analyzer_attachment_info() event for this analyzer
+     * using its AddInfo instance.
+     */
+    void EnqueueAnalyzerAttachmentInfo();
+
 protected:
     friend class AnalyzerTimer;
     friend class Manager;
@@ -730,11 +783,12 @@ protected:
      * it. This is an internal method.
      *
      * @param analyzer The analyzer to add. Takes ownership.
-     *
      * @param init If true, Init() will be called.
+     * @param info Contextual information
+     *
      * @return false if analyzer type was already a child, else true.
      */
-    bool AddChildAnalyzer(Analyzer* analyzer, bool init);
+    bool AddChildAnalyzer(Analyzer* analyzer, bool init, const AddInfo& info = {});
 
     /**
      * Inits all child analyzers. This is an internal method.
@@ -745,6 +799,27 @@ protected:
      * Reorganizes the child data structure. This is an internal method.
      */
     void AppendNewChildren();
+
+    /**
+     * Visitor function type.
+     */
+    using VisitorFunc = std::function<void(Analyzer& a)>;
+
+    /**
+     * Recursively visit all children in breadth-first-fashion and
+     * call \a f on each of them.
+     *
+     * Note that this does not include the list of analyzers that are
+     * currently queued up to be added. If you just added an analyzer,
+     * it will not have \a f called on it. See AppendNewChildren().
+     *
+     * This method is only virtual due to TCPSessionAdapter holding
+     * its own packet_children list. Once that's removed, this API will
+     * become non-virtual (see also https://github.com/zeek/zeek/pull/5803).
+     *
+     * @param f The visitor function to execute.
+     */
+    virtual void VisitChildren(const VisitorFunc& f);
 
     /**
      * Returns true if the child analyzer is now scheduled to be
@@ -792,6 +867,9 @@ private:
     bool analyzer_confirmed;
 
     uint64_t analyzer_violations = 0;
+
+    // Contextual information how this analyzer made it into the analyzer tree.
+    AddInfo add_info;
 
     static ID id_counter;
 };

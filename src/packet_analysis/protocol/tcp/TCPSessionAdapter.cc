@@ -6,6 +6,7 @@
 
 #include "zeek/RunState.h"
 #include "zeek/Val.h"
+#include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
@@ -1311,11 +1312,17 @@ bool TCPSessionAdapter::HadGap(bool is_orig) const {
     return endp && endp->HadGap();
 }
 
-void TCPSessionAdapter::AddChildPacketAnalyzer(analyzer::Analyzer* a) {
+void TCPSessionAdapter::AddChildPacketAnalyzer(analyzer::Analyzer* a, const analyzer::AddInfo& info) {
     DBG_LOG(DBG_ANALYZER, "%s added packet child %s", this->GetAnalyzerName(), a->GetAnalyzerName());
 
     packet_children.push_back(a);
     a->SetParent(this);
+    a->SetAddInfo(info);
+
+    // See IPBasedAnalyzer::NewConn() why we skip raising the
+    // event for sessions not yet in the session table.
+    if ( analyzer_attachment_info && Conn() && Conn()->IsInSessionTable() )
+        a->EnqueueAnalyzerAttachmentInfo();
 }
 
 bool TCPSessionAdapter::DataPending(analyzer::tcp::TCP_Endpoint* closing_endp) {
@@ -1458,11 +1465,12 @@ void TCPSessionAdapter::AddExtraAnalyzers(Connection* conn) {
     if ( analyzer_mgr->IsEnabled(analyzer_tcpstats) )
         // Add TCPStats analyzer. This needs to see packets so
         // we cannot add it as a normal child.
-        AddChildPacketAnalyzer(new analyzer::tcp::TCPStats_Analyzer(conn));
+        AddChildPacketAnalyzer(new analyzer::tcp::TCPStats_Analyzer(conn), {.reason = analyzer::AddReason::Extra});
 
     if ( analyzer_mgr->IsEnabled(analyzer_connsize) )
         // Add ConnSize analyzer. Needs to see packets, not stream.
-        AddChildPacketAnalyzer(new analyzer::conn_size::ConnSize_Analyzer(conn));
+        AddChildPacketAnalyzer(new analyzer::conn_size::ConnSize_Analyzer(conn),
+                               {.reason = analyzer::AddReason::Extra});
 }
 
 void TCPSessionAdapter::SynWeirds(analyzer::tcp::TCP_Flags flags, analyzer::tcp::TCP_Endpoint* endpoint,
@@ -1670,4 +1678,11 @@ void TCPSessionAdapter::CheckRecording(bool need_contents, analyzer::tcp::TCP_Fl
 
     Conn()->SetRecordCurrentContent(record_current_content);
     Conn()->SetRecordCurrentPacket(record_current_packet);
+}
+
+void TCPSessionAdapter::VisitChildren(const VisitorFunc& f) {
+    for ( auto* a : packet_children )
+        f(*a);
+
+    Analyzer::VisitChildren(f);
 }

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "zeek/Tag.h"
+#include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
@@ -34,7 +35,7 @@ public:
 
     // Add a child analyzer that will always get the packets,
     // independently of whether we do any reassembly.
-    void AddChildPacketAnalyzer(analyzer::Analyzer* a);
+    void AddChildPacketAnalyzer(analyzer::Analyzer* a, const analyzer::AddInfo& info = {});
 
     Analyzer* FindChild(analyzer::ID id) override;
     Analyzer* FindChild(zeek::Tag tag) override;
@@ -146,6 +147,11 @@ protected:
     void SetReassembler(analyzer::tcp::TCP_Reassembler* rorig, analyzer::tcp::TCP_Reassembler* rresp);
 
     uint64_t LastRelDataSeq() const { return rel_data_seq; }
+
+    /**
+     * Overridden to take packet_children into account.
+     */
+    void VisitChildren(const VisitorFunc& f) override;
 
 private:
     void SynWeirds(analyzer::tcp::TCP_Flags flags, analyzer::tcp::TCP_Endpoint* endpoint, int data_len) const;

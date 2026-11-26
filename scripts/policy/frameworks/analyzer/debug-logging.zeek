@@ -45,6 +45,10 @@ export {
 	## when :zeek:see:`Analyzer::DebugLogging::include_confirmations` is set.
 	option enable = T;
 
+	## Enable analyzer_attachment. They are usually less interesting
+	## outside of development of analyzers or troubleshooting scenarios.
+	option include_attachments = T;
+
 	## Enable analyzer_confirmation. They are usually less interesting
 	## outside of development of analyzers or troubleshooting scenarios.
 	## Setting this option may also generated multiple log entries per
@@ -63,7 +67,15 @@ export {
 	option failure_data_max_size = 40;
 
 	## Set of analyzers for which to not log confirmations or violations.
-	option ignore_analyzers: set[AllAnalyzers::Tag] = set();
+	option ignore_analyzers: set[AllAnalyzers::Tag] = set(
+		# PIA analyzers attach to every connection, so ignore them.
+		# They don't raise confirmations or violations, but are
+		# pretty much always attached, so ignore them by default.
+		Analyzer::ANALYZER_PIA_TCP,
+		Analyzer::ANALYZER_PIA_UDP,
+		# Also attached to everything, keep out of analyzer_debug.log by default.
+		Analyzer::ANALYZER_CONNSIZE,
+	);
 }
 
 
@@ -95,6 +107,18 @@ event zeek_init() &priority=5
 	Option::set_change_handler("Analyzer::DebugLogging::include_confirmations",
 	                           include_confirmations_handler);
 
+	local include_attachments_handler = function(id: string, new_value: bool): bool {
+	if ( new_value )
+		enable_event_group("Analyzer::DebugLogging::include_attachments");
+	else
+		disable_event_group("Analyzer::DebugLogging::include_attachments");
+
+	return new_value;
+	};
+
+	Option::set_change_handler("Analyzer::DebugLogging::include_attachments",
+	                           include_attachments_handler);
+
 	local include_disabling_handler = function(id: string, new_value: bool): bool {
 	if ( new_value )
 		enable_event_group("Analyzer::DebugLogging::include_disabling");
@@ -110,6 +134,8 @@ event zeek_init() &priority=5
 	# Call the handlers directly with the current values to avoid config
 	# framework interactions like creating entries in config.log.
 	enable_handler("Analyzer::DebugLogging::enable", Analyzer::DebugLogging::enable);
+	include_attachments_handler("Analyzer::DebugLogging::include_attachments",
+	                            Analyzer::DebugLogging::include_attachments);
 	include_confirmations_handler("Analyzer::DebugLogging::include_confirmations",
 	                              Analyzer::DebugLogging::include_confirmations);
 	include_disabling_handler("Analyzer::DebugLogging::include_disabling",
@@ -136,6 +162,27 @@ function populate_from_file(rec: Info, f: fa_file)
 			rec$uid = c$uid;
 			}
 		}
+	}
+
+event analyzer_attachment_info(atype: AllAnalyzers::Tag, info: AnalyzerAttachmentInfo) &group="Analyzer::DebugLogging::include_attachments"
+	{
+	if ( atype in ignore_analyzers )
+		return;
+
+	local rec = Info(
+		$ts=network_time(),
+		$cause="attachment",
+		$analyzer_kind=Analyzer::kind(atype),
+		$analyzer_name=Analyzer::name(atype),
+	);
+
+	if ( info?$c )
+		populate_from_conn(rec, info$c);
+
+	if ( info?$f )
+		populate_from_file(rec, info$f);
+
+	Log::write(LOG, rec);
 	}
 
 event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &group="Analyzer::DebugLogging::include_confirmations"

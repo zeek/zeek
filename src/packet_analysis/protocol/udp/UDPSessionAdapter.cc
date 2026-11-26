@@ -2,6 +2,7 @@
 
 #include "zeek/packet_analysis/protocol/udp/UDPSessionAdapter.h"
 
+#include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
 #include "zeek/packet_analysis/protocol/udp/events.bif.h"
@@ -19,7 +20,7 @@ void UDPSessionAdapter::AddExtraAnalyzers(Connection* conn) {
 
     if ( analyzer_mgr->IsEnabled(analyzer_connsize) )
         // Add ConnSize analyzer. Needs to see packets, not stream.
-        AddChildAnalyzer(new analyzer::conn_size::ConnSize_Analyzer(conn));
+        AddChildAnalyzer(new analyzer::conn_size::ConnSize_Analyzer(conn), {.reason = analyzer::AddReason::Extra});
 }
 
 void UDPSessionAdapter::UpdateConnVal(RecordVal* conn_val) {

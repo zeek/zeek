@@ -7,6 +7,7 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	cause	analyzer_kind	analyzer_name	uid	fuid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	failure_reason	failure_data
 #types	time	string	string	string	string	string	addr	port	addr	port	string	string
+XXXXXXXXXX.XXXXXX	attachment	protocol	POP3	CHhAvVGS1DHFjwGM9	-	127.0.0.1	58854	127.0.0.1	110	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	POP3	CHhAvVGS1DHFjwGM9	-	127.0.0.1	58854	127.0.0.1	110	unknown server command (GARBAGE)	GARBAGE (and LIST response missing .)
 XXXXXXXXXX.XXXXXX	disabled	protocol	POP3	CHhAvVGS1DHFjwGM9	-	127.0.0.1	58854	127.0.0.1	110	-	-
 #close XXXX-XX-XX-XX-XX-XX

@@ -269,4 +269,16 @@ enum ChecksumMode %{
 	CHECKSUM_KERNEL,
 %}
 
+module PacketAnalyzer;
+
+## How Zeek's packet analyzers validate checksums
+enum ChecksumValidation %{
+	## Ignore checksums, they are never even computed.
+	VALIDATION_OFF,
+	## Report invalid checksums, but continue processing traffic.
+	VALIDATION_REPORT,
+	## Drop packets with invalid checksums.
+	VALIDATION_ACTIVE,
+%}
+
 module GLOBAL;

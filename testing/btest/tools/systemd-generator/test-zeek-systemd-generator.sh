@@ -23,7 +23,7 @@ loggers = 3
 user = test-zeek-user
 group = test-zeek-group
 
-args = ignore_checksums=T
+args = PacketAnalyzer::checksum_validation=PacketAnalyzer::VALIDATION_OFF
 cluster_backend_args = the-cluster-backend -B plugin-Zeek-Cluster_Backend_ZeroMQ
 
 address = 127.0.2.1

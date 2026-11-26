@@ -38,7 +38,7 @@ worker_memory_max = 256M
 
 [interface eth1]
 interface = af_packet::eth1
-worker_args = AF_Packet::fanout_id=42 ignore_checksums=T
+worker_args = AF_Packet::fanout_id=42 PacketAnalyzer::checksum_validation=PacketAnalyzer::VALIDATION_OFF
 workers = 2
 workers_cpu_list = 4,5
 worker_nice = -2
@@ -47,7 +47,7 @@ worker_numa_policy = local
 
 [interface eth2]
 interface = af_packet::eth2
-worker_args = AF_Packet::fanout_id=43 ignore_checksums=T
+worker_args = AF_Packet::fanout_id=43 PacketAnalyzer::checksum_validation=PacketAnalyzer::VALIDATION_OFF
 workers = 4
 workers_cpu_list = 8-12
 worker_nice = -3

@@ -6,20 +6,21 @@ base/bif/types.bif.zeek
 .. zeek:namespace:: GLOBAL
 .. zeek:namespace:: MOUNT3
 .. zeek:namespace:: NFS3
+.. zeek:namespace:: PacketAnalyzer
 .. zeek:namespace:: Reporter
 .. zeek:namespace:: Tunnel
 
 Declaration of various types that the Zeek core uses internally.
 
-:Namespaces: AF_Packet, GLOBAL, MOUNT3, NFS3, Reporter, Tunnel
+:Namespaces: AF_Packet, GLOBAL, MOUNT3, NFS3, PacketAnalyzer, Reporter, Tunnel
 
 Summary
 ~~~~~~~
 Types
 #####
-======================================================= ====================================
-:zeek:type:`AF_Packet::ChecksumMode`: :zeek:type:`enum` Available checksum validation modes.
-:zeek:type:`AF_Packet::FanoutMode`: :zeek:type:`enum`   Available fanout modes.
+================================================================== ==============================================
+:zeek:type:`AF_Packet::ChecksumMode`: :zeek:type:`enum`            Available checksum validation modes.
+:zeek:type:`AF_Packet::FanoutMode`: :zeek:type:`enum`              Available fanout modes.
 :zeek:type:`MOUNT3::auth_flavor_t`: :zeek:type:`enum`
 :zeek:type:`MOUNT3::proc_t`: :zeek:type:`enum`
 :zeek:type:`MOUNT3::status_t`: :zeek:type:`enum`
@@ -29,13 +30,14 @@ Types
 :zeek:type:`NFS3::stable_how_t`: :zeek:type:`enum`
 :zeek:type:`NFS3::status_t`: :zeek:type:`enum`
 :zeek:type:`NFS3::time_how_t`: :zeek:type:`enum`
+:zeek:type:`PacketAnalyzer::ChecksumValidation`: :zeek:type:`enum` How Zeek's packet analyzers validate checksums
 :zeek:type:`Reporter::Level`: :zeek:type:`enum`
 :zeek:type:`TableChange`: :zeek:type:`enum`
 :zeek:type:`Tunnel::Type`: :zeek:type:`enum`
 :zeek:type:`layer3_proto`: :zeek:type:`enum`
 :zeek:type:`link_encap`: :zeek:type:`enum`
 :zeek:type:`rpc_status`: :zeek:type:`enum`
-======================================================= ====================================
+================================================================== ==============================================
 
 
 Detailed Interface
@@ -314,6 +316,25 @@ Types
 
       .. zeek:enum:: NFS3::SET_TO_CLIENT_TIME NFS3::time_how_t
 
+
+.. zeek:type:: PacketAnalyzer::ChecksumValidation
+   :source-code: base/bif/types.bif.zeek 303 303
+
+   :Type: :zeek:type:`enum`
+
+      .. zeek:enum:: PacketAnalyzer::VALIDATION_OFF PacketAnalyzer::ChecksumValidation
+
+         Ignore checksums, they are never even computed.
+
+      .. zeek:enum:: PacketAnalyzer::VALIDATION_REPORT PacketAnalyzer::ChecksumValidation
+
+         Report invalid checksums, but continue processing traffic.
+
+      .. zeek:enum:: PacketAnalyzer::VALIDATION_ACTIVE PacketAnalyzer::ChecksumValidation
+
+         Drop packets with invalid checksums.
+
+   How Zeek's packet analyzers validate checksums
 
 .. zeek:type:: Reporter::Level
    :source-code: base/bif/types.bif.zeek 267 267

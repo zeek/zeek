@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-diff .stdout
 
 global mount_ports: set[port] = { 635/tcp, 635/udp, 20048/tcp, 20048/udp } &redef;
-redef ignore_checksums = T;
+redef PacketAnalyzer::checksum_validation = PacketAnalyzer::VALIDATION_OFF;
 
 event zeek_init()
 	{

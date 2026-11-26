@@ -19,18 +19,17 @@ Breaking Changes
   record type. This is the type returned by the ``global_ids()`` BIF method.
 
 - Zeek no longer discards packets with bad IP, TCP, UDP, ICMP, or IPv6 mobility
-  header checksums by default. Instead the packets will be analyzed, but the
-  weirds and ``C``/``c`` flags in conn.log's history field will still be produced.
+  header checksums by default. Instead, Zeek will analyze the packets. Zeek will
+  still produce weirds and ``C``/``c`` flags in conn.log's history field. This also
+  means that Zeek may analyze packets that the receiving endpoint drops.
 
-  Previously, the packets would not get analyzed. The new ``drop_bad_checksums``
+  Previously, the packets would not get analyzed. The new ``PacketAnalyzer::checksum_validation``
   option restores the previous behavior:
 
-	redef drop_bad_checksums = T;
+	redef PacketAnalyzer::checksum_validation = PacketAnalyzer::VALIDATION_ACTIVE;
 
-  Both ``ignore_checksums`` and ``-C`` remain unchanged: Both cause checksums to
-  neither be computed nor validated.
-
-  This also means that Zeek may analyze packets that the receiving endpoint drops.
+  ``ignore_checksums`` is now deprecated, see the "Deprecated Functionality" section
+  for more details.
 
 - Configuration of git checkouts now requires tags, which may not exist for forks.
   To quickly fetch tags from upstream, run the following:
@@ -191,6 +190,11 @@ Changed Functionality
 
 Deprecated Functionality
 ------------------------
+
+- ``ignore_checksums`` is now deprecated, but ``-C`` will continue with its current
+  behavior. If you set ``ignore_checksums``, use the new enum value:
+
+	redef PacketAnalyzer::checksum_validation = PacketAnalyzer::VALIDATION_OFF;
 
 Security Fixes
 --------------

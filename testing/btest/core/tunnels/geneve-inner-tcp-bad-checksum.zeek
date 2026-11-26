@@ -1,6 +1,6 @@
 # @TEST-DOC: Verify Geneve with an inner TCP SYN with bad checksum doesn't tickle UBSAN nullptr deref.
 #
-# @TEST-EXEC: zeek -b -r $TRACES/tunnels/geneve-inner-tcp-bad-checksum.pcap %INPUT drop_bad_checksums=T >out
+# @TEST-EXEC: zeek -b -r $TRACES/tunnels/geneve-inner-tcp-bad-checksum.pcap %INPUT>out
 #
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff-cut -m uid service history conn.log
@@ -9,6 +9,8 @@
 @load base/frameworks/tunnels
 @load base/protocols/conn
 @load base/frameworks/notice/weird
+
+redef PacketAnalyzer::checksum_validation = PacketAnalyzer::VALIDATION_ACTIVE;
 
 event geneve_packet(c: connection, inner: pkt_hdr, vni: count)
 	{

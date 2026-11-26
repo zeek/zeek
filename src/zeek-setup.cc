@@ -1026,13 +1026,18 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     }
 
     if ( options.ignore_checksums ) {
-        const auto& id = global_scope()->Find("ignore_checksums");
+        const auto& checksum_validation_id = global_scope()->Find("PacketAnalyzer::checksum_validation");
+        const auto& ignore_checksums_id = global_scope()->Find("ignore_checksums");
 
-        if ( ! id )
-            reporter->InternalError("global ignore_checksums not defined");
+        if ( ! checksum_validation_id || ! ignore_checksums_id )
+            reporter->InternalError("Script-level checksum validation IDs not defined");
 
-        id->SetVal(zeek::val_mgr->True());
-        ignore_checksums = 1;
+        checksum_validation_id->SetVal(
+            BifType::Enum::PacketAnalyzer::ChecksumValidation->GetEnumVal(BifEnum::PacketAnalyzer::VALIDATION_OFF));
+        checksum_validation = BifEnum::PacketAnalyzer::VALIDATION_OFF;
+
+        // Also set the old script value in case anything relies on it
+        ignore_checksums_id->SetVal(zeek::val_mgr->True());
     }
 
     // Print the ID.

@@ -77,8 +77,8 @@ void ICMPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int rema
     const struct icmp* icmpp = reinterpret_cast<const icmp*>(data);
     const std::shared_ptr<IP_Hdr>& ip = pkt->ip_hdr;
 
-    if ( ! zeek::detail::ignore_checksums && ! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) &&
-         remaining >= len ) {
+    if ( zeek::detail::checksum_validation != BifEnum::PacketAnalyzer::VALIDATION_OFF &&
+         ! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) && remaining >= len ) {
         int chksum = 0;
 
         switch ( ip->NextProto() ) {
@@ -91,7 +91,7 @@ void ICMPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int rema
 
         if ( chksum != 0xffff ) {
             adapter->Weird("bad_ICMP_checksum");
-            if ( zeek::detail::drop_bad_checksums ) {
+            if ( zeek::detail::checksum_validation == BifEnum::PacketAnalyzer::VALIDATION_ACTIVE ) {
                 adapter->TapPacket(pkt, PacketAction::Skip, SkipReason::BadChecksum);
                 return;
             }

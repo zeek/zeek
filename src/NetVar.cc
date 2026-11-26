@@ -107,8 +107,8 @@ double watchdog_interval;
 
 int max_timer_expires;
 
-int ignore_checksums;
-int drop_bad_checksums;
+zeek::BifEnum::PacketAnalyzer::ChecksumValidation checksum_validation;
+
 int partial_connection_ok;
 int tcp_SYN_ack_ok;
 int tcp_match_undelivered;
@@ -247,8 +247,13 @@ void init_builtin_types() {
 void init_net_var() {
     bif_init_net_var();
 
-    ignore_checksums = id::find_val("ignore_checksums")->AsBool();
-    drop_bad_checksums = id::find_val("drop_bad_checksums")->AsBool();
+    checksum_validation = static_cast<BifEnum::PacketAnalyzer::ChecksumValidation>(
+        id::find_val("PacketAnalyzer::checksum_validation")->AsEnum());
+
+    // Prefer the ignore_checksums bool if set
+    if ( id::find_val("ignore_checksums")->AsBool() )
+        checksum_validation = BifEnum::PacketAnalyzer::VALIDATION_OFF;
+
     partial_connection_ok = id::find_val("partial_connection_ok")->AsBool();
     tcp_SYN_ack_ok = id::find_val("tcp_SYN_ack_ok")->AsBool();
     tcp_match_undelivered = id::find_val("tcp_match_undelivered")->AsBool();

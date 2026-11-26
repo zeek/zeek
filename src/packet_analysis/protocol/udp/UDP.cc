@@ -94,7 +94,8 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
     int chksum = up->uh_sum;
 
-    auto validate_checksum = ! run_state::current_pkt->l4_checksummed && ! zeek::detail::ignore_checksums &&
+    auto validate_checksum = ! run_state::current_pkt->l4_checksummed &&
+                             zeek::detail::checksum_validation != BifEnum::PacketAnalyzer::VALIDATION_OFF &&
                              ! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) && remaining >= len &&
                              pkt->len <= pkt->cap_len;
 
@@ -128,7 +129,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
         if ( bad ) {
             adapter->HandleBadChecksum(is_orig);
-            if ( zeek::detail::drop_bad_checksums ) {
+            if ( zeek::detail::checksum_validation == BifEnum::PacketAnalyzer::VALIDATION_ACTIVE ) {
                 adapter->TapPacket(pkt, PacketAction::Skip, SkipReason::BadChecksum);
                 return;
             }

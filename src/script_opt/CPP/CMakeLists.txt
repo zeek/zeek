@@ -19,4 +19,5 @@ zeek_add_subdir_library(
     Tracker.cc
     Types.cc
     Util.cc
-    Vars.cc)
+    Vars.cc
+)

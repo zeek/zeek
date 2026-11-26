@@ -14,13 +14,14 @@ zeek_add_subdir_library(
     protocol-analyzer.cc
     runtime-support.cc
     BIFS
-    spicy.bif)
+    spicy.bif
+)
 
 # For bundled Spicy, top-level CMake links final Zeek targets against the
 # appropriate in-tree HILTI/Spicy libraries for each platform.
-if (SPICY_ROOT_DIR)
+if(SPICY_ROOT_DIR)
     target_link_libraries(zeek_spicy_obj PRIVATE hilti spicy)
-endif ()
+endif()
 prefer_configured_spicy_include_dirs(zeek_spicy_obj)
 
 set(ZEEK_SPICY_MODULE_PATH "${CMAKE_INSTALL_FULL_LIBDIR}/zeek/spicy" CACHE PATH "")

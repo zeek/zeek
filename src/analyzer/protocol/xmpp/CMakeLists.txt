@@ -1,5 +1,7 @@
 zeek_add_plugin(
-    Zeek XMPP
+    Zeek
+    XMPP
     SOURCES Plugin.cc XMPP.cc
     BIFS events.bif
-    PAC xmpp.pac xmpp-analyzer.pac xmpp-protocol.pac)
+    PAC xmpp.pac xmpp-analyzer.pac xmpp-protocol.pac
+)

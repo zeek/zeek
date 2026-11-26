@@ -1,4 +1,6 @@
 zeek_add_plugin(
-    Zeek SMTP
+    Zeek
+    SMTP
     SOURCES SMTP.cc BDAT.cc Plugin.cc
-    BIFS consts.bif events.bif functions.bif)
+    BIFS consts.bif events.bif functions.bif
+)

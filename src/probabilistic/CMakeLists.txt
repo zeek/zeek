@@ -10,4 +10,5 @@ zeek_add_subdir_library(
     BIFS
     bloom-filter.bif
     cardinality-counter.bif
-    top-k.bif)
+    top-k.bif
+)

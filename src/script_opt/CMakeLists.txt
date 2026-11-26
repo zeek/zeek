@@ -13,7 +13,8 @@ zeek_add_subdir_library(
     Stmt.cc
     TempVar.cc
     UsageAnalyzer.cc
-    UseDefs.cc)
+    UseDefs.cc
+)
 
 add_subdirectory(CPP)
 add_subdirectory(ZAM)

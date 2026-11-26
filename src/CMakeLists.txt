@@ -1,16 +1,23 @@
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include
-                    ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/include)
+include_directories(
+    BEFORE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}/include
+)
 
 # Force creation of includes symlink. This can't just be in the src directory
 # because MSVC will end up with an include loop.
 execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory "${CMAKE_CURRENT_SOURCE_DIR}/include")
-execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink ".."
-                        "${CMAKE_CURRENT_SOURCE_DIR}/include/zeek")
+execute_process(
+    COMMAND "${CMAKE_COMMAND}" -E create_symlink ".." "${CMAKE_CURRENT_SOURCE_DIR}/include/zeek"
+)
 
 # Allows header file inclusion via zeek/ within the build tree
 execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/include")
-execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink ".."
-                        "${CMAKE_CURRENT_BINARY_DIR}/include/zeek")
+execute_process(
+    COMMAND "${CMAKE_COMMAND}" -E create_symlink ".." "${CMAKE_CURRENT_BINARY_DIR}/include/zeek"
+)
 
 # Poor man's JSON escaping as this is rendered into a C string.
 string(REPLACE "\"" "\\\"" ZEEK_BUILD_INFO_ESCAPED "${ZEEK_BUILD_INFO}")
@@ -22,66 +29,99 @@ configure_file(version.c.in ${CMAKE_CURRENT_BINARY_DIR}/version.c)
 # inFile with yylexPrefix - replaces instances of 'yy' in inFile with yyPrefix -
 # deletes instances of 'extern char.*getenv' in inFile - writes results to
 # outFile and adds it to list TRANSFORMED_BISON_OUTPUTS
-macro (REPLACE_YY_PREFIX_TARGET inFile outFile yylexPrefix yyPrefix)
+macro(REPLACE_YY_PREFIX_TARGET inFile outFile yylexPrefix yyPrefix)
     set(args "\"/extern char.*getenv/d")
     set(args "${args}\;s/yylex/${yylexPrefix}lex/")
-    set(args "${args}\;s/yy/${yyPrefix}/g\"" < ${inFile} > ${outFile})
+    set(args
+        "${args}\;s/yy/${yyPrefix}/g\""
+        <
+        ${inFile}
+        >
+        ${outFile}
+    )
     add_custom_command(
         OUTPUT ${outFile}
-        COMMAND ${SED_EXE} ARGS ${args}
+        COMMAND ${SED_EXE}
+        ARGS ${args}
         DEPENDS ${inFile}
-        COMMENT "[sed] replacing stuff in ${inFile}")
+        COMMENT "[sed] replacing stuff in ${inFile}"
+    )
     list(APPEND TRANSFORMED_BISON_OUTPUTS ${outFile})
-endmacro (REPLACE_YY_PREFIX_TARGET)
+endmacro(REPLACE_YY_PREFIX_TARGET)
 
 # ##############################################################################
 # Create targets to generate parser and scanner code
 
 set(BISON_FLAGS "--debug")
 
-if (MSVC)
+if(MSVC)
     set(SIGN_COMPARE_FLAG "/wd4018")
-else ()
+else()
     set(SIGN_COMPARE_FLAG "-Wno-sign-compare")
-endif ()
+endif()
 
 # Rule parser/scanner
 bison_target(
-    RuleParser rule-parse.y ${CMAKE_CURRENT_BINARY_DIR}/rup.cc
+    RuleParser
+    rule-parse.y
+    ${CMAKE_CURRENT_BINARY_DIR}/rup.cc
     DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/rup.h
     # VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/rule_parse.output
-    COMPILE_FLAGS "${BISON_FLAGS}")
+    COMPILE_FLAGS "${BISON_FLAGS}"
+)
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rup.cc
-                         ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc rules_ rules_)
+                         ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc rules_ rules_
+)
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rup.h ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.h
-                         rules_ rules_)
-flex_target(RuleScanner ${CMAKE_CURRENT_SOURCE_DIR}/rule-scan.l
-            ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc COMPILE_FLAGS "-Prules_")
+                         rules_ rules_
+)
+flex_target(
+    RuleScanner
+    ${CMAKE_CURRENT_SOURCE_DIR}/rule-scan.l
+    ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
+    COMPILE_FLAGS "-Prules_"
+)
 set_property(SOURCE rule-scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
 # RE parser/scanner
 bison_target(
-    REParser re-parse.y ${CMAKE_CURRENT_BINARY_DIR}/rep.cc
+    REParser
+    re-parse.y
+    ${CMAKE_CURRENT_BINARY_DIR}/rep.cc
     DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/re-parse.h
-                 # VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/re_parse.output
-    COMPILE_FLAGS "${BISON_FLAGS}")
+    # VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/re_parse.output
+    COMPILE_FLAGS "${BISON_FLAGS}"
+)
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rep.cc ${CMAKE_CURRENT_BINARY_DIR}/re-parse.cc
-                         re_ RE_)
-flex_target(REScanner ${CMAKE_CURRENT_SOURCE_DIR}/re-scan.l ${CMAKE_CURRENT_BINARY_DIR}/re-scan.cc
-            COMPILE_FLAGS "-Pre_")
+                         re_ RE_
+)
+flex_target(
+    REScanner
+    ${CMAKE_CURRENT_SOURCE_DIR}/re-scan.l
+    ${CMAKE_CURRENT_BINARY_DIR}/re-scan.cc
+    COMPILE_FLAGS "-Pre_"
+)
 add_flex_bison_dependency(REScanner REParser)
 set_property(SOURCE re-scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
 # Parser/Scanner
 bison_target(
-    Parser parse.y ${CMAKE_CURRENT_BINARY_DIR}/p.cc
+    Parser
+    parse.y
+    ${CMAKE_CURRENT_BINARY_DIR}/p.cc
     DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/zeekparse.h
     # VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/parse.output
-    COMPILE_FLAGS "${BISON_FLAGS}")
+    COMPILE_FLAGS "${BISON_FLAGS}"
+)
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/p.cc ${CMAKE_CURRENT_BINARY_DIR}/parse.cc zeek
-                         yy)
-flex_target(Scanner ${CMAKE_CURRENT_SOURCE_DIR}/scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
-            COMPILE_FLAGS "-Pzeek")
+                         yy
+)
+flex_target(
+    Scanner
+    ${CMAKE_CURRENT_SOURCE_DIR}/scan.l
+    ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
+    COMPILE_FLAGS "-Pzeek"
+)
 set_property(SOURCE scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
 set(zeek_bison_generated_files
@@ -92,7 +132,8 @@ set(zeek_bison_generated_files
     ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc
     ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.h
     ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
-    ${CMAKE_CURRENT_BINARY_DIR}/scan.cc)
+    ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
+)
 
 set_source_files_properties(${zeek_bison_generated_files} PROPERTIES SKIP_LINTING ON)
 
@@ -134,19 +175,23 @@ set(BIF_SRCS
     # of contained in its own subdirectory CMake logic because subdirectory BIFs
     # are treated differently and don't support being called *during* parsing
     # (e.g. within an @if directive).
-    supervisor/supervisor.bif)
+    supervisor/supervisor.bif
+)
 
-foreach (bift ${BIF_SRCS})
+foreach(bift ${BIF_SRCS})
     bif_target(${bift} "standard")
-endforeach ()
+endforeach()
 
 # ##############################################################################
 # BinPAC-dependent targets
 
 include(BinPAC)
 
-set(BINPAC_AUXSRC ${CMAKE_CURRENT_SOURCE_DIR}/binpac.pac ${CMAKE_CURRENT_SOURCE_DIR}/zeek.pac
-                  ${CMAKE_CURRENT_SOURCE_DIR}/binpac_zeek.h)
+set(BINPAC_AUXSRC
+    ${CMAKE_CURRENT_SOURCE_DIR}/binpac.pac
+    ${CMAKE_CURRENT_SOURCE_DIR}/zeek.pac
+    ${CMAKE_CURRENT_SOURCE_DIR}/binpac_zeek.h
+)
 
 set(BINPAC_OUTPUTS "")
 
@@ -177,7 +222,8 @@ set(ZAM_OP_SRCS
     ${GEN_ZAM_SRC_DIR}/script-idioms.op
     ${GEN_ZAM_SRC_DIR}/stmts.op
     ${GEN_ZAM_SRC_DIR}/unary-exprs.op
-    ${GEN_ZAM_SRC_DIR}/ZBI.op)
+    ${GEN_ZAM_SRC_DIR}/ZBI.op
+)
 set(GEN_ZAM_SRC ${ZAM_OP_SRCS})
 
 gen_zam_target(${GEN_ZAM_SRC_DIR})
@@ -204,9 +250,9 @@ add_subdirectory(script_opt)
 add_subdirectory(session)
 add_subdirectory(storage)
 
-if (HAVE_SPICY)
+if(HAVE_SPICY)
     add_subdirectory(spicy)
-endif ()
+endif()
 
 # ##############################################################################
 # Build in the discovered external plugins and create the autogenerated scripts.
@@ -219,12 +265,12 @@ file(WRITE ${LOAD_SCRIPT} "# Warning, this is an autogenerated file!\n")
 # TODO: this really should be a function to make sure we have an isolated scope.
 # However, for historic reasons, we're not doing that yet. Some plugin modify
 # global state such as `zeekdeps`.
-macro (add_extra_builtin_plugin plugin_dir)
+macro(add_extra_builtin_plugin plugin_dir)
     get_filename_component(plugin_name "${plugin_dir}" NAME)
 
-    if (IS_DIRECTORY "${plugin_dir}/cmake")
+    if(IS_DIRECTORY "${plugin_dir}/cmake")
         list(APPEND CMAKE_MODULE_PATH "${plugin_dir}/cmake")
-    endif ()
+    endif()
 
     # Set this flag so that ZeekPluginStatic.cmake knows that this plugin is not
     # from our source tree but from an external source (or git submodule). This
@@ -235,11 +281,11 @@ macro (add_extra_builtin_plugin plugin_dir)
 
     # TODO: drop once we turn this into a function.
     set(ZEEK_BUILDING_EXTRA_PLUGINS OFF)
-endmacro ()
+endmacro()
 
-foreach (plugin_dir ${BUILTIN_PLUGIN_LIST})
+foreach(plugin_dir ${BUILTIN_PLUGIN_LIST})
     add_extra_builtin_plugin("${plugin_dir}")
-endforeach ()
+endforeach()
 
 install(FILES ${PRELOAD_SCRIPT} DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH}/builtin-plugins/)
 install(FILES ${LOAD_SCRIPT} DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH}/builtin-plugins/)
@@ -258,55 +304,68 @@ find_package(Threads)
 
 cmake_policy(PUSH)
 
-if (POLICY CMP0012)
+if(POLICY CMP0012)
     cmake_policy(SET CMP0012 NEW)
-endif ()
+endif()
 
 # This macro stores associated headers for any C/C++ source files given as
 # arguments (past _var) as a list in the CMake variable named "_var".
-macro (COLLECT_HEADERS _var)
-    foreach (src ${ARGN})
+macro(COLLECT_HEADERS _var)
+    foreach(src ${ARGN})
         get_filename_component(ext ${src} EXT)
-        if ("${ext}" STREQUAL ".cc" OR "${ext}" STREQUAL ".c")
+        if("${ext}" STREQUAL ".cc" OR "${ext}" STREQUAL ".c")
             get_filename_component(base ${src} NAME_WE)
             get_filename_component(dir ${src} PATH)
-            if (NOT "${dir}")
+            if(NOT "${dir}")
                 set(dir ${CMAKE_CURRENT_SOURCE_DIR})
-            endif ()
+            endif()
             set(header "${dir}/${base}.h")
-            if (EXISTS ${header})
+            if(EXISTS ${header})
                 list(APPEND ${_var} ${header})
-            endif ()
-        endif ()
-    endforeach ()
-endmacro (COLLECT_HEADERS _var)
+            endif()
+        endif()
+    endforeach()
+endmacro(COLLECT_HEADERS _var)
 
 cmake_policy(POP)
 
 # define a command that's used to run the make_dbg_constants.py script building
 # the zeek binary depends on the outputs of this script
 add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
-           ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdInfoConstants.cc
-    COMMAND ${Python_EXECUTABLE} ARGS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in
+    OUTPUT
+        ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
+        ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdInfoConstants.cc
+    COMMAND ${Python_EXECUTABLE}
+    ARGS
+        ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in
+    DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in
     COMMENT "[Python] Processing debug commands"
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
 
-add_custom_target(zeek_debugcmd_gen DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
-                                            ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdInfoConstants.cc)
+add_custom_target(
+    zeek_debugcmd_gen
+    DEPENDS
+        ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
+        ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdInfoConstants.cc
+)
 add_dependencies(zeek_autogen_files zeek_debugcmd_gen)
 
 set(_gen_zeek_script_cpp ${CMAKE_CURRENT_BINARY_DIR}/../CPP-gen.cc)
-add_custom_command(OUTPUT ${_gen_zeek_script_cpp} COMMAND ${CMAKE_COMMAND} -E touch
-                                                          ${_gen_zeek_script_cpp})
+add_custom_command(
+    OUTPUT ${_gen_zeek_script_cpp}
+    COMMAND ${CMAKE_COMMAND} -E touch ${_gen_zeek_script_cpp}
+)
 
-if (!MSVC)
-    set_source_files_properties(legacy-netvar-init.cc PROPERTIES COMPILE_FLAGS
-                                                                 -Wno-deprecated-declarations)
-endif ()
+if(!MSVC)
+    set_source_files_properties(
+        legacy-netvar-init.cc
+        PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations
+    )
+endif()
 
 set(MAIN_SRCS
     digest.cc
@@ -410,7 +469,8 @@ set(MAIN_SRCS
     plugin/Manager.cc
     plugin/Plugin.cc
     ${_gen_zeek_script_cpp}
-    digest.h)
+    digest.h
+)
 
 set(THIRD_PARTY_SRCS
     $<$<BOOL:USE_SQLITE>:3rdparty/sqlite3.c>
@@ -421,19 +481,22 @@ set(THIRD_PARTY_SRCS
     3rdparty/patricia.c
     3rdparty/setsignal.c
     3rdparty/strsep.c
-    3rdparty/zeek_inet_ntop.c)
+    3rdparty/zeek_inet_ntop.c
+)
 
-if (USE_SQLITE)
-    if (WNOERROR_FLAG)
+if(USE_SQLITE)
+    if(WNOERROR_FLAG)
         set_source_files_properties(3rdparty/sqlite3.c PROPERTIES COMPILE_FLAGS ${WNOERROR_FLAG})
-    endif ()
+    endif()
 
     # Always force building SQLite in thread-safe mode. This lets us remove sqlite3_threadsafe()
     # checks in various places, since the library will always be guaranteed to be in thread-safe
     # mode. This value is the default, but it's set here to be explicit about it.
-    set_source_files_properties(3rdparty/sqlite3.c PROPERTIES COMPILE_DEFINITIONS
-                                                              SQLITE_THREADSAFE=1)
-endif ()
+    set_source_files_properties(
+        3rdparty/sqlite3.c
+        PROPERTIES COMPILE_DEFINITIONS SQLITE_THREADSAFE=1
+    )
+endif()
 
 set_source_files_properties(${THIRD_PARTY_SRCS} PROPERTIES SKIP_LINTING ON)
 
@@ -447,11 +510,12 @@ set(hhash_sources
     ${hhash_dir}/arch_specific.cc
     ${hhash_dir}/instruction_sets.cc
     ${hhash_dir}/os_specific.cc
-    ${hhash_dir}/hh_portable.cc)
+    ${hhash_dir}/hh_portable.cc
+)
 
 zeek_add_subdir_library(hhash SOURCES ${hhash_sources})
 
-if (${COMPILER_ARCHITECTURE} STREQUAL "arm")
+if(${COMPILER_ARCHITECTURE} STREQUAL "arm")
     check_c_source_compiles(
         "
       #if defined(__ARM_NEON__) || defined(__ARM_NEON)
@@ -460,37 +524,38 @@ if (${COMPILER_ARCHITECTURE} STREQUAL "arm")
       #error
       #endif
   "
-        test_arm_neon)
+        test_arm_neon
+    )
 
-    if (test_arm_neon)
+    if(test_arm_neon)
         target_sources(zeek_hhash_obj PRIVATE ${hhash_dir}/hh_neon.cc)
         list(APPEND hhash_sources ${hhash_dir}/hh_neon.cc)
-    endif ()
+    endif()
 
     target_compile_options(zeek_hhash_obj PRIVATE -mfloat-abi=hard -march=armv7-a -mfpu=neon)
-elseif (${COMPILER_ARCHITECTURE} STREQUAL "aarch64")
+elseif(${COMPILER_ARCHITECTURE} STREQUAL "aarch64")
     target_sources(zeek_hhash_obj PRIVATE ${hhash_dir}/hh_neon.cc)
     list(APPEND hhash_sources ${hhash_dir}/hh_neon.cc)
-elseif (${COMPILER_ARCHITECTURE} STREQUAL "power")
+elseif(${COMPILER_ARCHITECTURE} STREQUAL "power")
     target_sources(zeek_hhash_obj PRIVATE ${hhash_dir}/hh_vsx.cc)
     set_source_files_properties(${hhash_dir}/hh_vsx.cc PROPERTIES COMPILE_FLAGS -mvsx)
     list(APPEND hhash_sources ${hhash_dir}/hh_vsx.cc)
-elseif (${COMPILER_ARCHITECTURE} STREQUAL "x86_64")
+elseif(${COMPILER_ARCHITECTURE} STREQUAL "x86_64")
     target_sources(zeek_hhash_obj PRIVATE ${hhash_dir}/hh_avx2.cc ${hhash_dir}/hh_sse41.cc)
-    if (MSVC)
+    if(MSVC)
         set(_avx_flag /arch:AVX2)
         # Using an undocumentd compiler flag:
         # https://stackoverflow.com/questions/64053597/how-do-i-enable-sse4-1-and-sse3-but-not-avx-in-msvc/69328426#69328426
         set(_sse_flag /d2archSSE42)
-    else ()
+    else()
         set(_avx_flag -mavx2)
         set(_sse_flag -msse4.1)
-    endif ()
+    endif()
 
     set_source_files_properties(${hhash_dir}/hh_avx2.cc PROPERTIES COMPILE_FLAGS ${_avx_flag})
     set_source_files_properties(${hhash_dir}/hh_sse41.cc PROPERTIES COMPILE_FLAGS ${_sse_flag})
     list(APPEND hhash_sources ${hhash_dir}/hh_avx2.cc ${hhash_dir}/hh_sse41.cc)
-endif ()
+endif()
 
 set_source_files_properties(${hhash_sources} PROPERTIES SKIP_LINTING ON)
 
@@ -512,7 +577,8 @@ set(zeek_SRCS
     ${FLEX_Scanner_INPUT}
     ${BISON_Parser_INPUT}
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
-    ${CMAKE_CURRENT_BINARY_DIR}/ZAM-MethodDecls.h)
+    ${CMAKE_CURRENT_BINARY_DIR}/ZAM-MethodDecls.h
+)
 
 list(APPEND zeek_SRCS ${THIRD_PARTY_SRCS})
 list(APPEND zeek_SRCS ${HH_SRCS})
@@ -523,7 +589,7 @@ collect_headers(zeek_HEADERS ${zeek_SRCS})
 add_library(zeek_objs OBJECT ${zeek_SRCS})
 target_compile_features(zeek_objs PRIVATE ${ZEEK_CXX_STD})
 target_compile_options(zeek_objs PRIVATE ${WERROR_FLAG})
-if (MSVC)
+if(MSVC)
     set_source_files_properties(
         script_opt/ScriptOpt.cc
         script_opt/CPP/Attrs.cc
@@ -541,8 +607,9 @@ if (MSVC)
         script_opt/CPP/Stmts.cc
         script_opt/CPP/Types.cc
         script_opt/CPP/Vars.cc
-        PROPERTIES COMPILE_FLAGS "/EHsc")
-endif ()
+        PROPERTIES COMPILE_FLAGS "/EHsc"
+    )
+endif()
 set_target_properties(zeek_objs PROPERTIES CXX_EXTENSIONS OFF)
 target_link_libraries(zeek_objs PRIVATE $<BUILD_INTERFACE:zeek_internal>)
 target_compile_definitions(zeek_objs PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)
@@ -553,18 +620,18 @@ zeek_target_enable_sanitizers(zeek_objs)
 # Add IWYU and clang-tidy to the target if enabled.
 zeek_target_add_linters(zeek_objs)
 
-if (HAVE_SPICY)
+if(HAVE_SPICY)
     # For bundled Spicy, top-level CMake wires Zeek executables/libraries to
     # the right in-tree targets (or object libraries on Windows). Linking
     # zeek_objs directly can pull in missing import libraries on MSVC.
-    if (SPICY_ROOT_DIR)
+    if(SPICY_ROOT_DIR)
         target_link_libraries(zeek_objs PRIVATE hilti spicy)
-    endif ()
+    endif()
 
     prefer_configured_spicy_include_dirs(zeek_objs)
-endif ()
+endif()
 
-if (TARGET zeek_exe)
+if(TARGET zeek_exe)
     target_sources(zeek_exe PRIVATE main.cc ${zeek_HEADERS})
     target_compile_options(zeek_exe PRIVATE ${WERROR_FLAG})
 
@@ -572,17 +639,17 @@ if (TARGET zeek_exe)
     # path correctly at runtime. See
     # https://npcap.com/guide/npcap-devguide.html#npcap-feature-native for why
     # this is necessary.
-    if (MSVC AND HAVE_WPCAP)
+    if(MSVC AND HAVE_WPCAP)
         set(zeekdeps ${zeekdeps} delayimp.lib)
         set_target_properties(zeek_exe PROPERTIES LINK_FLAGS "/DELAYLOAD:wpcap.dll")
-    endif ()
+    endif()
 
     target_link_libraries(zeek_exe PRIVATE ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
     # Export symbols from zeek executable for use by plugins
     set_target_properties(zeek_exe PROPERTIES ENABLE_EXPORTS TRUE)
 
-    if (MSVC)
+    if(MSVC)
         # WINDOWS_EXPORT_ALL_SYMBOLS exceeds the COFF 65535 symbol limit.
         # Instead, generate a targeted DEF file exporting HILTI/Spicy runtime
         # symbols plus transitive dependencies resolved from zeek_objs.
@@ -605,23 +672,28 @@ if (TARGET zeek_exe)
                 "${CMAKE_BINARY_DIR}/src/spicy/CMakeFiles/zeek_spicy_obj.dir/runtime-support.cc.obj"
                 "${CMAKE_BINARY_DIR}/tools/binpac/lib/binpac.lib" --scan-dir
                 "${CMAKE_BINARY_DIR}/src"
-            DEPENDS hilti-rt spicy-rt zeek_spicy_obj ${BinPAC_LIBRARY} ${_obj_targets}
-                    "${_gen_script}"
+            DEPENDS
+                hilti-rt
+                spicy-rt
+                zeek_spicy_obj
+                ${BinPAC_LIBRARY}
+                ${_obj_targets}
+                "${_gen_script}"
             COMMENT "Generating JIT export DEF file from Zeek symbols"
-            VERBATIM)
+            VERBATIM
+        )
         add_custom_target(zeek_jit_exports DEPENDS "${_def_file}")
         add_dependencies(zeek_exe zeek_jit_exports)
         target_link_options(zeek_exe PRIVATE "/DEF:${_def_file}")
-    endif ()
+    endif()
+endif()
 
-endif ()
-
-if (TARGET zeek_lib)
+if(TARGET zeek_lib)
     target_sources(zeek_lib PRIVATE ${zeek_HEADERS})
     target_compile_options(zeek_lib PRIVATE ${WERROR_FLAG})
 
     target_link_libraries(zeek_lib PUBLIC ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
-endif ()
+endif()
 
 zeek_include_directories(
     ${CMAKE_BINARY_DIR}
@@ -630,41 +702,53 @@ zeek_include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/zeek/src
-    ${CMAKE_SOURCE_DIR}/zeek/src/include)
+    ${CMAKE_SOURCE_DIR}/zeek/src/include
+)
 
 # Install *.bif.zeek.
-install(DIRECTORY ${PROJECT_BINARY_DIR}/scripts/base/bif
-        DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH}/base)
+install(
+    DIRECTORY ${PROJECT_BINARY_DIR}/scripts/base/bif
+    DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH}/base
+)
 
 # Create plugin directory at install time.
 install(DIRECTORY DESTINATION ${ZEEK_PLUGIN_DIR})
 
 # Make clean removes the bif directory.
-set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES
-                                    ${PROJECT_BINARY_DIR}/scripts/base/bif)
+set_directory_properties(
+    PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${PROJECT_BINARY_DIR}/scripts/base/bif
+)
 
 # Remove some stale files and scripts that previous Zeek versions put in place,
 # yet make confuse us now. This makes upgrading easier.
 install(
-    CODE "
+    CODE
+        "
    file(REMOVE_RECURSE
        ${ZEEK_SCRIPT_INSTALL_PATH}/base/frameworks/logging/writers/dataseries.bro
        ${ZEEK_SCRIPT_INSTALL_PATH}/base/frameworks/logging/writers/elasticsearch.bro
        ${ZEEK_SCRIPT_INSTALL_PATH}/policy/tuning/logs-to-elasticsearch.bro
    )
-")
+"
+)
 
-if (WIN32)
+if(WIN32)
     install(
         DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/windows/usr.include/
         DESTINATION include/
         FILES_MATCHING
-        PATTERN "*.h")
-endif ()
+        PATTERN "*.h"
+    )
+endif()
 
 # Find all header to install in the source tree.
-file(GLOB_RECURSE header_files ${CMAKE_CURRENT_SOURCE_DIR}/ RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/
-     *.h *.pac)
+file(
+    GLOB_RECURSE header_files
+    ${CMAKE_CURRENT_SOURCE_DIR}/
+    RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/
+    *.h
+    *.pac
+)
 
 # Post-process globbed headers to remove what we do not
 # want to install.
@@ -674,11 +758,13 @@ list(FILTER header_files EXCLUDE REGEX ^iosource/pcapng/auxil)
 list(FILTER header_files EXCLUDE REGEX ^cluster/websocket/auxil)
 list(FILTER header_files EXCLUDE REGEX ^cluster/backend/zeromq/auxil)
 
-foreach (header_file ${header_files})
+foreach(header_file ${header_files})
     get_filename_component(header_dir "${header_file}" DIRECTORY)
-    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/${header_file}"
-            DESTINATION "include/zeek/${header_dir}")
-endforeach ()
+    install(
+        FILES "${CMAKE_CURRENT_SOURCE_DIR}/${header_file}"
+        DESTINATION "include/zeek/${header_dir}"
+    )
+endforeach()
 
 # This part installs all the files generated by bifcl using GLOB_RECURSE
 # during installation to find *.bif.func_h, *.bif.netvar_h and *.bif.h
@@ -686,7 +772,8 @@ endforeach ()
 # to avoid creating empty directories in the installation tree that do
 # not contain bif related headers.
 install(
-    CODE "
+    CODE
+        "
     # Outer context should not see policy.
     cmake_policy(PUSH)
     # Do not follow symlinks for GLOB_RECURSE to avoid the cyclic
@@ -706,35 +793,38 @@ install(
     endforeach ()
 
     cmake_policy(POP)
-    ")
+    "
+)
 
 install(
-    FILES ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/ConvertUTF.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/zeek_inet_ntop.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/bsd-getopt-long.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/modp_numtoa.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/patricia.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/setsignal.h
-          $<$<BOOL:USE_SQLITE>:${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h>
-          ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/doctest.h
-    DESTINATION include/zeek/3rdparty)
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/ConvertUTF.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/zeek_inet_ntop.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/bsd-getopt-long.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/modp_numtoa.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/patricia.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/setsignal.h
+        $<$<BOOL:USE_SQLITE>:${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h>
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/doctest.h
+    DESTINATION include/zeek/3rdparty
+)
 
 # ##############################################################################
 # CTest setup.
 
 # Scan all .cc files for TEST_CASE macros and generate CTest targets.
-if (ENABLE_ZEEK_UNIT_TESTS)
+if(ENABLE_ZEEK_UNIT_TESTS)
     set(test_cases "")
-    foreach (cc_file ${TIDY_SRCS})
+    foreach(cc_file ${TIDY_SRCS})
         file(STRINGS ${cc_file} test_case_lines REGEX "TEST_CASE")
-        foreach (line ${test_case_lines})
+        foreach(line ${test_case_lines})
             string(REGEX REPLACE "TEST_CASE\\(\"(.+)\"\\)" "\\1" test_case "${line}")
             list(APPEND test_cases "${test_case}")
-        endforeach ()
-    endforeach ()
+        endforeach()
+    endforeach()
     list(LENGTH test_cases num_test_cases)
     message(STATUS "-- Found ${num_test_cases} test cases for CTest")
-    foreach (test_case ${test_cases})
+    foreach(test_case ${test_cases})
         add_test(NAME "\"${test_case}\"" COMMAND zeek --test "--test-case=${test_case}")
-    endforeach ()
-endif ()
+    endforeach()
+endif()

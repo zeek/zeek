@@ -316,11 +316,10 @@ struct ServerOptions {
     std::string host;
     uint16_t port = 0;
     int ping_interval_seconds = 5;
-    int max_connections = 100;
     bool per_message_deflate = false;
     size_t max_event_queue_size = 32;
-    // 0 means no limit. Passed to IXWebSocket before listen().
-    uint64_t max_message_size = 0;
+    uint64_t max_message_size = 0; // 0 means no limit.
+    uint64_t max_connections = 100;
     struct TLSOptions tls_options;
 
     bool operator==(const ServerOptions& o) const {

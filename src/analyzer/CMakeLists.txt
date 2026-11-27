@@ -14,3 +14,4 @@ zeek_add_subdir_library(
 bif_target(analyzer.bif)
 
 add_subdirectory(protocol)
+add_subdirectory(bench)

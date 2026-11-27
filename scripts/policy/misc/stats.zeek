@@ -140,7 +140,20 @@ global network_time_cf = Telemetry::register_gauge_family(Telemetry::MetricOpts(
     $help_text="The current network time.",
 ));
 
+global invalid_checksums_cf = Telemetry::register_counter_family(Telemetry::MetricOpts(
+    $prefix="zeek",
+    $name="invalid-checksums",
+    $unit="",
+    $label_names=vector("checksum_type"),
+    $help_text="Total number of checksum validation failures",
+));
+
 global no_labels: vector of string;
+global csum_labels_ipv4 = vector("ipv4");
+global csum_labels_tcp = vector("tcp");
+global csum_labels_udp = vector("udp");
+global csum_labels_icmp = vector("icmp");
+global csum_labels_mobility = vector("mobility");
 
 hook Telemetry::sync()
 	{
@@ -148,6 +161,13 @@ hook Telemetry::sync()
 	local net_stats = get_net_stats();
 	Telemetry::counter_family_set(bytes_received_cf, no_labels, net_stats$bytes_recvd);
 	Telemetry::counter_family_set(packets_received_cf, no_labels, net_stats$pkts_recvd);
+
+	local csum_stats = get_checksum_stats();
+	Telemetry::counter_family_set(invalid_checksums_cf, csum_labels_ipv4, csum_stats$num_ipv4);
+	Telemetry::counter_family_set(invalid_checksums_cf, csum_labels_tcp, csum_stats$num_tcp);
+	Telemetry::counter_family_set(invalid_checksums_cf, csum_labels_udp, csum_stats$num_udp);
+	Telemetry::counter_family_set(invalid_checksums_cf, csum_labels_icmp, csum_stats$num_icmp);
+	Telemetry::counter_family_set(invalid_checksums_cf, csum_labels_mobility, csum_stats$num_mobility);
 
 	if ( reading_live_traffic() )
 		{

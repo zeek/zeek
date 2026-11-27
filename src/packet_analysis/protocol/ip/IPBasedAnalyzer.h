@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
 #include <map>
 #include <set>
 
@@ -199,5 +201,32 @@ private:
     uint32_t server_port_mask;
     static TableValPtr ignore_checksums_nets_table;
 };
+
+enum class ChecksumType : uint8_t {
+    IPv4 = 0,
+    TCP = 1,
+    UDP = 2,
+    ICMP = 3,
+    Mobility = 4,
+    COUNT = 5,
+};
+
+struct ChecksumCounters {
+    uint64_t num_ipv4 = 0;
+    uint64_t num_tcp = 0;
+    uint64_t num_udp = 0;
+    uint64_t num_icmp = 0;
+    uint64_t num_mobility = 0;
+};
+
+/**
+ * Increments the internal counter for the given checksum validation failure.
+ */
+void CountInvalidChecksum(ChecksumType type);
+
+/**
+ * Returns the current cumulative checksum validation failure counters.
+ */
+const ChecksumCounters& GetChecksumCounters();
 
 } // namespace zeek::packet_analysis::IP

@@ -6,9 +6,11 @@
 #include "zeek/util.h"
 #include "zeek/threading/Manager.h"
 #include "zeek/broker/Manager.h"
+#include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 
 zeek::RecordTypePtr ProcStats;
 zeek::RecordTypePtr NetStats;
+zeek::RecordTypePtr ChecksumStats;
 zeek::RecordTypePtr MatcherStats;
 zeek::RecordTypePtr ReassemblerStats;
 zeek::RecordTypePtr DNSStats;
@@ -57,6 +59,38 @@ function get_net_stats%(%): NetStats
 
 	if ( stat.filtered )
 		r->Assign(n++, stat.filtered.value());
+
+	return r;
+	%}
+
+## Returns checksum validation failure statistics across all supported protocols.
+##
+## Returns: A record of checksum validation failure statistics.
+##
+## .. zeek:see:: get_conn_stats
+##              get_dns_stats
+##              get_event_stats
+##              get_file_analysis_stats
+##              get_gap_stats
+##              get_matcher_stats
+##              get_net_stats
+##              get_proc_stats
+##              get_reassembler_stats
+##              get_thread_stats
+##              get_timer_stats
+##              get_broker_stats
+##              get_reporter_stats
+function get_checksum_stats%(%): ChecksumStats
+	%{
+	auto r = zeek::make_intrusive<zeek::RecordVal>(ChecksumStats);
+	const auto& stats = zeek::packet_analysis::IP::GetChecksumCounters();
+	int n = 0;
+
+	r->Assign(n++, stats.num_ipv4);
+	r->Assign(n++, stats.num_tcp);
+	r->Assign(n++, stats.num_udp);
+	r->Assign(n++, stats.num_icmp);
+	r->Assign(n++, stats.num_mobility);
 
 	return r;
 	%}

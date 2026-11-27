@@ -127,6 +127,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
             bad = true;
 
         if ( bad ) {
+            CountInvalidChecksum(ChecksumType::UDP);
             adapter->HandleBadChecksum(is_orig);
             if ( zeek::detail::drop_bad_checksums ) {
                 adapter->TapPacket(pkt, PacketAction::Skip, SkipReason::BadChecksum);

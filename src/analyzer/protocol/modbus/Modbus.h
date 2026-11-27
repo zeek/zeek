@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 #include "analyzer/protocol/modbus/modbus_pac.h"
@@ -23,6 +25,11 @@ public:
 
 protected:
     binpac::ModbusTCP::ModbusTCP_Conn* interp;
+
+    // After a TCP gap, per direction (index: orig): skip to the next
+    // plausible MBAP header, buffering the octets that may still begin one.
+    bool resync[2] = {false, false};
+    std::string pending[2];
 };
 
 } // namespace zeek::analyzer::modbus

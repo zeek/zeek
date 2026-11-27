@@ -43,7 +43,22 @@ redef record connection += {
 event zeek_init() &priority=5
 	{
 	Log::create_stream(DNP3::LOG, Log::Stream($columns=Info, $ev=log_dnp3, $path="dnp3", $policy=log_policy));
-	Analyzer::register_for_ports(Analyzer::ANALYZER_DNP3_TCP, ports);
+
+	# There is one analyzer per transport: register each port for the one
+	# that matches it.
+	local tcp_ports: set[port] = set();
+	local udp_ports: set[port] = set();
+
+	for ( p in ports )
+		{
+		if ( get_port_transport_proto(p) == udp )
+			add udp_ports[p];
+		else
+			add tcp_ports[p];
+		}
+
+	Analyzer::register_for_ports(Analyzer::ANALYZER_DNP3_TCP, tcp_ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_DNP3_UDP, udp_ports);
 	}
 
 event dnp3_application_request_header(c: connection, is_orig: bool, application_control: count, fc: count)

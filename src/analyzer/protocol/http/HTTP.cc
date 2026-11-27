@@ -8,6 +8,7 @@
 #include <cctype>
 #include <cinttypes>
 #include <cstdlib>
+#include <limits>
 #include <string>
 
 #include "zeek/Event.h"
@@ -262,6 +263,12 @@ void HTTP_Entity::DeliverBodyClear(int len, const char* data, bool trailing_CRLF
     body_length += len;
     if ( trailing_CRLF )
         body_length += 2;
+
+    // All body bytes pass through the top-level entity, including those of
+    // nested MIME entities, so forward them as-is for full body analysis.
+    // Line-delivered bodies are forwarded by HTTP_BodyTap instead.
+    if ( Depth() == 0 && BifConst::HTTP::enable_full_body_file_analysis )
+        http_message->FullBodyDataIn(len, data);
 
     if ( deliver_body )
         analyzer::mime::MIME_Entity::Deliver(len, data, trailing_CRLF);
@@ -717,6 +724,33 @@ void HTTP_Entity::SubmitAllHeaders() {
             else
                 EndOfData(); // handle the case that content-length = 0
         }
+
+        // As below, a request without a length has no body. Otherwise the
+        // tap would copy, e.g., a CONNECT or Upgrade request's tunneled data.
+        bool chunked = chunked_transfer_state != NON_CHUNKED_TRANSFER;
+        if ( Depth() == 0 && content_length != 0 &&
+             (content_length > 0 || chunked || expect_body == HTTP_BODY_EXPECTED) ) {
+            // Decompress like DeliverBody() does. Without libbrotlidec,
+            // Instantiate() returns nullptr and the body stays compressed,
+            // as it does for HTTP.
+            auto make_decoder = [this]() -> std::unique_ptr<analyzer::tcp::TCP_SupportAnalyzer> {
+                auto* conn = http_message->MyHTTP_Analyzer()->Conn();
+                bool orig = http_message->IsOrig();
+                if ( encoding == GZIP || encoding == DEFLATE )
+                    return std::make_unique<analyzer::zip::ZIP_Analyzer>(conn, BifConst::HTTP::max_uncompressed_size,
+                                                                         orig,
+                                                                         encoding == GZIP ?
+                                                                             analyzer::zip::ZIP_Analyzer::GZIP :
+                                                                             analyzer::zip::ZIP_Analyzer::DEFLATE);
+                if ( encoding == BROTLI )
+                    return analyzer::brotli::Brotli_Analyzer::Instantiate(conn, orig,
+                                                                          BifConst::HTTP::max_uncompressed_size,
+                                                                          BifConst::HTTP::max_brotli_decoder_memory);
+                return nullptr;
+            };
+
+            http_message->StartFullBodyTap(content_length, make_decoder, chunked);
+        }
     }
 
     else if ( chunked_transfer_state != NON_CHUNKED_TRANSFER )
@@ -749,6 +783,8 @@ void HTTP_Entity::SubmitAllHeaders() {
         if ( expect_body != HTTP_BODY_EXPECTED )
             // there is no body
             EndOfData();
+        else if ( Depth() == 0 )
+            http_message->StartFullBodyTap(-1, {});
     }
 }
 
@@ -771,6 +807,10 @@ HTTP_Message::HTTP_Message(HTTP_Analyzer* arg_analyzer, analyzer::tcp::ContentLi
 }
 
 HTTP_Message::~HTTP_Message() {
+    // A message replaced before it's done must not leave its file open.
+    if ( ! full_body_fuid.empty() )
+        file_mgr->EndOfFile(full_body_fuid);
+
     delete top_level;
     delete[] entity_data_buffer;
 }
@@ -807,6 +847,14 @@ void HTTP_Message::Done(bool interrupted, const char* detail) {
             file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(), MyHTTP_Analyzer()->Conn(), is_orig);
     }
 
+    if ( ! full_body_fuid.empty() ) {
+        file_mgr->EndOfFile(full_body_fuid);
+        full_body_fuid.clear();
+    }
+
+    if ( auto* tap = analyzer->BodyTap(is_orig) )
+        tap->Stop();
+
     if ( http_message_done )
         GetAnalyzer()->EnqueueConnEvent(http_message_done, analyzer->ConnVal(), val_mgr->Bool(is_orig),
                                         BuildMessageStat(interrupted, detail));
@@ -819,6 +867,14 @@ bool HTTP_Message::Undelivered(int64_t len) {
 
     if ( e && e->Undelivered(len) ) {
         content_gap_length += len;
+
+        if ( ! full_body_fuid.empty() ) {
+            auto* a = MyHTTP_Analyzer();
+            full_body_fuid =
+                file_mgr->Gap(full_body_offset, len, a->GetAnalyzerTag(), a->Conn(), is_orig, full_body_fuid);
+            full_body_offset += len;
+        }
+
         return true;
     }
 
@@ -865,6 +921,298 @@ void HTTP_Message::EndEntity(analyzer::mime::MIME_Entity* entity) {
         else
             file_mgr->EndOfFile(MyHTTP_Analyzer()->GetAnalyzerTag(), MyHTTP_Analyzer()->Conn(), is_orig);
     }
+}
+
+const std::string& HTTP_Message::FullBodyFileID() {
+    if ( ! full_body_started ) {
+        full_body_started = true;
+
+        // Derive the ID from the top-level entity's file handle so that
+        // Files::disable and HTTP::get_file_handle apply, while keeping the
+        // full body and the top-level entity in separate files. Handles may
+        // be shared across messages and connections, e.g. for range requests,
+        // and a connection may carry more than one HTTP analyzer, e.g. inside
+        // a CONNECT tunnel. A process-wide counter and the connection's UID
+        // keep each body in its own file.
+        static uint64_t num_full_body_files = 0;
+        auto* a = MyHTTP_Analyzer();
+        if ( auto id = file_mgr->GetFileID(a->GetAnalyzerTag(), a->Conn(), is_orig); ! id.empty() )
+            full_body_fuid = file_mgr->HashHandle(id + "full-body" + std::to_string(++num_full_body_files) +
+                                                  a->Conn()->GetUID().Base62("C"));
+    }
+
+    return full_body_fuid;
+}
+
+void HTTP_Message::FullBodyDataIn(int len, const char* data) {
+    if ( FullBodyFileID().empty() )
+        return;
+
+    // An empty return means the file was ignored or is complete.
+    auto* a = MyHTTP_Analyzer();
+    full_body_fuid = file_mgr->DataIn(reinterpret_cast<const u_char*>(data), len, a->GetAnalyzerTag(), a->Conn(),
+                                      is_orig, full_body_fuid);
+    full_body_offset += len;
+}
+
+void HTTP_Message::StartFullBodyTap(int64_t length, const HTTP_DecoderFactory& make_decoder, bool chunked) {
+    auto* tap = analyzer->BodyTap(is_orig);
+    if ( ! tap )
+        return;
+
+    // A successful CONNECT reply has no body: the tunnel follows its headers.
+    if ( ! is_orig && analyzer->IsConnectTunnelReply() )
+        return;
+
+    // The tap owns the file from here on.
+    tap->Start(FullBodyFileID(), length, content_line, make_decoder, chunked);
+    full_body_fuid.clear();
+}
+
+class HTTP_BodyTap::DecompressedOutput : public analyzer::OutputHandler {
+public:
+    explicit DecompressedOutput(HTTP_BodyTap* t) : tap(t) {}
+    void DeliverStream(int len, const u_char* data, bool orig) override { tap->FileDataIn(len, data); }
+
+private:
+    HTTP_BodyTap* tap;
+};
+
+void HTTP_BodyTap::Start(const std::string& arg_fuid, int64_t length, analyzer::tcp::ContentLine_Analyzer* cl,
+                         const HTTP_DecoderFactory& make_decoder, bool chunked) {
+    Finish();
+
+    if ( arg_fuid.empty() || length == 0 )
+        return;
+
+    if ( make_decoder )
+        decoder = make_decoder();
+    if ( decoder )
+        decoder->SetOutputHandler(new DecompressedOutput(this));
+
+    content_line = cl;
+    offset = 0;
+    remaining = length > 0 ? length : -1;
+    dechunking = chunked ? Dechunking::Size : Dechunking::Off;
+    te_chunk_left = 0;
+    te_size_digits = 0;
+    te_line_done = false;
+    te_bad_size = false;
+    flushed = Position();
+
+    // ContentLine swallows an LF following a CR that ended the previous chunk.
+    skip_lf = chunk && flushed == chunk_len && chunk_len > 0 && chunk[chunk_len - 1] == '\r';
+
+    // Create the file now, so that it's seen before the files of nested entities.
+    fuid = file_mgr->DataIn(reinterpret_cast<const u_char*>(""), 0, 0, GetAnalyzerTag(), Conn(), IsOrig(), arg_fuid);
+
+    // With a known length, the rest of the chunk can be forwarded right away.
+    if ( remaining > 0 )
+        Flush(chunk_len);
+}
+
+void HTTP_BodyTap::Stop() {
+    if ( fuid.empty() || remaining >= 0 )
+        return; // a body with known length ends by itself
+
+    Flush(Position());
+    Finish();
+}
+
+void HTTP_BodyTap::Done() {
+    Finish();
+    analyzer::tcp::TCP_SupportAnalyzer::Done();
+}
+
+void HTTP_BodyTap::DeliverStream(int len, const u_char* data, bool orig) {
+    chunk = data;
+    chunk_len = len;
+    flushed = 0;
+
+    if ( skip_lf ) {
+        skip_lf = false;
+        if ( len > 0 && data[0] == '\n' )
+            flushed = 1;
+    }
+
+    // Forward a body of known length before HTTP parses it, so that the
+    // file sees its data before the message ends.
+    if ( remaining > 0 )
+        Flush(len);
+
+    ForwardStream(len, data, orig);
+    Flush(len);
+
+    chunk = nullptr;
+    chunk_len = 0;
+}
+
+void HTTP_BodyTap::Undelivered(uint64_t seq, int len, bool orig) {
+    if ( ! fuid.empty() ) {
+        int64_t n = remaining >= 0 ? std::min<int64_t>(len, remaining) : len;
+
+        if ( decoder || dechunking != Dechunking::Off )
+            // Neither decompression nor chunk framing can continue past a
+            // gap. How many decoded bytes are missing is unknown, but
+            // reporting the gap shows that the file is incomplete.
+            Finish(n);
+        else {
+            file_mgr->Gap(offset, n, GetAnalyzerTag(), Conn(), IsOrig(), fuid);
+            offset += n;
+
+            if ( remaining >= 0 ) {
+                remaining -= n;
+                if ( remaining == 0 )
+                    Finish();
+            }
+        }
+    }
+
+    ForwardUndelivered(seq, len, orig);
+}
+
+int HTTP_BodyTap::Position() const {
+    // ContentLine reports how much of the chunk follows the delivered line.
+    return chunk ? chunk_len - content_line->GetDeliverStreamRemainingLength() : 0;
+}
+
+void HTTP_BodyTap::Flush(int upto) {
+    if ( fuid.empty() || ! chunk || upto <= flushed )
+        return;
+
+    int64_t n = upto - flushed;
+    if ( remaining >= 0 )
+        n = std::min(n, remaining);
+
+    const u_char* data = chunk + flushed;
+    flushed = upto;
+
+    if ( dechunking != Dechunking::Off )
+        Dechunk(static_cast<int>(n), data);
+    else
+        Decode(static_cast<int>(n), data);
+
+    if ( remaining >= 0 ) {
+        remaining -= n;
+        if ( remaining == 0 )
+            Finish();
+    }
+}
+
+void HTTP_BodyTap::Dechunk(int len, const u_char* data) {
+    // Mirrors HTTP_Entity's chunked delivery: a hex size line, that many
+    // bytes, the line ending them, and after the last chunk the trailer
+    // up to an empty line. An extension, whitespace or CR after the size
+    // is ignored.
+    for ( int i = 0; i < len && ! fuid.empty(); ) {
+        u_char c = data[i];
+
+        switch ( dechunking ) {
+            case Dechunking::Off:
+                // Decoding was given up after a malformed size line.
+                Decode(len - i, data + i);
+                return;
+
+            case Dechunking::Data: {
+                auto n = static_cast<int>(std::min<int64_t>(len - i, te_chunk_left));
+                Decode(n, data + i);
+                i += n;
+                te_chunk_left -= n;
+                if ( te_chunk_left == 0 )
+                    dechunking = Dechunking::DataEnd;
+                continue;
+            }
+
+            case Dechunking::Size:
+                if ( c == '\n' ) {
+                    if ( te_bad_size || te_size_digits == 0 ) {
+                        // A client may still accept the size, e.g. with leading
+                        // whitespace, so forward the rest as-is, not hide it.
+                        dechunking = Dechunking::Off;
+                        ++i;
+                        continue;
+                    }
+
+                    dechunking = te_chunk_left == 0 ? Dechunking::Trailer : Dechunking::Data;
+                    te_line_done = false;
+                }
+                else if ( te_line_done )
+                    ; // after the size
+                else if ( std::isxdigit(c) ) {
+                    // A size that doesn't fit an int64_t is bad. Leading zeros are fine.
+                    ++te_size_digits;
+                    if ( te_chunk_left > std::numeric_limits<int64_t>::max() / 16 ) {
+                        te_bad_size = true;
+                        te_line_done = true;
+                    }
+                    else
+                        te_chunk_left = te_chunk_left * 16 + util::decode_hex(static_cast<char>(c));
+                }
+                else {
+                    te_line_done = true;
+                    if ( te_size_digits == 0 || (c != ';' && c != ' ' && c != '\t' && c != '\r') )
+                        te_bad_size = true;
+                }
+                break;
+
+            case Dechunking::DataEnd:
+                if ( c == '\n' ) {
+                    dechunking = Dechunking::Size;
+                    te_chunk_left = 0;
+                    te_size_digits = 0;
+                    te_line_done = false;
+                    te_bad_size = false;
+                }
+                break;
+
+            case Dechunking::Trailer:
+                if ( c == '\n' ) {
+                    if ( ! te_line_done ) {
+                        Finish();
+                        return;
+                    }
+                    te_line_done = false;
+                }
+                else if ( c != '\r' )
+                    te_line_done = true; // a trailer field
+                break;
+        }
+
+        ++i;
+    }
+}
+
+void HTTP_BodyTap::Decode(int len, const u_char* data) {
+    if ( decoder )
+        decoder->NextStream(len, data, IsOrig());
+    else
+        FileDataIn(len, data);
+}
+
+void HTTP_BodyTap::FileDataIn(int len, const u_char* data) {
+    if ( fuid.empty() )
+        return;
+
+    fuid = file_mgr->DataIn(data, len, offset, GetAnalyzerTag(), Conn(), IsOrig(), fuid);
+    offset += len;
+}
+
+void HTTP_BodyTap::Finish(uint64_t missing) {
+    if ( decoder ) {
+        // Flushes what's left of the decompressed data.
+        decoder->Done();
+        decoder.reset();
+    }
+
+    if ( ! fuid.empty() ) {
+        if ( missing > 0 )
+            file_mgr->Gap(offset, missing, GetAnalyzerTag(), Conn(), IsOrig(), fuid);
+
+        file_mgr->EndOfFile(fuid);
+    }
+
+    fuid.clear();
+    skip_lf = false;
 }
 
 void HTTP_Message::SubmitHeader(analyzer::mime::MIME_Header* h) { MyHTTP_Analyzer()->HTTP_Header(is_orig, h); }
@@ -963,6 +1311,14 @@ HTTP_Analyzer::HTTP_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationA
     upgraded = false;
     upgrade_connection = false;
     upgrade_protocol.clear();
+
+    // The taps must see the stream before ContentLine splits it into lines.
+    if ( BifConst::HTTP::enable_full_body_file_analysis ) {
+        body_tap_orig = new HTTP_BodyTap(conn, true);
+        AddSupportAnalyzer(body_tap_orig);
+        body_tap_resp = new HTTP_BodyTap(conn, false);
+        AddSupportAnalyzer(body_tap_resp);
+    }
 
     content_line_orig = new analyzer::tcp::ContentLine_Analyzer(conn, true);
     AddSupportAnalyzer(content_line_orig);
@@ -1229,9 +1585,12 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig) {
                         RemoveSupportAnalyzer(content_line_resp);
                     }
 
-                    else
-                        // AddChildAnalyzer() will have deleted PIA.
+                    else {
+                        // AddChildAnalyzer() will have deleted PIA. No tunnel
+                        // follows, so later replies are normal messages again.
                         pia = nullptr;
+                        connect_request = false;
+                    }
                 }
 
                 break;
@@ -1306,6 +1665,7 @@ void HTTP_Analyzer::FlipRoles() {
     bool skip_partial_orig = content_line_orig->SkipPartial();
     bool skip_partial_resp = content_line_resp->SkipPartial();
     std::swap(content_line_orig, content_line_resp);
+    std::swap(body_tap_orig, body_tap_resp);
     content_line_orig->SetSkipPartial(skip_partial_orig);
     content_line_resp->SetSkipPartial(skip_partial_resp);
 }

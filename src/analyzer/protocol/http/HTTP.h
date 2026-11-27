@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <queue>
 #include <string>
@@ -29,6 +30,10 @@ enum CHUNKED_TRANSFER_STATE : uint8_t {
 
 class HTTP_Entity;
 class HTTP_Message;
+
+// Creates the analyzer that decompresses a body for HTTP_BodyTap, or returns
+// nullptr if there's nothing to decompress.
+using HTTP_DecoderFactory = std::function<std::unique_ptr<analyzer::tcp::TCP_SupportAnalyzer>()>;
 class HTTP_Analyzer;
 
 class HTTP_Entity final : public analyzer::mime::MIME_Entity {
@@ -133,6 +138,10 @@ public:
     void Weird(const char* msg);
     bool IsOrig() { return is_orig; }
 
+    // Support for HTTP::enable_full_body_file_analysis.
+    void FullBodyDataIn(int len, const char* data);
+    void StartFullBodyTap(int64_t length, const HTTP_DecoderFactory& make_decoder, bool chunked = false);
+
 protected:
     HTTP_Analyzer* analyzer;
     analyzer::tcp::ContentLine_Analyzer* content_line;
@@ -149,9 +158,72 @@ protected:
     // Note: this might NOT include all content gaps!
     int64_t content_gap_length;
 
+    std::string full_body_fuid; // fuid of the full body file, if any
+    uint64_t full_body_offset = 0;
+    bool full_body_started = false;
+
+    const std::string& FullBodyFileID();
+
     HTTP_Entity* current_entity;
 
     RecordValPtr BuildMessageStat(bool interrupted, const char* msg);
+};
+
+// Sees the raw stream before ContentLine_Analyzer splits it into lines and
+// forwards a line-delivered body to file analysis as-is.
+class HTTP_BodyTap final : public analyzer::tcp::TCP_SupportAnalyzer {
+public:
+    // Part of the HTTP analyzer, so it uses its tag.
+    HTTP_BodyTap(Connection* conn, bool orig) : analyzer::tcp::TCP_SupportAnalyzer("HTTP", conn, orig) {}
+
+    // Called while the line ending the headers is delivered. A negative
+    // length means the body ends with Stop() or, if chunked, with its last
+    // chunk. Chunked transfer coding is removed first, then a content coding
+    // is decompressed by the ZIP or Brotli analyzer that make_decoder
+    // returns, before the body reaches the file. make_decoder is only called
+    // if the body is forwarded, so no decoder is created for nothing.
+    void Start(const std::string& fuid, int64_t length, analyzer::tcp::ContentLine_Analyzer* cl,
+               const HTTP_DecoderFactory& make_decoder, bool chunked);
+
+    // Ends a body of unknown length after the line just delivered.
+    void Stop();
+
+    void Done() override;
+
+protected:
+    void DeliverStream(int len, const u_char* data, bool orig) override;
+    void Undelivered(uint64_t seq, int len, bool orig) override;
+
+private:
+    class DecompressedOutput;
+
+    int Position() const;
+    void Flush(int upto);
+    // Ends the file, after a gap of the given length if not 0.
+    void Finish(uint64_t missing = 0);
+    void Dechunk(int len, const u_char* data);
+    void Decode(int len, const u_char* data);
+    void FileDataIn(int len, const u_char* data);
+
+    analyzer::tcp::ContentLine_Analyzer* content_line = nullptr;
+    std::string fuid;
+    uint64_t offset = 0;
+    int64_t remaining = -1;                                      // bytes left of the body, -1 if unknown
+    std::unique_ptr<analyzer::tcp::TCP_SupportAnalyzer> decoder; // ZIP or Brotli, if compressed
+    bool skip_lf = false;                                        // body started after a CR that ended a chunk
+
+    // Where the tap is in a body with chunked transfer coding.
+    enum class Dechunking : uint8_t { Off, Size, Data, DataEnd, Trailer };
+    Dechunking dechunking = Dechunking::Off;
+    int64_t te_chunk_left = 0; // size, then bytes left, of the transfer chunk
+    int te_size_digits = 0;
+    bool te_line_done = false; // rest of the line is ignored
+    bool te_bad_size = false;  // the size line is malformed
+
+    // The chunk currently being forwarded and how much of it was handled.
+    const u_char* chunk = nullptr;
+    int chunk_len = 0;
+    int flushed = 0;
 };
 
 class HTTP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
@@ -165,6 +237,11 @@ public:
     void HTTP_Event(const char* category, StringValPtr detail);
 
     void SkipEntityData(bool is_orig);
+
+    HTTP_BodyTap* BodyTap(bool is_orig) const { return is_orig ? body_tap_orig : body_tap_resp; }
+
+    // True while the reply to a CONNECT request switches to a tunnel.
+    bool IsConnectTunnelReply() const { return connect_request; }
 
     bool IsConnectionClose() { return connection_close; }
     int HTTP_ReplyCode() const { return reply_code; };
@@ -275,6 +352,8 @@ protected:
 
     analyzer::tcp::ContentLine_Analyzer* content_line_orig;
     analyzer::tcp::ContentLine_Analyzer* content_line_resp;
+    HTTP_BodyTap* body_tap_orig = nullptr;
+    HTTP_BodyTap* body_tap_resp = nullptr;
 
     HTTP_Message* request_message;
     HTTP_Message* reply_message;

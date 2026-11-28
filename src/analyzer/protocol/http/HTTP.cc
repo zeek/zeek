@@ -204,6 +204,11 @@ void HTTP_Entity::DeliverBody(int len, const char* data, bool trailing_CRLF) {
             encoding == GZIP ? analyzer::zip::ZIP_Analyzer::GZIP : analyzer::zip::ZIP_Analyzer::DEFLATE;
 
         if ( ! zip ) {
+            if ( ! analyzer_mgr->Lookup("ZIP", false)->Enabled() ) {
+                encoding = IDENTITY;
+                DeliverBodyClear(len, data, trailing_CRLF);
+                return;
+            }
             // We don't care about the direction here.
             zip = std::make_unique<analyzer::zip::ZIP_Analyzer>(http_message->MyHTTP_Analyzer()->Conn(),
                                                                 BifConst::HTTP::max_uncompressed_size, false, method);
